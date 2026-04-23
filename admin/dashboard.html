@@ -113,8 +113,59 @@
     .creator-dot.tersedia { background: #34d399; }
     .creator-dot.sibuk { background: #fbbf24; }
 
+    /* Laporan */
+    .laporan-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px;
+    }
+    .month-select {
+      padding: 8px 14px; border-radius: 8px;
+      border: 1px solid #2a2840; background: #12111e;
+      font-size: 13px; color: #e2e0f0; outline: none; cursor: pointer;
+    }
+    .month-select:focus { border-color: #4f46e5; }
+    .laporan-stats {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 14px; margin-bottom: 24px;
+    }
+    .lap-stat {
+      background: #1a1928; border-radius: 14px;
+      padding: 18px 20px; border: 1px solid #2a2840;
+    }
+    .lap-stat .val { font-size: 26px; font-weight: 800; }
+    .lap-stat .lbl { font-size: 12px; color: #6b7280; margin-top: 4px; }
+    .lap-stat.ls1 .val { color: #34d399; }
+    .lap-stat.ls2 .val { color: #60a5fa; }
+    .lap-stat.ls3 .val { color: #f59e0b; }
+
+    .creator-report-card {
+      background: #1a1928; border-radius: 14px;
+      border: 1px solid #2a2840; margin-bottom: 14px;
+      overflow: hidden;
+    }
+    .crc-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 20px; border-bottom: 1px solid #2a2840;
+    }
+    .crc-name { font-size: 15px; font-weight: 700; color: #fff; }
+    .crc-summary { display: flex; gap: 20px; }
+    .crc-stat { text-align: right; }
+    .crc-stat .cv { font-size: 18px; font-weight: 800; color: #a78bfa; }
+    .crc-stat .cl { font-size: 11px; color: #6b7280; margin-top: 2px; }
+    .crc-stat.green .cv { color: #34d399; }
+    .crc-breakdown { padding: 14px 20px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .breakdown-tag {
+      padding: 4px 12px; border-radius: 99px;
+      font-size: 12px; font-weight: 600;
+      background: #12111e; color: #9ca3af;
+      border: 1px solid #2a2840;
+    }
+    .breakdown-tag span { color: #fff; margin-left: 4px; }
+    .no-data { text-align: center; color: #4a4870; padding: 40px; font-size: 14px; }
+
     @media (max-width: 640px) {
       .stats { grid-template-columns: repeat(2, 1fr); }
+      .laporan-stats { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
@@ -137,6 +188,7 @@
     <div class="tabs">
       <button class="tab-btn active" id="tabOrders" onclick="switchTab('orders')">Semua Order</button>
       <button class="tab-btn" id="tabCreators" onclick="switchTab('creators')">Creator</button>
+      <button class="tab-btn" id="tabLaporan" onclick="switchTab('laporan')">Laporan Bulanan</button>
     </div>
 
     <!-- Orders Tab -->
@@ -162,6 +214,20 @@
           </tbody>
         </table>
       </div>
+    </div>
+
+    <!-- Laporan Tab -->
+    <div id="laporanTab" style="display:none">
+      <div class="laporan-header">
+        <h3 style="font-size:15px;font-weight:700;color:#fff">Rekap per Creator</h3>
+        <select class="month-select" id="monthSelect" onchange="loadLaporan()"></select>
+      </div>
+      <div class="laporan-stats">
+        <div class="lap-stat ls1"><div class="val" id="lsDone">—</div><div class="lbl">Order Selesai</div></div>
+        <div class="lap-stat ls2"><div class="val" id="lsKonten">—</div><div class="lbl">Total Konten Dibuat</div></div>
+        <div class="lap-stat ls3"><div class="val" id="lsCreator">—</div><div class="lbl">Creator Aktif</div></div>
+      </div>
+      <div id="laporanBody"></div>
     </div>
 
     <!-- Creators Tab -->
@@ -207,6 +273,7 @@
 
       await loadCreators();
       await loadOrders();
+      initMonthSelect();
     }
 
     async function loadOrders() {
@@ -355,8 +422,96 @@
     window.switchTab = function (tab) {
       document.getElementById('ordersTab').style.display = tab === 'orders' ? 'block' : 'none';
       document.getElementById('creatorsTab').style.display = tab === 'creators' ? 'block' : 'none';
+      document.getElementById('laporanTab').style.display = tab === 'laporan' ? 'block' : 'none';
       document.getElementById('tabOrders').className = 'tab-btn' + (tab === 'orders' ? ' active' : '');
       document.getElementById('tabCreators').className = 'tab-btn' + (tab === 'creators' ? ' active' : '');
+      document.getElementById('tabLaporan').className = 'tab-btn' + (tab === 'laporan' ? ' active' : '');
+      if (tab === 'laporan') loadLaporan();
+    };
+
+    function initMonthSelect() {
+      const select = document.getElementById('monthSelect');
+      const now = new Date();
+      const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+      for (let i = 0; i < 12; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+        const lbl = `${months[d.getMonth()]} ${d.getFullYear()}`;
+        const opt = new Option(lbl, val);
+        if (i === 0) opt.selected = true;
+        select.appendChild(opt);
+      }
+    }
+
+    window.loadLaporan = async function () {
+      const val = document.getElementById('monthSelect').value;
+      const [year, month] = val.split('-');
+      const from = `${year}-${month}-01`;
+      const lastDay = new Date(year, month, 0).getDate();
+      const to = `${year}-${month}-${lastDay}`;
+
+      const { data: orders } = await supabase
+        .from('orders')
+        .select('*, creators(name)')
+        .eq('status', 'done')
+        .gte('deadline', from)
+        .lte('deadline', to);
+
+      const done = orders || [];
+
+      // Summary stats
+      const totalKonten = done.reduce((sum, o) => sum + (o.jumlah_konten || 1), 0);
+      const creatorSet = new Set(done.map(o => o.creator_id).filter(Boolean));
+      document.getElementById('lsDone').textContent = done.length;
+      document.getElementById('lsKonten').textContent = totalKonten;
+      document.getElementById('lsCreator').textContent = creatorSet.size;
+
+      // Group by creator
+      const byCreator = {};
+      done.forEach(o => {
+        const name = o.creators?.name || 'Unknown';
+        const id = o.creator_id || 'unknown';
+        if (!byCreator[id]) byCreator[id] = { name, orders: [] };
+        byCreator[id].orders.push(o);
+      });
+
+      const body = document.getElementById('laporanBody');
+      if (!Object.keys(byCreator).length) {
+        body.innerHTML = '<div class="no-data">Tidak ada order selesai di bulan ini.</div>'; return;
+      }
+
+      body.innerHTML = Object.values(byCreator).map(c => {
+        const totalOrder = c.orders.length;
+        const totalKontenC = c.orders.reduce((sum, o) => sum + (o.jumlah_konten || 1), 0);
+
+        // Breakdown per jenis konten
+        const byType = {};
+        c.orders.forEach(o => {
+          byType[o.content_type] = (byType[o.content_type] || 0) + (o.jumlah_konten || 1);
+        });
+        const tags = Object.entries(byType).map(([type, jumlah]) =>
+          `<div class="breakdown-tag">${type} <span>${jumlah}</span></div>`
+        ).join('');
+
+        return `
+          <div class="creator-report-card">
+            <div class="crc-header">
+              <div class="crc-name">${c.name}</div>
+              <div class="crc-summary">
+                <div class="crc-stat">
+                  <div class="cv">${totalOrder}</div>
+                  <div class="cl">Order Selesai</div>
+                </div>
+                <div class="crc-stat green">
+                  <div class="cv">${totalKontenC}</div>
+                  <div class="cl">Total Konten</div>
+                </div>
+              </div>
+            </div>
+            <div class="crc-breakdown">${tags}</div>
+          </div>
+        `;
+      }).join('');
     };
 
     window.doLogout = async function () {

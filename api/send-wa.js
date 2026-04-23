@@ -21,14 +21,23 @@ export default async function handler(req, res) {
 async function generateMessage(type, data) {
   const prompts = {
     creator_assigned: `Kamu adalah asisten notifikasi WhatsApp untuk platform content creator bernama Adsy.
-Tulis pesan WhatsApp singkat, hangat, dan menyemangati untuk content creator bernama "${data.creator_name}" yang baru saja mendapat tugas baru.
-Detail tugas:
-- Brand: ${data.brand}
-- Jenis konten: ${data.content_type}
-${data.platform ? `- Platform: ${data.platform}` : ''}
+Tulis pesan WhatsApp untuk content creator bernama "${data.creator_name}" yang baru dapat tugas baru.
+
+WAJIB cantumkan semua info berikut dalam pesan:
+- Dari advertiser: ${data.advertiser_name}
+- Brand/Produk: ${data.brand}
+- Yang harus dibuat: ${data.content_type}${data.platform ? ` untuk ${data.platform}` : ''}
 ${data.deadline ? `- Deadline: ${data.deadline}` : ''}
-${data.brief ? `- Brief: ${data.brief}` : ''}
-Pesan harus: singkat (max 5 baris), pakai bahasa Indonesia santai, menyemangati, ada info tugas penting, dan minta creator cek dashboard.`,
+${data.brief ? `- Brief tugas: ${data.brief}` : ''}
+
+Format pesan:
+1. Sapa nama creator dengan semangat
+2. Kasih tau ada tugas baru dari advertiser siapa
+3. Jelaskan detail tugasnya (brand, jenis konten, platform, deadline)
+4. Tampilkan brief tugasnya dengan jelas
+5. Minta cek dashboard untuk mulai
+
+Gaya: santai, semangat, pakai bahasa Indonesia. Maksimal 10 baris.`,
 
     order_assigned: `Kamu adalah asisten notifikasi WhatsApp untuk platform content creator bernama Adsy.
 Tulis pesan WhatsApp singkat dan menggembirakan untuk advertiser bernama "${data.advertiser_name}" bahwa creator sudah ditemukan untuk order mereka.

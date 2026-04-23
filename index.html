@@ -10,10 +10,37 @@
       font-family: 'Segoe UI', sans-serif;
       background: #f4f6fb;
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
+    }
+    /* Navbar */
+    nav {
+      background: #fff;
+      padding: 14px 24px;
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      position: sticky; top: 0; z-index: 10;
+    }
+    .nav-logo { font-size: 20px; font-weight: 700; color: #4f46e5; text-decoration: none; }
+    .nav-right { display: flex; align-items: center; gap: 10px; }
+    .nav-user { font-size: 14px; color: #374151; font-weight: 500; }
+    .nav-btn {
+      padding: 8px 16px; border-radius: 7px;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; text-decoration: none;
+      transition: all 0.2s; border: none;
+    }
+    .nav-btn.outline {
+      border: 1.5px solid #4f46e5; color: #4f46e5; background: #fff;
+    }
+    .nav-btn.outline:hover { background: #f0f0ff; }
+    .nav-btn.solid { background: #4f46e5; color: #fff; }
+    .nav-btn.solid:hover { background: #4338ca; }
+    .nav-btn.ghost { background: none; color: #6b7280; }
+    .nav-btn.ghost:hover { color: #dc2626; }
+
+    /* Main */
+    .page {
+      display: flex; align-items: center; justify-content: center;
+      padding: 40px 24px; min-height: calc(100vh - 53px);
     }
     .card {
       background: #fff;
@@ -22,12 +49,6 @@
       width: 100%;
       max-width: 520px;
       box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-    }
-    .logo {
-      font-size: 22px;
-      font-weight: 700;
-      color: #4f46e5;
-      margin-bottom: 8px;
     }
     h1 {
       font-size: 20px;
@@ -109,8 +130,16 @@
   </style>
 </head>
 <body>
+  <!-- Navbar -->
+  <nav>
+    <a class="nav-logo" href="index.html">Adsy</a>
+    <div class="nav-right" id="navRight">
+      <!-- diisi JS -->
+    </div>
+  </nav>
+
+  <div class="page">
   <div class="card">
-    <div class="logo">Adsy</div>
     <h1>Request Content Creator</h1>
     <p class="sub">Isi form di bawah, kami akan assign creator secepatnya.</p>
 
@@ -162,9 +191,8 @@
       <a href="track.html" style="color:#4f46e5; font-weight:600; font-size:14px;">Cek status ordermu →</a>
     </div>
 
-    <p class="track-link">
-      Sudah punya order? <a href="track.html">Cek status di sini</a>
-    </p>
+    <p class="track-link" id="trackLink"></p>
+  </div>
   </div>
 
   <script type="module">
@@ -174,6 +202,37 @@
     const SUPABASE_ANON_KEY = 'GANTI_SUPABASE_ANON_KEY';
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    supabase.auth.getSession().then(({ data }) => {
+      const navRight = document.getElementById('navRight');
+      const trackLink = document.getElementById('trackLink');
+
+      if (data.session) {
+        const meta = data.session.user.user_metadata;
+        // Prefill form
+        if (meta?.name) document.getElementById('advertiser_name').value = meta.name;
+        if (meta?.wa_number) document.getElementById('wa_number').value = meta.wa_number;
+        // Navbar: sudah login
+        navRight.innerHTML = `
+          <span class="nav-user">Hi, ${meta?.name || 'Advertiser'}</span>
+          <a href="advertiser/dashboard.html" class="nav-btn solid">My Orders</a>
+          <button class="nav-btn ghost" onclick="doLogout()">Keluar</button>
+        `;
+        trackLink.innerHTML = '';
+      } else {
+        // Navbar: belum login
+        navRight.innerHTML = `
+          <a href="advertiser/login.html?tab=login" class="nav-btn outline">Masuk</a>
+          <a href="advertiser/login.html?tab=register" class="nav-btn solid">Daftar</a>
+        `;
+        trackLink.innerHTML = 'Sudah punya akun? <a href="advertiser/login.html">Login untuk pantau order</a>';
+      }
+    });
+
+    window.doLogout = async function () {
+      await supabase.auth.signOut();
+      window.location.reload();
+    };
+
     document.getElementById('orderForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
@@ -181,6 +240,8 @@
       btn.disabled = true;
       btn.textContent = 'Mengirim...';
       errorMsg.style.display = 'none';
+
+      const { data: { session } } = await supabase.auth.getSession();
 
       const payload = {
         advertiser_name: document.getElementById('advertiser_name').value.trim(),
@@ -190,6 +251,7 @@
         platform: document.getElementById('platform').value.trim(),
         brief: document.getElementById('brief').value.trim(),
         deadline: document.getElementById('deadline').value || null,
+        advertiser_id: session?.user?.id || null,
       };
 
       const { error } = await supabase.functions.invoke('submit-order', { body: payload });
@@ -201,7 +263,16 @@
         btn.textContent = 'Kirim Request';
       } else {
         document.getElementById('orderForm').style.display = 'none';
-        document.getElementById('successBox').style.display = 'block';
+        const successBox = document.getElementById('successBox');
+        successBox.style.display = 'block';
+        if (session) {
+          successBox.innerHTML = `
+            <h3>Request Terkirim!</h3>
+            <p>Kami sedang mencari creator yang tersedia. Kamu akan dihubungi via WhatsApp segera.</p>
+            <br />
+            <a href="advertiser/dashboard.html" style="color:#4f46e5;font-weight:600;font-size:14px;">Pantau progress di dashboard →</a>
+          `;
+        }
       }
     });
   </script>

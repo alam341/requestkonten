@@ -233,7 +233,7 @@
       const { error } = await supabase.from('orders').insert(payload);
 
       if (error) {
-        errorMsg.textContent = 'Gagal mengirim request. Coba lagi.';
+        errorMsg.textContent = 'Error: ' + error.message;
         errorMsg.style.display = 'block';
         btn.disabled = false;
         btn.textContent = 'Kirim Request';

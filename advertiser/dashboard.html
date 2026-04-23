@@ -202,7 +202,8 @@
       if (!session) { window.location.href = 'login.html'; return; }
 
       const meta = session.user.user_metadata;
-      document.getElementById('userName').textContent = meta?.name || session.user.email;
+      const displayName = meta?.team ? `${meta.name} · ${meta.team}` : (meta?.name || session.user.email);
+      document.getElementById('userName').textContent = displayName;
 
       await loadOrders(session.user.id);
     }

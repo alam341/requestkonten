@@ -151,6 +151,10 @@
         <input type="tel" id="regWa" placeholder="08xxxxxxxxxx" />
       </div>
       <div class="field">
+        <label>Tim / Perusahaan</label>
+        <input type="text" id="regTeam" placeholder="Nama tim atau perusahaan" />
+      </div>
+      <div class="field">
         <label>Password</label>
         <input type="password" id="regPassword" placeholder="Min. 8 karakter" />
       </div>
@@ -219,7 +223,7 @@
 
       const { error } = await supabase.auth.signUp({
         email, password,
-        options: { data: { name, wa_number: wa } }
+        options: { data: { name, wa_number: wa, team } }
       });
 
       btn.disabled = false; btn.textContent = 'Buat Akun';

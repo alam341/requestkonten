@@ -46,16 +46,17 @@
     .logout-btn:hover { color: #dc2626; background: #fef2f2; }
 
     /* Main */
-    .main { margin-left: 220px; flex: 1; display: flex; min-height: 100vh; }
+    .main { margin-left: 220px; margin-right: 280px; flex: 1; display: flex; min-height: 100vh; }
     .content { flex: 1; padding: 28px 24px; max-width: 100%; }
 
     /* Right Panel */
     .right-panel {
-      width: 280px; min-height: 100vh;
+      width: 280px;
       background: #fff; padding: 24px 20px;
       box-shadow: -2px 0 12px rgba(80,70,160,0.07);
       display: flex; flex-direction: column; gap: 20px;
-      position: sticky; top: 0; height: 100vh; overflow-y: auto;
+      position: fixed; top: 0; right: 0; bottom: 0;
+      overflow-y: auto;
     }
 
     /* Header */
@@ -546,11 +547,7 @@
       <div>
         <div class="rp-section-title">
           Schedule Calendar
-          <div class="cal-nav">
-            <button onclick="changeWeek(-1)">‹</button>
-            <span class="cal-month-badge" id="calMonthLabel"></span>
-            <button onclick="changeWeek(1)">›</button>
-          </div>
+          <span class="cal-month-badge" id="calMonthLabel"></span>
         </div>
         <div class="week-cal" id="weekCal"></div>
       </div>
@@ -588,7 +585,6 @@
 
     let currentCreator = null;
     let allTasks = [];
-    let calWeekStart;
 
     async function init() {
       const { data: { session } } = await supabase.auth.getSession();
@@ -630,13 +626,6 @@
       document.getElementById('bannerGreet').textContent = `${greet}, ${creator.name}!`;
       document.getElementById('welcomeTitle').textContent = `Halo, ${creator.name}`;
 
-      // Calendar init — mulai dari Senin minggu ini
-      const now = new Date();
-      calWeekStart = new Date(now);
-      const day = now.getDay();
-      const diff = day === 0 ? -6 : 1 - day;
-      calWeekStart.setDate(now.getDate() + diff);
-      calWeekStart.setHours(0,0,0,0);
 
       await loadTasks();
 
@@ -821,21 +810,20 @@
       );
       const today = new Date(); today.setHours(0,0,0,0);
       const monthNames = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
-      const dayNames = ['Sen','Sel','Rab','Kam','Jum','Sab','Min'];
+      const dayNames = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
 
-      // Tampilkan bulan dari hari pertama minggu
-      document.getElementById('calMonthLabel').textContent = `${monthNames[calWeekStart.getMonth()]} ${calWeekStart.getFullYear()}`;
+      document.getElementById('calMonthLabel').textContent = `${monthNames[today.getMonth()]} ${today.getFullYear()}`;
 
       let html = '';
-      for (let i = 0; i < 7; i++) {
-        const d = new Date(calWeekStart);
-        d.setDate(calWeekStart.getDate() + i);
+      for (let i = -2; i <= 2; i++) {
+        const d = new Date(today);
+        d.setDate(today.getDate() + i);
         const dateStr = d.toISOString().split('T')[0];
-        const isToday = d.getTime() === today.getTime();
+        const isToday = i === 0;
         const hasDeadline = deadlineDates.has(dateStr);
         const cls = [isToday ? 'today' : '', hasDeadline ? 'has-deadline' : ''].filter(Boolean).join(' ');
         html += `<div class="week-day ${cls}">
-          <span class="wd-name">${dayNames[i]}</span>
+          <span class="wd-name">${dayNames[d.getDay()]}</span>
           <span class="wd-num">${d.getDate()}</span>
           <span class="week-dot"></span>
         </div>`;
@@ -843,10 +831,6 @@
       document.getElementById('weekCal').innerHTML = html;
     }
 
-    window.changeWeek = function(dir) {
-      calWeekStart.setDate(calWeekStart.getDate() + dir * 7);
-      renderCalendar();
-    };
 
     function updateToggleLabel(isOn) {
       const lbl = document.getElementById('toggleLabel');

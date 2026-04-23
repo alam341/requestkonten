@@ -8,33 +8,31 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #f4f6fb;
+      background: #eae8f5;
       min-height: 100vh;
     }
     /* Navbar */
     nav {
       background: #fff;
-      padding: 14px 24px;
+      padding: 14px 28px;
       display: flex; justify-content: space-between; align-items: center;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      box-shadow: 0 1px 0 #e5e3f5;
       position: sticky; top: 0; z-index: 10;
     }
-    .nav-logo { font-size: 20px; font-weight: 700; color: #4f46e5; text-decoration: none; }
+    .nav-logo { font-size: 20px; font-weight: 800; color: #4f46e5; text-decoration: none; }
     .nav-right { display: flex; align-items: center; gap: 10px; }
     .nav-user { font-size: 14px; color: #374151; font-weight: 500; }
     .nav-btn {
-      padding: 8px 16px; border-radius: 7px;
+      padding: 8px 18px; border-radius: 10px;
       font-size: 13px; font-weight: 600;
       cursor: pointer; text-decoration: none;
       transition: all 0.2s; border: none;
     }
-    .nav-btn.outline {
-      border: 1.5px solid #4f46e5; color: #4f46e5; background: #fff;
-    }
-    .nav-btn.outline:hover { background: #f0f0ff; }
+    .nav-btn.outline { border: 1.5px solid #c7c2f5; color: #4f46e5; background: #f5f4fb; }
+    .nav-btn.outline:hover { background: #eceaf8; }
     .nav-btn.solid { background: #4f46e5; color: #fff; }
     .nav-btn.solid:hover { background: #4338ca; }
-    .nav-btn.ghost { background: none; color: #6b7280; }
+    .nav-btn.ghost { background: none; color: #9ca3af; font-size: 13px; }
     .nav-btn.ghost:hover { color: #dc2626; }
 
     /* Main */
@@ -44,88 +42,61 @@
     }
     .card {
       background: #fff;
-      border-radius: 16px;
+      border-radius: 24px;
       padding: 40px;
-      width: 100%;
-      max-width: 520px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      width: 100%; max-width: 520px;
+      box-shadow: 0 8px 40px rgba(80,70,160,0.10);
     }
-    h1 {
-      font-size: 20px;
-      font-weight: 600;
-      color: #1e1e2e;
-      margin-bottom: 4px;
-    }
-    p.sub {
-      font-size: 14px;
-      color: #6b7280;
-      margin-bottom: 28px;
-    }
-    .field {
-      margin-bottom: 18px;
-    }
+    h1 { font-size: 20px; font-weight: 700; color: #1e1e2e; margin-bottom: 4px; }
+    p.sub { font-size: 14px; color: #9ca3af; margin-bottom: 28px; }
+    .field { margin-bottom: 16px; }
     label {
       display: block;
-      font-size: 13px;
-      font-weight: 500;
-      color: #374151;
-      margin-bottom: 6px;
+      font-size: 11px; font-weight: 700;
+      color: #6b7280; letter-spacing: 0.08em;
+      text-transform: uppercase; margin-bottom: 7px;
     }
     input, select, textarea {
-      width: 100%;
-      padding: 10px 14px;
-      border: 1.5px solid #e5e7eb;
-      border-radius: 8px;
-      font-size: 14px;
-      color: #1e1e2e;
-      background: #fafafa;
-      transition: border 0.2s;
-      outline: none;
+      width: 100%; padding: 13px 16px;
+      border: none; border-radius: 12px;
+      font-size: 14px; color: #1e1e2e;
+      background: #f5f4fb; outline: none;
+      transition: box-shadow 0.2s, background 0.2s;
     }
     input:focus, select:focus, textarea:focus {
-      border-color: #4f46e5;
-      background: #fff;
+      background: #eeecfb;
+      box-shadow: 0 0 0 2px #c7c2f5;
     }
+    input::placeholder, textarea::placeholder { color: #b0adc8; }
+    select { appearance: none; cursor: pointer; }
     textarea { resize: vertical; min-height: 90px; }
     .btn {
-      width: 100%;
-      padding: 12px;
-      background: #4f46e5;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 8px;
-      transition: background 0.2s;
+      width: 100%; padding: 14px;
+      background: #4f46e5; color: #fff;
+      border: none; border-radius: 14px;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer; margin-top: 8px;
+      transition: background 0.2s, transform 0.1s;
     }
     .btn:hover { background: #4338ca; }
-    .btn:disabled { background: #a5b4fc; cursor: not-allowed; }
+    .btn:active { transform: scale(0.99); }
+    .btn:disabled { background: #c4c0f0; cursor: not-allowed; }
     .track-link {
-      text-align: center;
-      margin-top: 16px;
-      font-size: 13px;
-      color: #6b7280;
+      text-align: center; margin-top: 16px;
+      font-size: 12px; color: #b0adc8;
     }
-    .track-link a { color: #4f46e5; text-decoration: none; font-weight: 500; }
-    .track-link a:hover { text-decoration: underline; }
+    .track-link a { color: #4f46e5; text-decoration: none; font-weight: 600; }
     .success-box {
       display: none;
-      background: #f0fdf4;
-      border: 1.5px solid #86efac;
-      border-radius: 10px;
-      padding: 20px;
-      text-align: center;
-      margin-top: 16px;
+      background: #f0fdf4; border: 1.5px solid #86efac;
+      border-radius: 14px; padding: 24px;
+      text-align: center; margin-top: 16px;
     }
     .success-box h3 { color: #16a34a; font-size: 16px; margin-bottom: 6px; }
     .success-box p { color: #166534; font-size: 14px; }
     .error-msg {
-      display: none;
-      color: #dc2626;
-      font-size: 13px;
-      margin-top: 8px;
+      display: none; color: #dc2626;
+      font-size: 13px; margin-top: 8px;
     }
   </style>
 </head>

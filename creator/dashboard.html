@@ -178,27 +178,58 @@
 
     /* Calendar */
     .rp-section-title { font-size: 13px; font-weight: 700; color: #1e1e2e; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-    .cal-nav { display: flex; align-items: center; gap: 8px; }
-    .cal-nav button { background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 14px; padding: 2px 4px; border-radius: 4px; }
+    .cal-nav { display: flex; align-items: center; gap: 6px; }
+    .cal-nav button {
+      background: #f0eef8; border: none; cursor: pointer;
+      color: #9ca3af; font-size: 13px; padding: 3px 8px;
+      border-radius: 6px; line-height: 1;
+    }
     .cal-nav button:hover { color: #4f46e5; background: #ede9fe; }
-    .cal-month { font-size: 12px; font-weight: 600; color: #4f46e5; }
-    .calendar { width: 100%; border-collapse: collapse; }
-    .calendar th { text-align: center; font-size: 10px; font-weight: 700; color: #9ca3af; padding: 4px 0; }
-    .calendar td { text-align: center; font-size: 12px; color: #374151; padding: 4px 2px; border-radius: 6px; cursor: default; }
-    .calendar td.today { background: #4f46e5; color: #fff; border-radius: 6px; font-weight: 700; }
-    .calendar td.has-deadline { background: #fef3c7; color: #d97706; border-radius: 6px; font-weight: 600; }
-    .calendar td.has-deadline.today { background: #f59e0b; color: #fff; }
-    .calendar td.other-month { color: #d1d5db; }
+    .cal-month-badge {
+      font-size: 11px; font-weight: 600; color: #4f46e5;
+      background: #ede9fe; padding: 3px 10px; border-radius: 99px;
+    }
+
+    /* Week Calendar */
+    .week-cal { display: flex; gap: 6px; justify-content: space-between; }
+    .week-day {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      gap: 6px; padding: 8px 4px; border-radius: 12px;
+      cursor: default; transition: all 0.2s;
+    }
+    .week-day .wd-name { font-size: 10px; font-weight: 700; color: #9ca3af; text-transform: uppercase; }
+    .week-day .wd-num {
+      font-size: 15px; font-weight: 700; color: #374151;
+      width: 32px; height: 32px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .week-day.today .wd-name { color: #fff; }
+    .week-day.today .wd-num { background: #4f46e5; color: #fff; border-radius: 10px; }
+    .week-day.today { background: #4f46e5; border-radius: 12px; }
+    .week-day.has-deadline .wd-num { background: #fef3c7; color: #d97706; border-radius: 10px; }
+    .week-day.has-deadline.today .wd-num { background: #f59e0b; color: #fff; }
+    .week-dot { width: 5px; height: 5px; border-radius: 50%; background: transparent; }
+    .week-day.has-deadline .week-dot { background: #f59e0b; }
+    .week-day.today .week-dot { background: rgba(255,255,255,0.5); }
 
     /* Queue */
     .queue-list { display: flex; flex-direction: column; gap: 10px; }
     .queue-item {
-      padding: 12px 14px; background: #fafafa;
-      border-radius: 10px; border-left: 3px solid #4f46e5;
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px; border-radius: 12px;
+      background: #fafafa; transition: background 0.2s;
     }
-    .queue-item .q-brand { font-size: 13px; font-weight: 600; color: #1e1e2e; }
-    .queue-item .q-detail { font-size: 12px; color: #9ca3af; margin-top: 3px; }
-    .queue-item .q-deadline { font-size: 11px; color: #f59e0b; font-weight: 600; margin-top: 4px; }
+    .queue-item:hover { background: #f0eef8; }
+    .q-avatar {
+      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, #6c63ff, #4f46e5);
+      color: #fff; font-size: 15px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .q-info { flex: 1; min-width: 0; }
+    .queue-item .q-brand { font-size: 13px; font-weight: 600; color: #1e1e2e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .queue-item .q-detail { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+    .queue-item .q-deadline { font-size: 11px; color: #f59e0b; font-weight: 600; }
     .queue-empty { font-size: 13px; color: #c4c0f0; text-align: center; padding: 12px 0; }
 
     /* History page */
@@ -514,14 +545,14 @@
       <!-- Calendar -->
       <div>
         <div class="rp-section-title">
-          Schedule
+          Schedule Calendar
           <div class="cal-nav">
-            <button onclick="changeMonth(-1)">‹</button>
-            <span class="cal-month" id="calMonthLabel"></span>
-            <button onclick="changeMonth(1)">›</button>
+            <button onclick="changeWeek(-1)">‹</button>
+            <span class="cal-month-badge" id="calMonthLabel"></span>
+            <button onclick="changeWeek(1)">›</button>
           </div>
         </div>
-        <table class="calendar" id="calTable"></table>
+        <div class="week-cal" id="weekCal"></div>
       </div>
 
       <!-- Antrian Advertiser -->
@@ -557,7 +588,7 @@
 
     let currentCreator = null;
     let allTasks = [];
-    let calYear, calMonth;
+    let calWeekStart;
 
     async function init() {
       const { data: { session } } = await supabase.auth.getSession();
@@ -599,10 +630,13 @@
       document.getElementById('bannerGreet').textContent = `${greet}, ${creator.name}!`;
       document.getElementById('welcomeTitle').textContent = `Halo, ${creator.name}`;
 
-      // Calendar init
+      // Calendar init — mulai dari Senin minggu ini
       const now = new Date();
-      calYear = now.getFullYear();
-      calMonth = now.getMonth();
+      calWeekStart = new Date(now);
+      const day = now.getDay();
+      const diff = day === 0 ? -6 : 1 - day;
+      calWeekStart.setDate(now.getDate() + diff);
+      calWeekStart.setHours(0,0,0,0);
 
       await loadTasks();
 
@@ -766,54 +800,51 @@
       if (!assignedTasks.length) {
         list.innerHTML = '<div class="queue-empty">Tidak ada antrian.</div>'; return;
       }
-      list.innerHTML = assignedTasks.map(o => `
-        <div class="queue-item">
-          <div class="q-brand">${o.brand}</div>
-          <div class="q-detail">${o.advertiser_name} · ${o.content_type}</div>
-          ${o.deadline ? `<div class="q-deadline">Deadline: ${fmtDate(o.deadline)}</div>` : ''}
-        </div>
-      `).join('');
+      const colors = ['#4f46e5','#7c3aed','#0ea5e9','#10b981','#f59e0b','#ef4444'];
+      list.innerHTML = assignedTasks.map((o, i) => {
+        const color = colors[i % colors.length];
+        const initial = o.brand.charAt(0).toUpperCase();
+        return `<div class="queue-item">
+          <div class="q-avatar" style="background:${color}">${initial}</div>
+          <div class="q-info">
+            <div class="q-brand">${o.brand}</div>
+            <div class="q-detail">${o.advertiser_name} · ${o.content_type}</div>
+            ${o.deadline ? `<div class="q-deadline">Deadline: ${fmtDate(o.deadline)}</div>` : ''}
+          </div>
+        </div>`;
+      }).join('');
     }
 
     function renderCalendar() {
       const deadlineDates = new Set(
         allTasks.filter(o => o.deadline && o.status !== 'done').map(o => o.deadline)
       );
-      const today = new Date();
-      const year = calYear, month = calMonth;
+      const today = new Date(); today.setHours(0,0,0,0);
       const monthNames = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
-      document.getElementById('calMonthLabel').textContent = `${monthNames[month]} ${year}`;
+      const dayNames = ['Sen','Sel','Rab','Kam','Jum','Sab','Min'];
 
-      const firstDay = new Date(year, month, 1).getDay();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      const days = ['M','S','R','K','J','S','M'];
+      // Tampilkan bulan dari hari pertama minggu
+      document.getElementById('calMonthLabel').textContent = `${monthNames[calWeekStart.getMonth()]} ${calWeekStart.getFullYear()}`;
 
-      let html = '<tr>' + days.map(d => `<th>${d}</th>`).join('') + '</tr>';
-      let cells = [];
-
-      // Padding awal (Senin = 0)
-      const startPad = (firstDay === 0 ? 6 : firstDay - 1);
-      for (let i = 0; i < startPad; i++) cells.push('<td class="other-month"></td>');
-
-      for (let d = 1; d <= daysInMonth; d++) {
-        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-        const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+      let html = '';
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(calWeekStart);
+        d.setDate(calWeekStart.getDate() + i);
+        const dateStr = d.toISOString().split('T')[0];
+        const isToday = d.getTime() === today.getTime();
         const hasDeadline = deadlineDates.has(dateStr);
         const cls = [isToday ? 'today' : '', hasDeadline ? 'has-deadline' : ''].filter(Boolean).join(' ');
-        cells.push(`<td class="${cls}" title="${hasDeadline ? 'Ada deadline' : ''}">${d}</td>`);
+        html += `<div class="week-day ${cls}">
+          <span class="wd-name">${dayNames[i]}</span>
+          <span class="wd-num">${d.getDate()}</span>
+          <span class="week-dot"></span>
+        </div>`;
       }
-
-      // Bagi jadi baris 7
-      for (let i = 0; i < cells.length; i += 7) {
-        html += '<tr>' + cells.slice(i, i + 7).join('') + '</tr>';
-      }
-      document.getElementById('calTable').innerHTML = html;
+      document.getElementById('weekCal').innerHTML = html;
     }
 
-    window.changeMonth = function(dir) {
-      calMonth += dir;
-      if (calMonth > 11) { calMonth = 0; calYear++; }
-      if (calMonth < 0) { calMonth = 11; calYear--; }
+    window.changeWeek = function(dir) {
+      calWeekStart.setDate(calWeekStart.getDate() + dir * 7);
       renderCalendar();
     };
 

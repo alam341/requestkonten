@@ -294,7 +294,7 @@
           ${order.status !== 'done' ? `
             <div class="task-actions">
               ${order.status === 'assigned' ? `<button class="act-btn start" onclick="updateTaskStatus('${order.id}', 'in_progress')">Mulai Kerjakan</button>` : ''}
-              ${order.status === 'in_progress' ? `<button class="act-btn done" onclick="openDriveModal('${order.id}', '${order.wa_number}', '${order.advertiser_name}')">Tandai Selesai</button>` : ''}
+              ${order.status === 'in_progress' ? `<button class="act-btn done" onclick="openDriveModal('${order.id}', '${order.wa_number}', '${order.advertiser_name}', '${order.brand}', '${order.content_type}')">Tandai Selesai</button>` : ''}
             </div>
           ` : `
             ${order.drive_link ? `
@@ -308,23 +308,48 @@
     }
 
     window.updateTaskStatus = async function (orderId, newStatus) {
-      const { error } = await supabase
+      const { data: order, error } = await supabase
         .from('orders')
         .update({ status: newStatus })
-        .eq('id', orderId);
+        .eq('id', orderId)
+        .select()
+        .single();
 
       if (error) { alert('Gagal update status: ' + error.message); return; }
+
+      // Notif WA ke advertiser saat mulai dikerjakan
+      if (newStatus === 'in_progress') {
+        fetch('/api/send-wa', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: order.wa_number,
+            type: 'order_started',
+            data: {
+              advertiser_name: order.advertiser_name,
+              brand: order.brand,
+              content_type: order.content_type,
+              creator_name: currentCreator.name,
+            },
+          }),
+        }).catch(() => {});
+      }
+
       loadTasks();
     };
 
     let activeOrderId = null;
     let activeWa = null;
     let activeAdvertiserName = null;
+    let activeBrand = null;
+    let activeContentType = null;
 
-    window.openDriveModal = function (orderId, wa, advertiserName) {
+    window.openDriveModal = function (orderId, wa, advertiserName, brand, contentType) {
       activeOrderId = orderId;
       activeWa = wa;
       activeAdvertiserName = advertiserName;
+      activeBrand = brand;
+      activeContentType = contentType;
       document.getElementById('driveLinkInput').value = '';
       document.getElementById('driveModal').classList.add('show');
     };
@@ -354,21 +379,22 @@
         return;
       }
 
-      // Kirim WA ke advertiser
-      try {
-        const waRes = await fetch('/api/send-wa', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            to: activeWa,
-            message: `Halo ${activeAdvertiserName}, konten kamu sudah selesai! 🎉\n\nCreator: ${currentCreator.name}\n\nLink hasil konten:\n${link}\n\nTerima kasih sudah menggunakan Adsy!`,
-          }),
-        });
-        const waData = await waRes.json();
-        console.log('WA response:', waData);
-      } catch (waErr) {
-        console.error('WA error:', waErr);
-      }
+      // Kirim WA ke advertiser saat selesai
+      fetch('/api/send-wa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: activeWa,
+          type: 'order_done',
+          data: {
+            advertiser_name: activeAdvertiserName,
+            brand: activeBrand,
+            content_type: activeContentType,
+            creator_name: currentCreator.name,
+            drive_link: link,
+          },
+        }),
+      }).catch(() => {});
 
       btn.disabled = false; btn.textContent = 'Kirim & Selesai';
       closeModal();

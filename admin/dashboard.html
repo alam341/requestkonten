@@ -205,8 +205,8 @@
       const { data: admin } = await supabase.from('admins').select('id').single();
       if (!admin) { window.location.href = 'login.html'; return; }
 
-      loadOrders();
-      loadCreators();
+      await loadCreators();
+      await loadOrders();
     }
 
     async function loadOrders() {

@@ -204,9 +204,12 @@
       updateToggleLabel(isOn);
       const newStatus = isOn ? 'tersedia' : 'sibuk';
 
-      await supabase.functions.invoke('toggle-availability', {
-        body: { creator_id: currentCreator.id, status: newStatus }
-      });
+      const { error } = await supabase
+        .from('creators')
+        .update({ status: newStatus })
+        .eq('id', currentCreator.id);
+
+      if (error) alert('Gagal update status: ' + error.message);
     };
 
     async function loadTasks() {
@@ -246,9 +249,15 @@
     }
 
     window.updateTaskStatus = async function (orderId, newStatus) {
-      await supabase.functions.invoke('update-task-status', {
-        body: { order_id: orderId, status: newStatus, creator_id: currentCreator.id }
-      });
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: newStatus })
+        .eq('id', orderId);
+
+      if (error) {
+        alert('Gagal update status: ' + error.message);
+        return;
+      }
       loadTasks();
     };
 

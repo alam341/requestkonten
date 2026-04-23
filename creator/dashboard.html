@@ -424,7 +424,46 @@
             <h2 id="bannerGreet">Halo, Creator!</h2>
             <p id="bannerMsg">Kamu punya tugas yang menunggu. Yuk mulai hari ini dengan semangat!</p>
           </div>
-          <div class="banner-avatar" id="bannerAvatar">—</div>
+          <div class="banner-avatar" id="bannerAvatar">
+            <svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+              <!-- Dekorasi lingkaran -->
+              <circle cx="100" cy="110" r="95" fill="rgba(255,255,255,0.08)"/>
+              <circle cx="100" cy="110" r="70" fill="rgba(255,255,255,0.08)"/>
+              <!-- Kepala -->
+              <circle cx="100" cy="60" r="28" fill="#fde8d8"/>
+              <!-- Rambut -->
+              <ellipse cx="100" cy="38" rx="28" ry="16" fill="#3b2f2f"/>
+              <rect x="72" y="38" width="12" height="20" rx="6" fill="#3b2f2f"/>
+              <!-- Badan -->
+              <rect x="72" y="88" width="56" height="60" rx="16" fill="#fff"/>
+              <!-- Kerah -->
+              <polygon points="100,90 88,108 112,108" fill="#e8e0ff"/>
+              <!-- Lengan kiri -->
+              <rect x="44" y="92" width="30" height="14" rx="7" fill="#fde8d8" transform="rotate(15,44,92)"/>
+              <!-- Lengan kanan — angkat -->
+              <rect x="126" y="78" width="30" height="14" rx="7" fill="#fde8d8" transform="rotate(-35,126,78)"/>
+              <!-- Tangan kanan (telunjuk ke atas) -->
+              <circle cx="149" cy="65" r="7" fill="#fde8d8"/>
+              <rect x="147" y="44" width="5" height="18" rx="3" fill="#fde8d8"/>
+              <!-- Laptop -->
+              <rect x="55" y="148" width="90" height="54" rx="8" fill="#e8e0ff"/>
+              <rect x="60" y="152" width="80" height="42" rx="6" fill="#c7bfff"/>
+              <rect x="63" y="155" width="74" height="36" rx="4" fill="#1e1b4b"/>
+              <!-- Layar laptop (kode) -->
+              <rect x="67" y="159" width="30" height="3" rx="1.5" fill="#818cf8"/>
+              <rect x="67" y="165" width="20" height="3" rx="1.5" fill="#6ee7b7"/>
+              <rect x="67" y="171" width="25" height="3" rx="1.5" fill="#818cf8"/>
+              <rect x="67" y="177" width="15" height="3" rx="1.5" fill="#fbbf24"/>
+              <!-- Kaki laptop -->
+              <rect x="68" y="200" width="64" height="6" rx="3" fill="#c7bfff"/>
+              <!-- Kaki -->
+              <rect x="82" y="148" width="14" height="30" rx="7" fill="#3b2f2f"/>
+              <rect x="104" y="148" width="14" height="30" rx="7" fill="#3b2f2f"/>
+              <!-- Sepatu -->
+              <ellipse cx="89" cy="178" rx="12" ry="7" fill="#1e1b4b"/>
+              <ellipse cx="111" cy="178" rx="12" ry="7" fill="#1e1b4b"/>
+            </svg>
+          </div>
         </div>
 
         <!-- Alert Deadline -->
@@ -636,9 +675,6 @@
         : initial;
 
       document.getElementById('rpAvatar').innerHTML = avatarHtml;
-      document.getElementById('bannerAvatar').innerHTML = creator.avatar_url
-        ? `<img src="${creator.avatar_url}" alt="avatar" />`
-        : creator.name.charAt(0).toUpperCase();
       document.getElementById('rpName').textContent = creator.name;
       document.getElementById('profileAvatar').innerHTML = creator.avatar_url
         ? `<img src="${creator.avatar_url}" alt="avatar" style="width:100%;height:100%;object-fit:cover" />`
@@ -1026,7 +1062,6 @@
       const imgHtml = `<img src="${avatar_url}" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />`;
       document.getElementById('profileAvatar').innerHTML = imgHtml;
       document.getElementById('rpAvatar').innerHTML = imgHtml;
-      document.getElementById('bannerAvatar').innerHTML = imgHtml;
 
       msg.textContent = 'Foto berhasil diupdate!';
       setTimeout(() => msg.textContent = '', 3000);

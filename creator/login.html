@@ -8,60 +8,154 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #f4f6fb;
+      background: #eae8f5;
       min-height: 100vh;
       display: flex; align-items: center; justify-content: center;
       padding: 24px;
     }
     .card {
-      background: #fff; border-radius: 16px;
-      padding: 40px; width: 100%; max-width: 400px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      background: #fff; border-radius: 24px;
+      padding: 36px 40px 32px;
+      width: 100%; max-width: 420px;
+      box-shadow: 0 8px 40px rgba(80,70,160,0.10);
     }
-    .logo { font-size: 22px; font-weight: 700; color: #4f46e5; margin-bottom: 8px; }
-    h1 { font-size: 20px; font-weight: 600; color: #1e1e2e; margin-bottom: 4px; }
-    p.sub { font-size: 14px; color: #6b7280; margin-bottom: 28px; }
-    .field { margin-bottom: 18px; }
-    label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px; }
+    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+    .brand-icon {
+      width: 52px; height: 52px; border-radius: 14px;
+      background: linear-gradient(135deg, #6c63ff, #4f46e5);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; color: #fff; font-weight: 800;
+    }
+    .brand-text .name { font-size: 22px; font-weight: 700; color: #4f46e5; line-height: 1; }
+    .brand-text .tagline { font-size: 13px; color: #9ca3af; margin-top: 3px; }
+
+    .tabs {
+      display: flex; background: #f0eef8;
+      border-radius: 12px; padding: 4px; margin-bottom: 28px;
+    }
+    .tab {
+      flex: 1; padding: 10px; text-align: center;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer; border: none; background: transparent;
+      color: #9ca3af; border-radius: 9px; transition: all 0.2s;
+    }
+    .tab.active { background: #fff; color: #4f46e5; box-shadow: 0 2px 8px rgba(80,70,160,0.12); }
+
+    .field { margin-bottom: 16px; }
+    label {
+      display: block; font-size: 11px; font-weight: 700;
+      color: #6b7280; letter-spacing: 0.08em;
+      text-transform: uppercase; margin-bottom: 7px;
+    }
     input {
-      width: 100%; padding: 10px 14px;
-      border: 1.5px solid #e5e7eb; border-radius: 8px;
+      width: 100%; padding: 13px 16px;
+      border: none; border-radius: 12px;
       font-size: 14px; color: #1e1e2e;
-      background: #fafafa; outline: none; transition: border 0.2s;
+      background: #f5f4fb; outline: none;
+      transition: box-shadow 0.2s, background 0.2s;
     }
-    input:focus { border-color: #4f46e5; background: #fff; }
+    input:focus { background: #eeecfb; box-shadow: 0 0 0 2px #c7c2f5; }
+    input::placeholder { color: #b0adc8; }
+
+    .avatar-upload {
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      margin-bottom: 4px;
+    }
+    .avatar-preview {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: #f5f4fb;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; border: 3px solid #e5e3f5;
+    }
+    .avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar-preview .placeholder { font-size: 28px; color: #c4c0f0; }
+    .avatar-label {
+      font-size: 13px; color: #4f46e5; font-weight: 600;
+      cursor: pointer; text-decoration: underline;
+    }
+    #avatarInput { display: none; }
+
     .btn {
-      width: 100%; padding: 12px;
+      width: 100%; padding: 14px;
       background: #4f46e5; color: #fff;
-      border: none; border-radius: 8px;
-      font-size: 15px; font-weight: 600;
-      cursor: pointer; transition: background 0.2s;
+      border: none; border-radius: 14px;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer; margin-top: 6px;
+      transition: background 0.2s, transform 0.1s;
     }
     .btn:hover { background: #4338ca; }
-    .btn:disabled { background: #a5b4fc; cursor: not-allowed; }
-    .error-msg {
-      display: none; color: #dc2626;
-      font-size: 13px; margin-top: 10px;
-      text-align: center;
-    }
+    .btn:active { transform: scale(0.99); }
+    .btn:disabled { background: #c4c0f0; cursor: not-allowed; }
+
+    .footer-text { text-align: center; font-size: 12px; color: #b0adc8; margin-top: 16px; }
+    .footer-text a { color: #4f46e5; text-decoration: none; font-weight: 600; }
+    .error-msg { display: none; color: #dc2626; font-size: 13px; margin-top: 10px; text-align: center; }
+    .success-msg { display: none; color: #16a34a; font-size: 13px; margin-top: 10px; text-align: center; line-height: 1.5; }
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="logo">Adsy</div>
-    <h1>Login Creator</h1>
-    <p class="sub">Masuk untuk melihat tugas kamu.</p>
+    <div class="brand">
+      <div class="brand-icon">A</div>
+      <div class="brand-text">
+        <div class="name">Adsy</div>
+        <div class="tagline">Portal Content Creator</div>
+      </div>
+    </div>
 
-    <div class="field">
-      <label>Email</label>
-      <input type="email" id="email" placeholder="email@adsy.id" />
+    <div class="tabs">
+      <button class="tab active" id="tabLogin" onclick="switchTab('login')">Login</button>
+      <button class="tab" id="tabRegister" onclick="switchTab('register')">Daftar</button>
     </div>
-    <div class="field">
-      <label>Password</label>
-      <input type="password" id="password" placeholder="••••••••" />
+
+    <!-- Login -->
+    <div id="loginSection">
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="email@kamu.com" />
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="Password" />
+      </div>
+      <button class="btn" id="loginBtn" onclick="doLogin()">Login</button>
+      <p class="error-msg" id="loginError"></p>
+      <p class="footer-text">Dengan masuk, kamu setuju dengan syarat penggunaan.</p>
     </div>
-    <button class="btn" id="loginBtn" onclick="doLogin()">Masuk</button>
-    <p class="error-msg" id="errorMsg"></p>
+
+    <!-- Register -->
+    <div id="registerSection" style="display:none">
+      <div class="field">
+        <label>Nama Lengkap</label>
+        <input type="text" id="regName" placeholder="Nama kamu" />
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="regEmail" placeholder="email@kamu.com" />
+      </div>
+      <div class="field">
+        <label>No. WhatsApp</label>
+        <input type="tel" id="regWa" placeholder="08xxxxxxxxxx" />
+      </div>
+      <div class="field">
+        <label>Foto Profil</label>
+        <div class="avatar-upload">
+          <div class="avatar-preview" id="avatarPreview">
+            <span class="placeholder">👤</span>
+          </div>
+          <label class="avatar-label" for="avatarInput">Upload Foto</label>
+          <input type="file" id="avatarInput" accept="image/*" onchange="previewAvatar(event)" />
+        </div>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="regPassword" placeholder="Min. 8 karakter" />
+      </div>
+      <button class="btn" id="registerBtn" onclick="doRegister()">Daftar sebagai Creator</button>
+      <p class="error-msg" id="registerError"></p>
+      <p class="success-msg" id="registerSuccess"></p>
+      <p class="footer-text">Sudah punya akun? <a href="#" onclick="switchTab('login')">Login di sini</a></p>
+    </div>
   </div>
 
   <script type="module">
@@ -71,42 +165,116 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvcXpuanViaG1qcmFxYXBneWF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MzUxNTgsImV4cCI6MjA5MjUxMTE1OH0.xBHG0aeKLutXyqTjlhpGVIYy7-wuI-ztI9e73wmRL04';
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Redirect kalau sudah login
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) window.location.href = 'dashboard.html';
     });
 
+    window.switchTab = function (tab) {
+      document.getElementById('loginSection').style.display = tab === 'login' ? 'block' : 'none';
+      document.getElementById('registerSection').style.display = tab === 'register' ? 'block' : 'none';
+      document.getElementById('tabLogin').className = 'tab' + (tab === 'login' ? ' active' : '');
+      document.getElementById('tabRegister').className = 'tab' + (tab === 'register' ? ' active' : '');
+    };
+
     window.doLogin = async function () {
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
       const btn = document.getElementById('loginBtn');
-      const errorMsg = document.getElementById('errorMsg');
+      const err = document.getElementById('loginError');
 
-      if (!email || !password) {
-        errorMsg.textContent = 'Isi email dan password dulu.';
-        errorMsg.style.display = 'block';
-        return;
-      }
-
-      btn.disabled = true;
-      btn.textContent = 'Masuk...';
-      errorMsg.style.display = 'none';
+      btn.disabled = true; btn.textContent = 'Masuk...';
+      err.style.display = 'none';
 
       const { error } = await supabase.auth.signInWithPassword({ email, password });
 
       if (error) {
-        errorMsg.textContent = 'Email atau password salah.';
-        errorMsg.style.display = 'block';
-        btn.disabled = false;
-        btn.textContent = 'Masuk';
+        err.textContent = 'Email atau password salah.';
+        err.style.display = 'block';
+        btn.disabled = false; btn.textContent = 'Login';
       } else {
         window.location.href = 'dashboard.html';
       }
     };
 
-    // Enter key support
+    window.previewAvatar = function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        document.getElementById('avatarPreview').innerHTML =
+          `<img src="${ev.target.result}" alt="preview" />`;
+      };
+      reader.readAsDataURL(file);
+    };
+
+    window.doRegister = async function () {
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const wa = document.getElementById('regWa').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const avatarFile = document.getElementById('avatarInput').files[0];
+
+      const btn = document.getElementById('registerBtn');
+      const err = document.getElementById('registerError');
+      const suc = document.getElementById('registerSuccess');
+
+      if (!name || !email || !wa || !password) {
+        err.textContent = 'Semua field wajib diisi.'; err.style.display = 'block'; return;
+      }
+
+      btn.disabled = true; btn.textContent = 'Mendaftar...';
+      err.style.display = 'none'; suc.style.display = 'none';
+
+      // 1. Buat akun auth
+      const { data, error: authErr } = await supabase.auth.signUp({ email, password });
+
+      if (authErr) {
+        err.textContent = authErr.message || 'Gagal mendaftar.';
+        err.style.display = 'block';
+        btn.disabled = false; btn.textContent = 'Daftar sebagai Creator';
+        return;
+      }
+
+      // 2. Upload foto profil (kalau ada)
+      let avatar_url = null;
+      if (avatarFile) {
+        const ext = avatarFile.name.split('.').pop();
+        const path = `${data.user.id}.${ext}`;
+        const { error: uploadErr } = await supabase.storage
+          .from('avatars')
+          .upload(path, avatarFile, { upsert: true });
+
+        if (!uploadErr) {
+          const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
+          avatar_url = urlData.publicUrl;
+        }
+      }
+
+      // 3. Insert ke tabel creators
+      const { error: insertErr } = await supabase.from('creators').insert({
+        name, email, wa_number: wa,
+        specializations: [],
+        avatar_url,
+        user_id: data.user.id,
+      });
+
+      btn.disabled = false; btn.textContent = 'Daftar sebagai Creator';
+
+      if (insertErr) {
+        err.textContent = 'Akun dibuat tapi gagal simpan profil. Hubungi admin.';
+        err.style.display = 'block';
+      } else {
+        suc.textContent = 'Pendaftaran berhasil! Silakan login.';
+        suc.style.display = 'block';
+        setTimeout(() => window.switchTab('login'), 2000);
+      }
+    };
+
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') window.doLogin();
+      if (e.key === 'Enter') {
+        const isLogin = document.getElementById('loginSection').style.display !== 'none';
+        isLogin ? window.doLogin() : window.doRegister();
+      }
     });
   </script>
 </body>

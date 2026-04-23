@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Setup Creator — Adsy</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6fb;
+      min-height: 100vh;
+      display: flex; align-items: flex-start; justify-content: center;
+      padding: 40px 24px;
+    }
+    .card {
+      background: #fff; border-radius: 16px;
+      padding: 40px; width: 100%; max-width: 540px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+    .logo { font-size: 22px; font-weight: 700; color: #4f46e5; margin-bottom: 8px; }
+    h1 { font-size: 20px; font-weight: 600; color: #1e1e2e; margin-bottom: 4px; }
+    p.sub { font-size: 14px; color: #6b7280; margin-bottom: 28px; }
+
+    /* Password gate */
+    #gateSection { }
+    #mainSection { display: none; }
+
+    .field { margin-bottom: 18px; }
+    label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px; }
+    input, select {
+      width: 100%; padding: 10px 14px;
+      border: 1.5px solid #e5e7eb; border-radius: 8px;
+      font-size: 14px; color: #1e1e2e;
+      background: #fafafa; outline: none; transition: border 0.2s;
+    }
+    input:focus, select:focus { border-color: #4f46e5; background: #fff; }
+
+    .checkbox-group {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+      margin-top: 4px;
+    }
+    .checkbox-item {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 13px; color: #374151;
+      cursor: pointer;
+    }
+    .checkbox-item input[type="checkbox"] {
+      width: 15px; height: 15px;
+      cursor: pointer; accent-color: #4f46e5;
+    }
+
+    .btn {
+      width: 100%; padding: 12px;
+      background: #4f46e5; color: #fff;
+      border: none; border-radius: 8px;
+      font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: background 0.2s; margin-top: 4px;
+    }
+    .btn:hover { background: #4338ca; }
+    .btn:disabled { background: #a5b4fc; cursor: not-allowed; }
+
+    .error-msg { display: none; color: #dc2626; font-size: 13px; margin-top: 8px; }
+    .success-msg { display: none; color: #16a34a; font-size: 13px; margin-top: 8px; }
+
+    .divider { border: none; border-top: 1px solid #e5e7eb; margin: 28px 0; }
+
+    .creator-list h3 { font-size: 15px; font-weight: 600; color: #1e1e2e; margin-bottom: 14px; }
+    .creator-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 0; border-bottom: 1px solid #f3f4f6;
+      font-size: 14px;
+    }
+    .creator-row:last-child { border-bottom: none; }
+    .creator-row .name { font-weight: 500; color: #1e1e2e; }
+    .creator-row .spec {
+      font-size: 12px; color: #6b7280; margin-top: 2px;
+    }
+    .creator-row .status-dot {
+      width: 8px; height: 8px; border-radius: 99px;
+      display: inline-block; margin-right: 5px;
+    }
+    .status-dot.tersedia { background: #16a34a; }
+    .status-dot.sibuk { background: #f59e0b; }
+    .empty-creators { color: #9ca3af; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">Adsy</div>
+
+    <!-- Gate: password admin -->
+    <div id="gateSection">
+      <h1>Setup Creators</h1>
+      <p class="sub">Halaman ini hanya untuk admin. Masukkan password untuk melanjutkan.</p>
+      <div class="field">
+        <label>Password Admin</label>
+        <input type="password" id="gatePassword" placeholder="••••••••" />
+      </div>
+      <button class="btn" onclick="checkGate()">Masuk</button>
+      <p class="error-msg" id="gateError">Password salah.</p>
+    </div>
+
+    <!-- Main content -->
+    <div id="mainSection">
+      <h1>Daftarkan Creator</h1>
+      <p class="sub">Tambah creator baru beserta akun login mereka.</p>
+
+      <form id="creatorForm">
+        <div class="field">
+          <label>Nama Creator *</label>
+          <input type="text" id="name" placeholder="Nama lengkap" required />
+        </div>
+        <div class="field">
+          <label>Email (untuk login) *</label>
+          <input type="email" id="email" placeholder="email@adsy.id" required />
+        </div>
+        <div class="field">
+          <label>Password Login *</label>
+          <input type="password" id="password" placeholder="Min. 8 karakter" required />
+        </div>
+        <div class="field">
+          <label>No. WhatsApp *</label>
+          <input type="tel" id="wa_number" placeholder="08xxxxxxxxxx" required />
+        </div>
+        <div class="field">
+          <label>Spesialisasi *</label>
+          <div class="checkbox-group">
+            <label class="checkbox-item"><input type="checkbox" value="foto" /> Foto</label>
+            <label class="checkbox-item"><input type="checkbox" value="desain" /> Desain</label>
+            <label class="checkbox-item"><input type="checkbox" value="script" /> Script</label>
+            <label class="checkbox-item"><input type="checkbox" value="voice" /> Voice</label>
+            <label class="checkbox-item"><input type="checkbox" value="video" /> Video</label>
+          </div>
+        </div>
+
+        <button type="submit" class="btn" id="submitBtn">Daftarkan Creator</button>
+        <p class="error-msg" id="formError"></p>
+        <p class="success-msg" id="formSuccess"></p>
+      </form>
+
+      <hr class="divider" />
+
+      <div class="creator-list">
+        <h3>Creator Terdaftar</h3>
+        <div id="creatorsList"><p class="empty-creators">Memuat...</p></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const SUPABASE_URL = 'GANTI_SUPABASE_URL';
+    const SUPABASE_ANON_KEY = 'GANTI_SUPABASE_ANON_KEY';
+    const ADMIN_PASSWORD = 'GANTI_ADMIN_PASSWORD'; // ganti password admin di sini
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    window.checkGate = function () {
+      const val = document.getElementById('gatePassword').value;
+      if (val === ADMIN_PASSWORD) {
+        document.getElementById('gateSection').style.display = 'none';
+        document.getElementById('mainSection').style.display = 'block';
+        loadCreators();
+      } else {
+        document.getElementById('gateError').style.display = 'block';
+      }
+    };
+
+    document.getElementById('gatePassword').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') window.checkGate();
+    });
+
+    document.getElementById('creatorForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const errorMsg = document.getElementById('formError');
+      const successMsg = document.getElementById('formSuccess');
+
+      const specializations = Array.from(
+        document.querySelectorAll('.checkbox-group input:checked')
+      ).map(cb => cb.value);
+
+      if (specializations.length === 0) {
+        errorMsg.textContent = 'Pilih minimal satu spesialisasi.';
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Mendaftarkan...';
+      errorMsg.style.display = 'none';
+      successMsg.style.display = 'none';
+
+      const payload = {
+        name: document.getElementById('name').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        password: document.getElementById('password').value,
+        wa_number: document.getElementById('wa_number').value.trim(),
+        specializations,
+      };
+
+      const { error } = await supabase.functions.invoke('register-creator', { body: payload });
+
+      btn.disabled = false;
+      btn.textContent = 'Daftarkan Creator';
+
+      if (error) {
+        errorMsg.textContent = 'Gagal mendaftarkan creator. ' + (error.message || '');
+        errorMsg.style.display = 'block';
+      } else {
+        successMsg.textContent = `Creator "${payload.name}" berhasil didaftarkan!`;
+        successMsg.style.display = 'block';
+        document.getElementById('creatorForm').reset();
+        loadCreators();
+      }
+    });
+
+    async function loadCreators() {
+      const { data } = await supabase
+        .from('creators')
+        .select('name, wa_number, specializations, status, active_tasks')
+        .order('name');
+
+      const container = document.getElementById('creatorsList');
+      if (!data || data.length === 0) {
+        container.innerHTML = '<p class="empty-creators">Belum ada creator terdaftar.</p>';
+        return;
+      }
+
+      container.innerHTML = data.map(c => `
+        <div class="creator-row">
+          <div>
+            <div class="name">
+              <span class="status-dot ${c.status}"></span>${c.name}
+            </div>
+            <div class="spec">${c.specializations.join(', ')} · ${c.active_tasks} tugas aktif</div>
+          </div>
+          <div style="font-size:12px;color:#9ca3af">${c.wa_number}</div>
+        </div>
+      `).join('');
+    }
+  </script>
+</body>
+</html>

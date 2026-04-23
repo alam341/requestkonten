@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Creator — Adsy</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6fb;
+      min-height: 100vh;
+    }
+    header {
+      background: #fff;
+      padding: 16px 24px;
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .logo { font-size: 20px; font-weight: 700; color: #4f46e5; }
+    .header-right { display: flex; align-items: center; gap: 14px; }
+    .creator-name { font-size: 14px; color: #374151; font-weight: 500; }
+    .logout-btn {
+      font-size: 13px; color: #6b7280;
+      background: none; border: none; cursor: pointer;
+    }
+    .logout-btn:hover { color: #dc2626; }
+
+    .container { max-width: 720px; margin: 32px auto; padding: 0 20px; }
+
+    .status-card {
+      background: #fff; border-radius: 12px;
+      padding: 20px 24px; margin-bottom: 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .status-left h2 { font-size: 16px; color: #1e1e2e; margin-bottom: 4px; }
+    .status-left p { font-size: 13px; color: #6b7280; }
+    .toggle-wrap { display: flex; align-items: center; gap: 10px; }
+    .toggle-label { font-size: 13px; font-weight: 500; }
+    .toggle-label.on { color: #16a34a; }
+    .toggle-label.off { color: #9ca3af; }
+    .toggle {
+      position: relative; width: 46px; height: 26px;
+      cursor: pointer;
+    }
+    .toggle input { display: none; }
+    .toggle-track {
+      width: 46px; height: 26px;
+      background: #d1d5db; border-radius: 99px;
+      transition: background 0.2s;
+    }
+    .toggle input:checked + .toggle-track { background: #4f46e5; }
+    .toggle-thumb {
+      position: absolute; top: 3px; left: 3px;
+      width: 20px; height: 20px;
+      background: #fff; border-radius: 99px;
+      transition: left 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+    .toggle input:checked ~ .toggle-thumb { left: 23px; }
+
+    .section-title {
+      font-size: 15px; font-weight: 600; color: #1e1e2e;
+      margin-bottom: 14px;
+    }
+    .tasks-list { display: flex; flex-direction: column; gap: 12px; }
+
+    .task-card {
+      background: #fff; border-radius: 10px;
+      padding: 18px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      border-left: 4px solid #4f46e5;
+    }
+    .task-card.done { border-left-color: #86efac; opacity: 0.7; }
+    .task-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 8px;
+    }
+    .task-brand { font-weight: 600; font-size: 15px; color: #1e1e2e; }
+    .badge {
+      font-size: 11px; font-weight: 600; padding: 4px 10px;
+      border-radius: 99px; text-transform: uppercase;
+    }
+    .badge.assigned { background: #dbeafe; color: #1d4ed8; }
+    .badge.in_progress { background: #e0e7ff; color: #4338ca; }
+    .badge.done { background: #dcfce7; color: #15803d; }
+    .task-detail { font-size: 13px; color: #6b7280; margin-top: 3px; }
+    .task-detail span { color: #374151; font-weight: 500; }
+    .task-brief {
+      margin-top: 10px; padding: 10px 12px;
+      background: #f9fafb; border-radius: 6px;
+      font-size: 13px; color: #374151; line-height: 1.5;
+    }
+    .task-actions { margin-top: 14px; display: flex; gap: 8px; }
+    .act-btn {
+      padding: 7px 14px; border-radius: 7px;
+      font-size: 13px; font-weight: 500;
+      border: none; cursor: pointer; transition: background 0.2s;
+    }
+    .act-btn.start { background: #4f46e5; color: #fff; }
+    .act-btn.start:hover { background: #4338ca; }
+    .act-btn.done { background: #16a34a; color: #fff; }
+    .act-btn.done:hover { background: #15803d; }
+
+    .empty-msg {
+      text-align: center; color: #9ca3af;
+      font-size: 14px; padding: 40px 0;
+    }
+    .loading { text-align: center; color: #6b7280; padding: 32px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">Adsy</div>
+    <div class="header-right">
+      <span class="creator-name" id="creatorName">—</span>
+      <button class="logout-btn" onclick="doLogout()">Keluar</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Status availability -->
+    <div class="status-card">
+      <div class="status-left">
+        <h2>Status Availability</h2>
+        <p>Toggle untuk ubah statusmu. Saat tersedia, order baru bisa di-assign ke kamu.</p>
+      </div>
+      <div class="toggle-wrap">
+        <span class="toggle-label" id="toggleLabel">—</span>
+        <label class="toggle">
+          <input type="checkbox" id="availToggle" onchange="toggleAvailability()" />
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </label>
+      </div>
+    </div>
+
+    <!-- Daftar tugas -->
+    <p class="section-title">Tugas Kamu</p>
+    <div id="tasksList" class="tasks-list">
+      <p class="loading">Memuat tugas...</p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const SUPABASE_URL = 'GANTI_SUPABASE_URL';
+    const SUPABASE_ANON_KEY = 'GANTI_SUPABASE_ANON_KEY';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentCreator = null;
+
+    async function init() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { window.location.href = 'login.html'; return; }
+
+      const { data: creator } = await supabase
+        .from('creators')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (!creator) { alert('Data creator tidak ditemukan.'); return; }
+      currentCreator = creator;
+
+      document.getElementById('creatorName').textContent = creator.name;
+
+      const toggle = document.getElementById('availToggle');
+      toggle.checked = creator.status === 'tersedia';
+      updateToggleLabel(toggle.checked);
+
+      loadTasks();
+    }
+
+    function updateToggleLabel(isOn) {
+      const lbl = document.getElementById('toggleLabel');
+      lbl.textContent = isOn ? 'Tersedia' : 'Sibuk';
+      lbl.className = 'toggle-label ' + (isOn ? 'on' : 'off');
+    }
+
+    window.toggleAvailability = async function () {
+      const isOn = document.getElementById('availToggle').checked;
+      updateToggleLabel(isOn);
+      const newStatus = isOn ? 'tersedia' : 'sibuk';
+
+      await supabase.functions.invoke('toggle-availability', {
+        body: { creator_id: currentCreator.id, status: newStatus }
+      });
+    };
+
+    async function loadTasks() {
+      const list = document.getElementById('tasksList');
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('creator_id', currentCreator.id)
+        .in('status', ['assigned', 'in_progress', 'done'])
+        .order('assigned_at', { ascending: false });
+
+      if (error || !data || data.length === 0) {
+        list.innerHTML = '<p class="empty-msg">Belum ada tugas untukmu saat ini.</p>';
+        return;
+      }
+
+      const statusLabel = { assigned: 'Ditugaskan', in_progress: 'Dikerjakan', done: 'Selesai' };
+      list.innerHTML = data.map(order => `
+        <div class="task-card ${order.status === 'done' ? 'done' : ''}">
+          <div class="task-header">
+            <span class="task-brand">${order.brand}</span>
+            <span class="badge ${order.status}">${statusLabel[order.status]}</span>
+          </div>
+          <div class="task-detail">Advertiser: <span>${order.advertiser_name}</span></div>
+          <div class="task-detail">Jenis: <span>${order.content_type}</span></div>
+          ${order.platform ? `<div class="task-detail">Platform: <span>${order.platform}</span></div>` : ''}
+          ${order.deadline ? `<div class="task-detail">Deadline: <span>${order.deadline}</span></div>` : ''}
+          ${order.brief ? `<div class="task-brief">${order.brief}</div>` : ''}
+          ${order.status !== 'done' ? `
+            <div class="task-actions">
+              ${order.status === 'assigned' ? `<button class="act-btn start" onclick="updateTaskStatus('${order.id}', 'in_progress')">Mulai Kerjakan</button>` : ''}
+              ${order.status === 'in_progress' ? `<button class="act-btn done" onclick="updateTaskStatus('${order.id}', 'done')">Tandai Selesai</button>` : ''}
+            </div>
+          ` : ''}
+        </div>
+      `).join('');
+    }
+
+    window.updateTaskStatus = async function (orderId, newStatus) {
+      await supabase.functions.invoke('update-task-status', {
+        body: { order_id: orderId, status: newStatus, creator_id: currentCreator.id }
+      });
+      loadTasks();
+    };
+
+    window.doLogout = async function () {
+      await supabase.auth.signOut();
+      window.location.href = 'login.html';
+    };
+
+    init();
+  </script>
+</body>
+</html>

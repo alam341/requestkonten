@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login Creator — Adsy</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6fb;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: #fff; border-radius: 16px;
+      padding: 40px; width: 100%; max-width: 400px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+    .logo { font-size: 22px; font-weight: 700; color: #4f46e5; margin-bottom: 8px; }
+    h1 { font-size: 20px; font-weight: 600; color: #1e1e2e; margin-bottom: 4px; }
+    p.sub { font-size: 14px; color: #6b7280; margin-bottom: 28px; }
+    .field { margin-bottom: 18px; }
+    label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px; }
+    input {
+      width: 100%; padding: 10px 14px;
+      border: 1.5px solid #e5e7eb; border-radius: 8px;
+      font-size: 14px; color: #1e1e2e;
+      background: #fafafa; outline: none; transition: border 0.2s;
+    }
+    input:focus { border-color: #4f46e5; background: #fff; }
+    .btn {
+      width: 100%; padding: 12px;
+      background: #4f46e5; color: #fff;
+      border: none; border-radius: 8px;
+      font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn:hover { background: #4338ca; }
+    .btn:disabled { background: #a5b4fc; cursor: not-allowed; }
+    .error-msg {
+      display: none; color: #dc2626;
+      font-size: 13px; margin-top: 10px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">Adsy</div>
+    <h1>Login Creator</h1>
+    <p class="sub">Masuk untuk melihat tugas kamu.</p>
+
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="email" placeholder="email@adsy.id" />
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="••••••••" />
+    </div>
+    <button class="btn" id="loginBtn" onclick="doLogin()">Masuk</button>
+    <p class="error-msg" id="errorMsg"></p>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const SUPABASE_URL = 'GANTI_SUPABASE_URL';
+    const SUPABASE_ANON_KEY = 'GANTI_SUPABASE_ANON_KEY';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Redirect kalau sudah login
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) window.location.href = 'dashboard.html';
+    });
+
+    window.doLogin = async function () {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const btn = document.getElementById('loginBtn');
+      const errorMsg = document.getElementById('errorMsg');
+
+      if (!email || !password) {
+        errorMsg.textContent = 'Isi email dan password dulu.';
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Masuk...';
+      errorMsg.style.display = 'none';
+
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        errorMsg.textContent = 'Email atau password salah.';
+        errorMsg.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Masuk';
+      } else {
+        window.location.href = 'dashboard.html';
+      }
+    };
+
+    // Enter key support
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') window.doLogin();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Request Content Creator — Adsy</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6fb;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 520px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+    .logo {
+      font-size: 22px;
+      font-weight: 700;
+      color: #4f46e5;
+      margin-bottom: 8px;
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1e1e2e;
+      margin-bottom: 4px;
+    }
+    p.sub {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 28px;
+    }
+    .field {
+      margin-bottom: 18px;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #1e1e2e;
+      background: #fafafa;
+      transition: border 0.2s;
+      outline: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: #4f46e5;
+      background: #fff;
+    }
+    textarea { resize: vertical; min-height: 90px; }
+    .btn {
+      width: 100%;
+      padding: 12px;
+      background: #4f46e5;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #4338ca; }
+    .btn:disabled { background: #a5b4fc; cursor: not-allowed; }
+    .track-link {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 13px;
+      color: #6b7280;
+    }
+    .track-link a { color: #4f46e5; text-decoration: none; font-weight: 500; }
+    .track-link a:hover { text-decoration: underline; }
+    .success-box {
+      display: none;
+      background: #f0fdf4;
+      border: 1.5px solid #86efac;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      margin-top: 16px;
+    }
+    .success-box h3 { color: #16a34a; font-size: 16px; margin-bottom: 6px; }
+    .success-box p { color: #166534; font-size: 14px; }
+    .error-msg {
+      display: none;
+      color: #dc2626;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">Adsy</div>
+    <h1>Request Content Creator</h1>
+    <p class="sub">Isi form di bawah, kami akan assign creator secepatnya.</p>
+
+    <form id="orderForm">
+      <div class="field">
+        <label>Nama Advertiser *</label>
+        <input type="text" id="advertiser_name" placeholder="Nama kamu" required />
+      </div>
+      <div class="field">
+        <label>Brand / Klien *</label>
+        <input type="text" id="brand" placeholder="Nama brand atau klien" required />
+      </div>
+      <div class="field">
+        <label>No. WhatsApp *</label>
+        <input type="tel" id="wa_number" placeholder="08xxxxxxxxxx" required />
+      </div>
+      <div class="field">
+        <label>Jenis Konten *</label>
+        <select id="content_type" required>
+          <option value="">-- Pilih jenis konten --</option>
+          <option value="foto">Foto</option>
+          <option value="desain">Desain</option>
+          <option value="script">Script</option>
+          <option value="voice">Voice</option>
+          <option value="video">Video</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Platform</label>
+        <input type="text" id="platform" placeholder="Instagram, TikTok, YouTube, dll." />
+      </div>
+      <div class="field">
+        <label>Brief *</label>
+        <textarea id="brief" placeholder="Jelaskan kebutuhan konten kamu..." required></textarea>
+      </div>
+      <div class="field">
+        <label>Deadline</label>
+        <input type="date" id="deadline" />
+      </div>
+
+      <button type="submit" class="btn" id="submitBtn">Kirim Request</button>
+      <p class="error-msg" id="errorMsg"></p>
+    </form>
+
+    <div class="success-box" id="successBox">
+      <h3>Request Terkirim!</h3>
+      <p>Kami sedang mencari creator yang tersedia. Kamu akan dihubungi via WhatsApp segera.</p>
+      <br />
+      <a href="track.html" style="color:#4f46e5; font-weight:600; font-size:14px;">Cek status ordermu →</a>
+    </div>
+
+    <p class="track-link">
+      Sudah punya order? <a href="track.html">Cek status di sini</a>
+    </p>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const SUPABASE_URL = 'GANTI_SUPABASE_URL';
+    const SUPABASE_ANON_KEY = 'GANTI_SUPABASE_ANON_KEY';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    document.getElementById('orderForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const errorMsg = document.getElementById('errorMsg');
+      btn.disabled = true;
+      btn.textContent = 'Mengirim...';
+      errorMsg.style.display = 'none';
+
+      const payload = {
+        advertiser_name: document.getElementById('advertiser_name').value.trim(),
+        brand: document.getElementById('brand').value.trim(),
+        wa_number: document.getElementById('wa_number').value.trim(),
+        content_type: document.getElementById('content_type').value,
+        platform: document.getElementById('platform').value.trim(),
+        brief: document.getElementById('brief').value.trim(),
+        deadline: document.getElementById('deadline').value || null,
+      };
+
+      const { error } = await supabase.functions.invoke('submit-order', { body: payload });
+
+      if (error) {
+        errorMsg.textContent = 'Gagal mengirim request. Coba lagi.';
+        errorMsg.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Kirim Request';
+      } else {
+        document.getElementById('orderForm').style.display = 'none';
+        document.getElementById('successBox').style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>

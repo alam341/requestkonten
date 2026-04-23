@@ -259,7 +259,7 @@
         `;
         document.getElementById('successBox').style.display = 'block';
 
-        // Tunggu trigger auto-assign selesai, lalu kirim WA ke creator
+        // Tunggu trigger auto-assign selesai, lalu kirim WA
         setTimeout(async () => {
           const { data: order } = await supabase
             .from('orders')
@@ -268,13 +268,28 @@
             .single();
 
           if (order?.status === 'assigned' && order?.creators) {
-            await fetch('/api/send-wa', {
+            const notifData = {
+              brand: order.brand,
+              content_type: order.content_type,
+              platform: order.platform,
+              deadline: order.deadline,
+              brief: order.brief,
+              creator_name: order.creators.name,
+              advertiser_name: order.advertiser_name,
+            };
+
+            // WA ke creator
+            fetch('/api/send-wa', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                to: order.creators.wa_number,
-                message: `Halo ${order.creators.name}, kamu mendapat tugas baru! 📋\n\nBrand: ${order.brand}\nJenis: ${order.content_type}\n${order.platform ? `Platform: ${order.platform}\n` : ''}${order.deadline ? `Deadline: ${order.deadline}\n` : ''}${order.brief ? `\nBrief:\n${order.brief}` : ''}\n\nSilakan cek dashboard kamu.`,
-              }),
+              body: JSON.stringify({ to: order.creators.wa_number, type: 'creator_assigned', data: notifData }),
+            }).catch(() => {});
+
+            // WA ke advertiser
+            fetch('/api/send-wa', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ to: order.wa_number, type: 'order_assigned', data: notifData }),
             }).catch(() => {});
           }
         }, 500);

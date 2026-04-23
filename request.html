@@ -230,6 +230,14 @@
         advertiser_id: session?.user?.id || null,
       };
 
+      if (!payload.wa_number) {
+        errorMsg.textContent = 'Nomor WhatsApp wajib diisi.';
+        errorMsg.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Kirim Request';
+        return;
+      }
+
       const { data: inserted, error } = await supabase
         .from('orders')
         .insert(payload)
@@ -269,7 +277,7 @@
               }),
             }).catch(() => {});
           }
-        }, 2000);
+        }, 500);
       }
     });
   </script>

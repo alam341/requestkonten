@@ -354,20 +354,15 @@
         return;
       }
 
-      // Kirim WA ke advertiser via n8n
-      const N8N_ADVERTISER_WEBHOOK = 'GANTI_N8N_ADVERTISER_WEBHOOK';
-      if (N8N_ADVERTISER_WEBHOOK !== 'GANTI_N8N_ADVERTISER_WEBHOOK') {
-        await fetch(N8N_ADVERTISER_WEBHOOK, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            to: activeWa,
-            advertiser_name: activeAdvertiserName,
-            creator_name: currentCreator.name,
-            drive_link: link,
-          }),
-        }).catch(() => {});
-      }
+      // Kirim WA ke advertiser
+      await fetch('/api/send-wa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: activeWa,
+          message: `Halo ${activeAdvertiserName}, konten kamu sudah selesai! 🎉\n\nCreator: ${currentCreator.name}\n\nLink hasil konten:\n${link}\n\nTerima kasih sudah menggunakan Adsy!`,
+        }),
+      }).catch(() => {});
 
       btn.disabled = false; btn.textContent = 'Kirim & Selesai';
       closeModal();

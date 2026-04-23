@@ -414,6 +414,9 @@
 
       btn.disabled = true; btn.textContent = 'Menyimpan...';
 
+      // Catat waktu SEBELUM update untuk deteksi order baru dari antrian
+      const doneTime = new Date().toISOString();
+
       const { error } = await supabase
         .from('orders')
         .update({ status: 'done', drive_link: link })
@@ -445,6 +448,47 @@
       btn.disabled = false; btn.textContent = 'Kirim & Selesai';
       closeModal();
       loadTasks();
+
+      // Cek apakah ada order dari antrian yang baru di-assign ke creator ini
+      setTimeout(async () => {
+        const { data: newOrder } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('creator_id', currentCreator.id)
+          .eq('status', 'assigned')
+          .gte('assigned_at', doneTime)
+          .order('assigned_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (newOrder) {
+          const notifData = {
+            advertiser_name: newOrder.advertiser_name,
+            brand: newOrder.brand,
+            content_type: newOrder.content_type,
+            platform: newOrder.platform,
+            deadline: newOrder.deadline,
+            brief: newOrder.brief,
+            creator_name: currentCreator.name,
+          };
+
+          // WA ke creator
+          fetch('/api/send-wa', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ to: currentCreator.wa_number, type: 'creator_assigned', data: notifData }),
+          }).catch(() => {});
+
+          // WA ke advertiser order baru
+          fetch('/api/send-wa', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ to: newOrder.wa_number, type: 'order_assigned', data: notifData }),
+          }).catch(() => {});
+
+          loadTasks();
+        }
+      }, 1000);
     };
 
     window.doLogout = async function () {

@@ -353,10 +353,37 @@
       `).join('');
     }
 
+    const SLA_DAYS = {
+      'Script': 2,
+      'Voice Over': 2,
+      'Desain Konten': 3,
+      'Foto Produk': 3,
+      'Video Produk': 3,
+      'Video Iklan': 5,
+      'Desain Landingpage': 5,
+    };
+
     window.updateTaskStatus = async function (orderId, newStatus) {
+      // Ambil data order dulu untuk cek deadline dan content_type
+      const { data: existing } = await supabase
+        .from('orders')
+        .select('content_type, deadline')
+        .eq('id', orderId)
+        .single();
+
+      const updatePayload = { status: newStatus };
+
+      // Auto-set deadline saat mulai kerjakan, kalau advertiser belum isi
+      if (newStatus === 'in_progress' && !existing?.deadline) {
+        const sla = SLA_DAYS[existing?.content_type] || 3;
+        const deadline = new Date();
+        deadline.setDate(deadline.getDate() + sla);
+        updatePayload.deadline = deadline.toISOString().split('T')[0]; // format YYYY-MM-DD
+      }
+
       const { data: order, error } = await supabase
         .from('orders')
-        .update({ status: newStatus })
+        .update(updatePayload)
         .eq('id', orderId)
         .select()
         .single();

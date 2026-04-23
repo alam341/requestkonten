@@ -70,14 +70,21 @@
       border-radius: 16px; padding: 24px 28px;
       color: #fff; margin-bottom: 24px;
       position: relative; overflow: hidden;
+      display: flex; justify-content: space-between; align-items: center;
     }
-    .banner::after {
-      content: '✦'; position: absolute;
-      right: 24px; top: 16px;
-      font-size: 60px; opacity: 0.08;
-    }
+    .banner-text { flex: 1; }
     .banner h2 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
     .banner p { font-size: 13px; opacity: 0.85; line-height: 1.5; }
+    .banner-avatar {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      color: #fff; font-size: 32px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; flex-shrink: 0; margin-left: 20px;
+      border: 3px solid rgba(255,255,255,0.4);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    .banner-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
     /* Stats */
     .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
@@ -148,16 +155,25 @@
     .page-section.active { display: block; }
 
     /* Right Panel — Profile */
-    .rp-profile { display: flex; align-items: center; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid #f3f4f6; }
+    .rp-profile { display: flex; align-items: center; gap: 14px; padding-bottom: 18px; border-bottom: 1px solid #f3f4f6; }
     .rp-avatar {
-      width: 46px; height: 46px; border-radius: 50%;
-      background: #ede9fe; color: #4f46e5;
+      width: 56px; height: 56px; border-radius: 50%;
+      background: linear-gradient(135deg, #6c63ff, #4f46e5);
+      color: #fff;
       display: flex; align-items: center; justify-content: center;
-      font-size: 18px; font-weight: 700; overflow: hidden; flex-shrink: 0;
+      font-size: 22px; font-weight: 700; overflow: hidden; flex-shrink: 0;
+      box-shadow: 0 4px 14px rgba(79,70,229,0.3);
+      border: 3px solid #fff;
     }
     .rp-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .rp-name { font-size: 14px; font-weight: 700; color: #1e1e2e; }
+    .rp-name { font-size: 15px; font-weight: 700; color: #1e1e2e; }
     .rp-role { font-size: 12px; color: #9ca3af; margin-top: 2px; }
+    .rp-view-profile {
+      font-size: 11px; color: #4f46e5; font-weight: 600;
+      cursor: pointer; margin-top: 4px; display: inline-block;
+      text-decoration: none;
+    }
+    .rp-view-profile:hover { text-decoration: underline; }
 
     /* Toggle */
     .toggle-row { display: flex; justify-content: space-between; align-items: center; }
@@ -397,8 +413,11 @@
 
         <!-- Banner -->
         <div class="banner">
-          <h2 id="bannerGreet">Halo, Creator!</h2>
-          <p id="bannerMsg">Kamu punya tugas yang menunggu. Yuk mulai hari ini dengan semangat!</p>
+          <div class="banner-text">
+            <h2 id="bannerGreet">Halo, Creator!</h2>
+            <p id="bannerMsg">Kamu punya tugas yang menunggu. Yuk mulai hari ini dengan semangat!</p>
+          </div>
+          <div class="banner-avatar" id="bannerAvatar">—</div>
         </div>
 
         <!-- Alert Deadline -->
@@ -524,6 +543,7 @@
         <div>
           <div class="rp-name" id="rpName">—</div>
           <div class="rp-role">Content Creator</div>
+          <a class="rp-view-profile" onclick="showPage('profil')">View profile →</a>
         </div>
       </div>
 
@@ -606,6 +626,9 @@
         : initial;
 
       document.getElementById('rpAvatar').innerHTML = avatarHtml;
+      document.getElementById('bannerAvatar').innerHTML = creator.avatar_url
+        ? `<img src="${creator.avatar_url}" alt="avatar" />`
+        : creator.name.charAt(0).toUpperCase();
       document.getElementById('rpName').textContent = creator.name;
       document.getElementById('profileAvatar').innerHTML = creator.avatar_url
         ? `<img src="${creator.avatar_url}" alt="avatar" style="width:100%;height:100%;object-fit:cover" />`

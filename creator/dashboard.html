@@ -298,6 +298,45 @@
     </div>
   </div>
 
+  <!-- Modal Detail Order -->
+  <div class="modal-overlay" id="detailModal">
+    <div class="modal" style="max-width:520px">
+      <h3 id="detailBrand">—</h3>
+      <p id="detailAdv" style="margin-bottom:16px"></p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="background:#f5f4fb;border-radius:10px;padding:12px">
+            <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin-bottom:4px">Jenis Konten</div>
+            <div style="font-size:13px;font-weight:600;color:#1e1e2e" id="detailType">—</div>
+          </div>
+          <div style="background:#f5f4fb;border-radius:10px;padding:12px">
+            <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin-bottom:4px">Platform</div>
+            <div style="font-size:13px;font-weight:600;color:#1e1e2e" id="detailPlatform">—</div>
+          </div>
+          <div style="background:#f5f4fb;border-radius:10px;padding:12px">
+            <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin-bottom:4px">Jumlah Konten</div>
+            <div style="font-size:13px;font-weight:600;color:#1e1e2e" id="detailJumlah">—</div>
+          </div>
+          <div style="background:#f5f4fb;border-radius:10px;padding:12px">
+            <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin-bottom:4px">Deadline</div>
+            <div style="font-size:13px;font-weight:600;color:#1e1e2e" id="detailDeadline">—</div>
+          </div>
+        </div>
+        <div style="background:#f5f4fb;border-radius:10px;padding:12px">
+          <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin-bottom:6px">Brief</div>
+          <div style="font-size:13px;color:#374151;line-height:1.6" id="detailBrief">—</div>
+        </div>
+        <div style="background:#f5f4fb;border-radius:10px;padding:12px" id="detailRefWrap">
+          <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin-bottom:6px">Referensi</div>
+          <div style="font-size:13px;color:#4f46e5;word-break:break-all" id="detailRef">—</div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn cancel" onclick="closeDetailModal()">Tutup</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal Drive Link -->
   <div class="modal-overlay" id="driveModal">
     <div class="modal">
@@ -636,7 +675,7 @@
       if (!tasks.length) {
         body.innerHTML = '<tr><td colspan="6" class="empty-td">Belum ada tugas.</td></tr>'; return;
       }
-      body.innerHTML = tasks.map(o => taskRow(o, 6)).join('');
+      body.innerHTML = tasks.map(o => taskRow(o)).join('');
     }
 
     function renderAktifTable(tasks) {
@@ -647,7 +686,7 @@
       body.innerHTML = tasks.map(o => taskRowFull(o)).join('');
     }
 
-    function taskRow(o, cols) {
+    function taskRow(o) {
       const statusLabel = { assigned: 'Ditugaskan', in_progress: 'Dikerjakan', done: 'Selesai' };
       const aksi = o.status === 'assigned'
         ? `<button class="act-btn start" onclick="updateTaskStatus('${o.id}', 'in_progress')">Mulai</button>`
@@ -655,12 +694,15 @@
         ? `<button class="act-btn finish" onclick="openDriveModal('${o.id}','${o.wa_number}','${o.advertiser_name}','${o.brand}','${o.content_type}')">Selesai</button>`
         : o.drive_link ? `<a href="${o.drive_link}" target="_blank" class="drive-btn">Drive</a>` : '—';
       return `<tr>
-        <td><strong>${o.brand}</strong></td>
+        <td><strong style="cursor:pointer;color:#4f46e5" onclick='openDetailModal(${JSON.stringify(o)})'>${o.brand}</strong></td>
         <td>${o.content_type}</td>
         <td>${o.advertiser_name}</td>
         <td>${o.deadline || '—'}</td>
         <td><span class="badge ${o.status}">${statusLabel[o.status]}</span></td>
-        <td>${aksi}</td>
+        <td style="display:flex;gap:6px;align-items:center">
+          <button class="act-btn" style="background:#f5f4fb;color:#6b7280" onclick='openDetailModal(${JSON.stringify(o)})'>Detail</button>
+          ${aksi}
+        </td>
       </tr>`;
     }
 
@@ -670,13 +712,16 @@
         ? `<button class="act-btn start" onclick="updateTaskStatus('${o.id}', 'in_progress')">Mulai</button>`
         : `<button class="act-btn finish" onclick="openDriveModal('${o.id}','${o.wa_number}','${o.advertiser_name}','${o.brand}','${o.content_type}')">Selesai</button>`;
       return `<tr>
-        <td><strong>${o.brand}</strong></td>
+        <td><strong style="cursor:pointer;color:#4f46e5" onclick='openDetailModal(${JSON.stringify(o)})'>${o.brand}</strong></td>
         <td>${o.content_type}</td>
         <td>${o.advertiser_name}</td>
         <td>${o.platform || '—'}</td>
         <td>${o.deadline || '—'}</td>
         <td><span class="badge ${o.status}">${statusLabel[o.status]}</span></td>
-        <td>${aksi}</td>
+        <td style="display:flex;gap:6px;align-items:center">
+          <button class="act-btn" style="background:#f5f4fb;color:#6b7280" onclick='openDetailModal(${JSON.stringify(o)})'>Detail</button>
+          ${aksi}
+        </td>
       </tr>`;
     }
 
@@ -825,6 +870,26 @@
     };
 
     window.closeModal = function () { document.getElementById('driveModal').classList.remove('show'); };
+
+    window.openDetailModal = function (o) {
+      document.getElementById('detailBrand').textContent = o.brand;
+      document.getElementById('detailAdv').textContent = `Advertiser: ${o.advertiser_name} · WA: ${o.wa_number}`;
+      document.getElementById('detailType').textContent = o.content_type || '—';
+      document.getElementById('detailPlatform').textContent = o.platform || '—';
+      document.getElementById('detailJumlah').textContent = o.jumlah_konten ? o.jumlah_konten + ' konten' : '—';
+      document.getElementById('detailDeadline').textContent = o.deadline || '—';
+      document.getElementById('detailBrief').textContent = o.brief || '—';
+      const refWrap = document.getElementById('detailRefWrap');
+      if (o.referensi_konten) {
+        document.getElementById('detailRef').textContent = o.referensi_konten;
+        refWrap.style.display = 'block';
+      } else {
+        refWrap.style.display = 'none';
+      }
+      document.getElementById('detailModal').classList.add('show');
+    };
+
+    window.closeDetailModal = function () { document.getElementById('detailModal').classList.remove('show'); };
 
     window.submitDriveLink = async function () {
       const link = document.getElementById('driveLinkInput').value.trim();

@@ -71,7 +71,7 @@
       margin-bottom: 24px;
     }
     .banner {
-      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      background: linear-gradient(135deg, #6366f1, #818cf8);
       border-radius: 16px; padding: 28px 170px 28px 32px;
       color: #fff;
       position: relative; overflow: visible;
@@ -519,6 +519,9 @@
         <div class="profile-card">
           <div class="profile-avatar-wrap">
             <div class="profile-avatar" id="profileAvatar">—</div>
+            <label for="avatarUploadInput" style="font-size:13px;color:#4f46e5;font-weight:600;cursor:pointer;text-decoration:underline">Ganti Foto</label>
+            <input type="file" id="avatarUploadInput" accept="image/*" style="display:none" onchange="uploadAvatar(event)" />
+            <p id="avatarUploadMsg" style="font-size:12px;color:#9ca3af;margin-top:4px"></p>
           </div>
           <div class="pf-field">
             <div class="pf-label">Nama</div>

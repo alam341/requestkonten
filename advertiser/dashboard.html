@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Advertiser — Adsy</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f4f6fb; min-height: 100vh; }
+
+    header {
+      background: #fff; padding: 16px 24px;
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .logo { font-size: 20px; font-weight: 700; color: #4f46e5; }
+    .header-right { display: flex; align-items: center; gap: 14px; }
+    .user-name { font-size: 14px; color: #374151; font-weight: 500; }
+    .new-order-btn {
+      padding: 8px 16px;
+      background: #4f46e5; color: #fff;
+      border: none; border-radius: 7px;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; text-decoration: none;
+      transition: background 0.2s;
+    }
+    .new-order-btn:hover { background: #4338ca; }
+    .logout-btn {
+      font-size: 13px; color: #6b7280;
+      background: none; border: none; cursor: pointer;
+    }
+    .logout-btn:hover { color: #dc2626; }
+
+    .container { max-width: 760px; margin: 32px auto; padding: 0 20px; }
+
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
+    .stat-card {
+      background: #fff; border-radius: 12px;
+      padding: 18px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .stat-card .val { font-size: 26px; font-weight: 700; color: #1e1e2e; }
+    .stat-card .lbl { font-size: 12px; color: #9ca3af; margin-top: 2px; }
+    .stat-card.waiting .val { color: #d97706; }
+    .stat-card.assigned .val { color: #2563eb; }
+    .stat-card.progress .val { color: #7c3aed; }
+    .stat-card.done .val { color: #16a34a; }
+
+    .filter-row {
+      display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap;
+    }
+    .filter-btn {
+      padding: 7px 14px; border-radius: 99px;
+      font-size: 13px; font-weight: 500;
+      border: 1.5px solid #e5e7eb;
+      background: #fff; color: #6b7280;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .filter-btn.active {
+      background: #4f46e5; color: #fff; border-color: #4f46e5;
+    }
+
+    .orders-list { display: flex; flex-direction: column; gap: 12px; }
+    .order-card {
+      background: #fff; border-radius: 12px;
+      padding: 20px 22px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .order-top {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .order-brand { font-size: 16px; font-weight: 600; color: #1e1e2e; }
+    .order-date { font-size: 12px; color: #9ca3af; margin-top: 2px; }
+
+    .badge {
+      font-size: 11px; font-weight: 600; padding: 4px 12px;
+      border-radius: 99px; text-transform: uppercase; white-space: nowrap;
+    }
+    .badge.waiting { background: #fef9c3; color: #854d0e; }
+    .badge.assigned { background: #dbeafe; color: #1d4ed8; }
+    .badge.in_progress { background: #ede9fe; color: #5b21b6; }
+    .badge.done { background: #dcfce7; color: #15803d; }
+
+    .order-meta { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 10px; }
+    .meta-item { font-size: 13px; color: #6b7280; }
+    .meta-item span { color: #374151; font-weight: 500; }
+
+    .progress-bar-wrap { margin-top: 14px; }
+    .progress-steps {
+      display: flex; align-items: center; gap: 0;
+      position: relative;
+    }
+    .step {
+      display: flex; flex-direction: column; align-items: center;
+      flex: 1; position: relative; z-index: 1;
+    }
+    .step-dot {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: #e5e7eb; border: 2px solid #e5e7eb;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; color: #9ca3af;
+      transition: all 0.3s;
+    }
+    .step-dot.done-dot { background: #4f46e5; border-color: #4f46e5; color: #fff; }
+    .step-dot.current-dot { background: #fff; border-color: #4f46e5; color: #4f46e5; font-weight: 700; }
+    .step-label { font-size: 11px; color: #9ca3af; margin-top: 5px; text-align: center; }
+    .step-label.active-label { color: #4f46e5; font-weight: 600; }
+    .step-line {
+      flex: 1; height: 2px; background: #e5e7eb;
+      margin: 0 -2px; margin-bottom: 18px; z-index: 0;
+      transition: background 0.3s;
+    }
+    .step-line.filled { background: #4f46e5; }
+
+    .creator-box {
+      margin-top: 12px; padding: 12px 14px;
+      background: #f0fdf4; border-radius: 8px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .creator-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: #4f46e5; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 600;
+    }
+    .creator-box .creator-name { font-size: 13px; font-weight: 600; color: #15803d; }
+    .creator-box .creator-lbl { font-size: 12px; color: #6b7280; }
+
+    .queue-box {
+      margin-top: 12px; padding: 10px 14px;
+      background: #fefce8; border-radius: 8px;
+      font-size: 13px; color: #854d0e;
+    }
+
+    .empty-msg { text-align: center; color: #9ca3af; font-size: 14px; padding: 48px 0; }
+    .loading { text-align: center; color: #6b7280; padding: 32px; }
+
+    @media (max-width: 480px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">Adsy</div>
+    <div class="header-right">
+      <span class="user-name" id="userName">—</span>
+      <a href="../index.html" class="new-order-btn">+ Request Baru</a>
+      <button class="logout-btn" onclick="doLogout()">Keluar</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card waiting">
+        <div class="val" id="countWaiting">—</div>
+        <div class="lbl">Menunggu</div>
+      </div>
+      <div class="stat-card assigned">
+        <div class="val" id="countAssigned">—</div>
+        <div class="lbl">Ditugaskan</div>
+      </div>
+      <div class="stat-card progress">
+        <div class="val" id="countProgress">—</div>
+        <div class="lbl">Dikerjakan</div>
+      </div>
+      <div class="stat-card done">
+        <div class="val" id="countDone">—</div>
+        <div class="lbl">Selesai</div>
+      </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="filterOrders('all', this)">Semua</button>
+      <button class="filter-btn" onclick="filterOrders('waiting', this)">Menunggu</button>
+      <button class="filter-btn" onclick="filterOrders('assigned', this)">Ditugaskan</button>
+      <button class="filter-btn" onclick="filterOrders('in_progress', this)">Dikerjakan</button>
+      <button class="filter-btn" onclick="filterOrders('done', this)">Selesai</button>
+    </div>
+
+    <!-- Orders -->
+    <div class="orders-list" id="ordersList">
+      <p class="loading">Memuat order...</p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const SUPABASE_URL = 'GANTI_SUPABASE_URL';
+    const SUPABASE_ANON_KEY = 'GANTI_SUPABASE_ANON_KEY';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let allOrders = [];
+    let currentFilter = 'all';
+
+    async function init() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { window.location.href = 'login.html'; return; }
+
+      const meta = session.user.user_metadata;
+      document.getElementById('userName').textContent = meta?.name || session.user.email;
+
+      await loadOrders(session.user.id);
+    }
+
+    async function loadOrders(userId) {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*, creators(name)')
+        .eq('advertiser_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error || !data) {
+        document.getElementById('ordersList').innerHTML = '<p class="empty-msg">Gagal memuat order.</p>';
+        return;
+      }
+
+      allOrders = data;
+      updateStats(data);
+      renderOrders(data);
+    }
+
+    function updateStats(data) {
+      document.getElementById('countWaiting').textContent = data.filter(o => o.status === 'waiting').length;
+      document.getElementById('countAssigned').textContent = data.filter(o => o.status === 'assigned').length;
+      document.getElementById('countProgress').textContent = data.filter(o => o.status === 'in_progress').length;
+      document.getElementById('countDone').textContent = data.filter(o => o.status === 'done').length;
+    }
+
+    function renderOrders(data) {
+      const list = document.getElementById('ordersList');
+      if (!data || data.length === 0) {
+        list.innerHTML = '<p class="empty-msg">Belum ada order' + (currentFilter !== 'all' ? ' dengan status ini' : '') + '.</p>';
+        return;
+      }
+
+      const statusLabel = { waiting: 'Menunggu', assigned: 'Ditugaskan', in_progress: 'Dikerjakan', done: 'Selesai' };
+      const stepOrder = ['waiting', 'assigned', 'in_progress', 'done'];
+      const stepNames = ['Request', 'Creator Assigned', 'Dikerjakan', 'Selesai'];
+
+      list.innerHTML = data.map(order => {
+        const currentStep = stepOrder.indexOf(order.status);
+
+        const progressHTML = `
+          <div class="progress-bar-wrap">
+            <div class="progress-steps">
+              ${stepNames.map((name, i) => `
+                ${i > 0 ? `<div class="step-line ${i <= currentStep ? 'filled' : ''}"></div>` : ''}
+                <div class="step">
+                  <div class="step-dot ${i < currentStep ? 'done-dot' : i === currentStep ? 'current-dot' : ''}">
+                    ${i < currentStep ? '✓' : i + 1}
+                  </div>
+                  <span class="step-label ${i === currentStep ? 'active-label' : ''}">${name}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+
+        const creatorHTML = order.creators ? `
+          <div class="creator-box">
+            <div class="creator-avatar">${order.creators.name.charAt(0).toUpperCase()}</div>
+            <div>
+              <div class="creator-name">${order.creators.name}</div>
+              <div class="creator-lbl">Content Creator</div>
+            </div>
+          </div>
+        ` : order.status === 'waiting' ? `
+          <div class="queue-box">Sedang mencari creator yang tersedia untuk ordermu...</div>
+        ` : '';
+
+        return `
+          <div class="order-card">
+            <div class="order-top">
+              <div>
+                <div class="order-brand">${order.brand}</div>
+                <div class="order-date">${new Date(order.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+              </div>
+              <span class="badge ${order.status}">${statusLabel[order.status]}</span>
+            </div>
+            <div class="order-meta">
+              <div class="meta-item">Jenis: <span>${order.content_type}</span></div>
+              ${order.platform ? `<div class="meta-item">Platform: <span>${order.platform}</span></div>` : ''}
+              ${order.deadline ? `<div class="meta-item">Deadline: <span>${order.deadline}</span></div>` : ''}
+            </div>
+            ${progressHTML}
+            ${creatorHTML}
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.filterOrders = function (status, btn) {
+      currentFilter = status;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filtered = status === 'all' ? allOrders : allOrders.filter(o => o.status === status);
+      renderOrders(filtered);
+    };
+
+    window.doLogout = async function () {
+      await supabase.auth.signOut();
+      window.location.href = 'login.html';
+    };
+
+    init();
+  </script>
+</body>
+</html>

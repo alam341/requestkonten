@@ -261,6 +261,7 @@
 
         // Tunggu trigger auto-assign selesai, lalu kirim WA
         setTimeout(async () => {
+
           const { data: order } = await supabase
             .from('orders')
             .select('*, creators(name, wa_number)')
@@ -308,7 +309,7 @@
               }),
             }).catch(() => {});
           }
-        }, 500);
+        }, 1500);
       }
     });
   </script>

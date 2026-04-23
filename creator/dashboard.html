@@ -1002,6 +1002,36 @@
       event.currentTarget.classList.add('active');
     };
 
+    window.uploadAvatar = async function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const msg = document.getElementById('avatarUploadMsg');
+      msg.textContent = 'Mengupload...';
+
+      const ext = file.name.split('.').pop();
+      const path = `${currentCreator.user_id}.${ext}`;
+
+      const { error: uploadErr } = await supabase.storage
+        .from('avatars').upload(path, file, { upsert: true });
+
+      if (uploadErr) { msg.textContent = 'Gagal upload: ' + uploadErr.message; return; }
+
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
+      const avatar_url = urlData.publicUrl + '?t=' + Date.now();
+
+      await supabase.from('creators').update({ avatar_url }).eq('id', currentCreator.id);
+      currentCreator.avatar_url = avatar_url;
+
+      // Update semua tampilan foto
+      const imgHtml = `<img src="${avatar_url}" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />`;
+      document.getElementById('profileAvatar').innerHTML = imgHtml;
+      document.getElementById('rpAvatar').innerHTML = imgHtml;
+      document.getElementById('bannerAvatar').innerHTML = imgHtml;
+
+      msg.textContent = 'Foto berhasil diupdate!';
+      setTimeout(() => msg.textContent = '', 3000);
+    };
+
     window.doLogout = async function () {
       await supabase.auth.signOut();
       window.location.href = 'login.html';

@@ -55,6 +55,13 @@ Detail:
 - Jenis konten: ${data.content_type}
 Pesan harus: singkat (max 4 baris), pakai bahasa Indonesia santai, membuat advertiser excited, minta mereka pantau di dashboard.`,
 
+    order_queued: `Kamu adalah asisten notifikasi WhatsApp untuk platform content creator bernama Adsy.
+Tulis pesan WhatsApp untuk advertiser bernama "${data.advertiser_name}" bahwa order mereka sudah diterima tapi semua creator sedang sibuk, jadi masuk antrian dulu.
+Detail order:
+- Brand: ${data.brand}
+- Jenis konten: ${data.content_type}
+Pesan harus: singkat (max 4 baris), tenangkan advertiser, beritahu mereka akan dapat notif WA segera saat creator tersedia, pakai bahasa Indonesia santai.`,
+
     order_done: `Kamu adalah asisten notifikasi WhatsApp untuk platform content creator bernama Adsy.
 Tulis pesan WhatsApp singkat dan meriah untuk advertiser bernama "${data.advertiser_name}" bahwa konten mereka sudah selesai.
 Detail:

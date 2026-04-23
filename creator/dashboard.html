@@ -576,21 +576,44 @@
             <input type="file" id="avatarUploadInput" accept="image/*" style="display:none" onchange="uploadAvatar(event)" />
             <p id="avatarUploadMsg" style="font-size:12px;color:#9ca3af;margin-top:4px"></p>
           </div>
-          <div class="pf-field">
-            <div class="pf-label">Nama</div>
-            <div class="pf-value" id="pfName">—</div>
+
+          <!-- View mode -->
+          <div id="profileView">
+            <div class="pf-field">
+              <div class="pf-label">Nama</div>
+              <div class="pf-value" id="pfName">—</div>
+            </div>
+            <div class="pf-field">
+              <div class="pf-label">Email</div>
+              <div class="pf-value" id="pfEmail">—</div>
+            </div>
+            <div class="pf-field">
+              <div class="pf-label">No. WhatsApp</div>
+              <div class="pf-value" id="pfWa">—</div>
+            </div>
+            <div class="pf-field">
+              <div class="pf-label">Total Tugas Selesai</div>
+              <div class="pf-value" id="pfDone">—</div>
+            </div>
+            <button onclick="toggleEditProfile(true)" style="margin-top:8px;padding:10px 20px;background:#4f46e5;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;width:100%">Edit Profil</button>
           </div>
-          <div class="pf-field">
-            <div class="pf-label">Email</div>
-            <div class="pf-value" id="pfEmail">—</div>
-          </div>
-          <div class="pf-field">
-            <div class="pf-label">No. WhatsApp</div>
-            <div class="pf-value" id="pfWa">—</div>
-          </div>
-          <div class="pf-field">
-            <div class="pf-label">Total Tugas Selesai</div>
-            <div class="pf-value" id="pfDone">—</div>
+
+          <!-- Edit mode -->
+          <div id="profileEdit" style="display:none">
+            <div class="pf-field">
+              <div class="pf-label">Nama</div>
+              <input id="editName" style="width:100%;padding:12px 14px;border:none;border-radius:10px;background:#f5f4fb;font-size:14px;outline:none" />
+            </div>
+            <div class="pf-field">
+              <div class="pf-label">No. WhatsApp</div>
+              <input id="editWa" style="width:100%;padding:12px 14px;border:none;border-radius:10px;background:#f5f4fb;font-size:14px;outline:none" />
+            </div>
+            <p style="font-size:12px;color:#9ca3af;margin-bottom:14px">Email tidak bisa diubah.</p>
+            <div style="display:flex;gap:8px">
+              <button onclick="toggleEditProfile(false)" style="flex:1;padding:10px;background:#f5f4fb;color:#6b7280;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">Batal</button>
+              <button onclick="saveProfile()" id="saveProfileBtn" style="flex:1;padding:10px;background:#4f46e5;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">Simpan</button>
+            </div>
+            <p id="profileSaveMsg" style="font-size:12px;color:#10b981;margin-top:10px;text-align:center"></p>
           </div>
         </div>
       </div>
@@ -1077,6 +1100,46 @@
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
       document.getElementById('page-' + page).classList.add('active');
       event.currentTarget.classList.add('active');
+    };
+
+    window.toggleEditProfile = function(isEdit) {
+      document.getElementById('profileView').style.display = isEdit ? 'none' : 'block';
+      document.getElementById('profileEdit').style.display = isEdit ? 'block' : 'none';
+      if (isEdit) {
+        document.getElementById('editName').value = currentCreator.name;
+        document.getElementById('editWa').value = currentCreator.wa_number || '';
+      }
+    };
+
+    window.saveProfile = async function () {
+      const name = document.getElementById('editName').value.trim();
+      const wa = document.getElementById('editWa').value.trim();
+      const btn = document.getElementById('saveProfileBtn');
+      const msg = document.getElementById('profileSaveMsg');
+
+      if (!name) { msg.style.color = '#dc2626'; msg.textContent = 'Nama tidak boleh kosong.'; return; }
+
+      btn.disabled = true; btn.textContent = 'Menyimpan...';
+
+      const { error } = await supabase.from('creators')
+        .update({ name, wa_number: wa })
+        .eq('id', currentCreator.id);
+
+      if (error) {
+        msg.style.color = '#dc2626'; msg.textContent = 'Gagal: ' + error.message;
+        btn.disabled = false; btn.textContent = 'Simpan'; return;
+      }
+
+      currentCreator.name = name;
+      currentCreator.wa_number = wa;
+
+      document.getElementById('pfName').textContent = name;
+      document.getElementById('pfWa').textContent = wa || '—';
+      document.getElementById('rpName').textContent = name;
+
+      btn.disabled = false; btn.textContent = 'Simpan';
+      msg.style.color = '#10b981'; msg.textContent = 'Profil berhasil disimpan!';
+      setTimeout(() => { toggleEditProfile(false); msg.textContent = ''; }, 1500);
     };
 
     window.uploadAvatar = async function (e) {

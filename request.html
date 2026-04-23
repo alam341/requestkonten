@@ -230,7 +230,7 @@
         advertiser_id: session?.user?.id || null,
       };
 
-      const { error } = await supabase.functions.invoke('submit-order', { body: payload });
+      const { error } = await supabase.from('orders').insert(payload);
 
       if (error) {
         errorMsg.textContent = 'Gagal mengirim request. Coba lagi.';
@@ -240,15 +240,13 @@
       } else {
         document.getElementById('orderForm').style.display = 'none';
         const successBox = document.getElementById('successBox');
+        successBox.innerHTML = `
+          <h3>Request Terkirim!</h3>
+          <p>Kami sedang mencari creator yang tersedia. Kamu akan dihubungi via WhatsApp segera.</p>
+          <br />
+          <a href="advertiser/dashboard.html" style="color:#4f46e5;font-weight:600;font-size:14px;">Pantau progress di dashboard →</a>
+        `;
         successBox.style.display = 'block';
-        if (session) {
-          successBox.innerHTML = `
-            <h3>Request Terkirim!</h3>
-            <p>Kami sedang mencari creator yang tersedia. Kamu akan dihubungi via WhatsApp segera.</p>
-            <br />
-            <a href="advertiser/dashboard.html" style="color:#4f46e5;font-weight:600;font-size:14px;">Pantau progress di dashboard →</a>
-          `;
-        }
       }
     });
   </script>

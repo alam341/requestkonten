@@ -1,18 +1,18 @@
 name: Deadline Reminder                                                       
-                                                                                
-  on:                                                                         
-    schedule:                                                                 
-      - cron: '0 2 * * *'
-    workflow_dispatch:
-
-  jobs:
-    send-reminder:
-      runs-on: ubuntu-latest
-      steps:                                                                    
+   
+  "on":                                                                         
+    schedule:                                               
+      - cron: '0 2 * * *'                                                     
+    workflow_dispatch:                                                          
+   
+  jobs:                                                                         
+    send-reminder:                                          
+      runs-on: ubuntu-latest                                                  
+      steps:
         - name: Kirim WA Reminder Deadline
-          run: |                                                                
+          run: |
             curl -X GET https://requestkonten.vercel.app/api/cron-deadline \
-              -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \         
-              -f \                                                              
-              --silent \
+              -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \           
+              -f \
+              --silent \                                                        
               --show-error

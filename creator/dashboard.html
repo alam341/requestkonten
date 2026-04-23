@@ -542,6 +542,13 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvcXpuanViaG1qcmFxYXBneWF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MzUxNTgsImV4cCI6MjA5MjUxMTE1OH0.xBHG0aeKLutXyqTjlhpGVIYy7-wuI-ztI9e73wmRL04';
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    function fmtDate(str) {
+      if (!str) return '—';
+      const [y, m, d] = str.split('-');
+      const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+      return `${parseInt(d)} ${months[parseInt(m)-1]} ${y}`;
+    }
+
     const SLA_DAYS = {
       'Script': 2, 'Voice Over': 2,
       'Desain Konten': 3, 'Foto Produk': 3, 'Video Produk': 3,
@@ -598,6 +605,17 @@
       calMonth = now.getMonth();
 
       await loadTasks();
+
+      // Realtime — auto-refresh kalau ada perubahan order
+      supabase
+        .channel('creator-orders')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'orders',
+          filter: `creator_id=eq.${currentCreator.id}`,
+        }, () => { loadTasks(); })
+        .subscribe();
     }
 
     async function loadTasks() {
@@ -632,7 +650,7 @@
           : 'Semua tugas selesai. Siap menerima order baru!';
 
       renderDeadlineAlerts(active);
-      renderDashTable(allTasks.slice(0, 5));
+      renderDashTable(active.slice(0, 5));
       renderAktifTable(active);
       renderHistory(done);
       renderCalendar();
@@ -697,7 +715,7 @@
         <td><strong style="cursor:pointer;color:#4f46e5" onclick='openDetailModal(${JSON.stringify(o)})'>${o.brand}</strong></td>
         <td>${o.content_type}</td>
         <td>${o.advertiser_name}</td>
-        <td>${o.deadline || '—'}</td>
+        <td>${fmtDate(o.deadline)}</td>
         <td><span class="badge ${o.status}">${statusLabel[o.status]}</span></td>
         <td style="display:flex;gap:6px;align-items:center">
           <button class="act-btn" style="background:#f5f4fb;color:#6b7280" onclick='openDetailModal(${JSON.stringify(o)})'>Detail</button>
@@ -716,7 +734,7 @@
         <td>${o.content_type}</td>
         <td>${o.advertiser_name}</td>
         <td>${o.platform || '—'}</td>
-        <td>${o.deadline || '—'}</td>
+        <td>${fmtDate(o.deadline)}</td>
         <td><span class="badge ${o.status}">${statusLabel[o.status]}</span></td>
         <td style="display:flex;gap:6px;align-items:center">
           <button class="act-btn" style="background:#f5f4fb;color:#6b7280" onclick='openDetailModal(${JSON.stringify(o)})'>Detail</button>
@@ -734,7 +752,7 @@
         <div class="history-card">
           <div class="history-left">
             <div class="h-brand">${o.brand}</div>
-            <div class="h-detail">${o.content_type} · ${o.advertiser_name} · ${o.deadline || 'No deadline'}</div>
+            <div class="h-detail">${o.content_type} · ${o.advertiser_name} · ${fmtDate(o.deadline)}</div>
           </div>
           <div class="history-right">
             ${o.drive_link ? `<a href="${o.drive_link}" target="_blank" class="drive-btn">Lihat Drive</a>` : '<span style="color:#c4c0f0;font-size:12px">No link</span>'}
@@ -752,7 +770,7 @@
         <div class="queue-item">
           <div class="q-brand">${o.brand}</div>
           <div class="q-detail">${o.advertiser_name} · ${o.content_type}</div>
-          ${o.deadline ? `<div class="q-deadline">Deadline: ${o.deadline}</div>` : ''}
+          ${o.deadline ? `<div class="q-deadline">Deadline: ${fmtDate(o.deadline)}</div>` : ''}
         </div>
       `).join('');
     }
@@ -877,7 +895,7 @@
       document.getElementById('detailType').textContent = o.content_type || '—';
       document.getElementById('detailPlatform').textContent = o.platform || '—';
       document.getElementById('detailJumlah').textContent = o.jumlah_konten ? o.jumlah_konten + ' konten' : '—';
-      document.getElementById('detailDeadline').textContent = o.deadline || '—';
+      document.getElementById('detailDeadline').textContent = fmtDate(o.deadline);
       document.getElementById('detailBrief').textContent = o.brief || '—';
       const refWrap = document.getElementById('detailRefWrap');
       if (o.referensi_konten) {

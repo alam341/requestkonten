@@ -191,9 +191,24 @@
         err.textContent = 'Email atau password salah.';
         err.style.display = 'block';
         btn.disabled = false; btn.textContent = 'Login';
-      } else {
-        window.location.href = 'dashboard.html';
+        return;
       }
+
+      // Cek apakah user ini terdaftar sebagai creator
+      const { data: creator } = await supabase
+        .from('creators')
+        .select('id')
+        .single();
+
+      if (!creator) {
+        await supabase.auth.signOut();
+        err.textContent = 'Akun ini bukan akun creator.';
+        err.style.display = 'block';
+        btn.disabled = false; btn.textContent = 'Login';
+        return;
+      }
+
+      window.location.href = 'dashboard.html';
     };
 
     window.previewAvatar = function (e) {

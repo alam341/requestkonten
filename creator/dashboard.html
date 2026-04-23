@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard Creator — Adsy</title>
+  <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', sans-serif; background: #f0eef8; min-height: 100vh; display: flex; }
@@ -78,6 +79,14 @@
     }
     .banner h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
     .banner p { font-size: 13px; opacity: 0.85; line-height: 1.6; }
+    .banner-lottie-wrap {
+      position: absolute; right: 16px; bottom: 0;
+      width: 160px; height: 170px;
+      display: flex; align-items: flex-end; justify-content: center;
+      transition: opacity 0.6s ease;
+    }
+    .banner-lottie-wrap.fade { opacity: 0; }
+
     @keyframes float {
       0%, 100% { transform: translateY(0px); }
       50% { transform: translateY(-10px); }
@@ -457,12 +466,13 @@
             <h2 id="bannerGreet">Halo, Creator!</h2>
             <p id="bannerMsg">Kamu punya tugas yang menunggu. Yuk mulai hari ini dengan semangat!</p>
           </div>
-          <div class="banner-emoji-wrap">
-            <span class="emoji-sparkle1">✨</span>
-            <span class="emoji-sparkle2">⭐</span>
-            <span class="emoji-hand">👋</span>
-            <span class="emoji-main">🧑‍💻</span>
-            <span class="emoji-laptop">💻</span>
+          <div class="banner-lottie-wrap">
+            <lottie-player id="bannerLottie"
+              src="/assets/Welcome Animation.json"
+              background="transparent"
+              speed="1" loop autoplay
+              style="width:160px;height:160px">
+            </lottie-player>
           </div>
         </div>
 
@@ -632,6 +642,31 @@
 
     </div>
   </div>
+
+  <script>
+    const lottieFiles = [
+      '/assets/Welcome Animation.json',
+      '/assets/Cat playing animation.json',
+      '/assets/Loader cat.json',
+      '/assets/Tiger astronaut riding missile.json',
+      '/assets/Error 404.json',
+    ];
+    let lottieIndex = 0;
+
+    function rotateLottie() {
+      const wrap = document.querySelector('.banner-lottie-wrap');
+      const player = document.getElementById('bannerLottie');
+      wrap.classList.add('fade');
+      setTimeout(() => {
+        lottieIndex = (lottieIndex + 1) % lottieFiles.length;
+        player.load(lottieFiles[lottieIndex]);
+        wrap.classList.remove('fade');
+      }, 600);
+    }
+
+    // Ganti animasi setiap 3 menit
+    setInterval(rotateLottie, 3 * 60 * 1000);
+  </script>
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';

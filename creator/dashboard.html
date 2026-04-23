@@ -78,20 +78,53 @@
     }
     .banner h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
     .banner p { font-size: 13px; opacity: 0.85; line-height: 1.6; }
-    .banner-avatar {
-      position: absolute;
-      right: 32px;
-      bottom: 0;
-      width: 140px; height: 160px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.15);
-      color: #fff; font-size: 52px; font-weight: 800;
-      display: flex; align-items: center; justify-content: center;
-      overflow: hidden;
-      border: 4px solid rgba(255,255,255,0.3);
-      box-shadow: 0 -8px 30px rgba(0,0,0,0.15);
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
     }
-    .banner-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+    @keyframes wave {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(20deg); }
+      75% { transform: rotate(-10deg); }
+    }
+    @keyframes pop {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+    .banner-emoji-wrap {
+      position: absolute; right: 28px; bottom: 0;
+      width: 150px; height: 160px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: flex-end;
+      padding-bottom: 8px;
+    }
+    .emoji-main {
+      font-size: 72px; line-height: 1;
+      animation: float 3s ease-in-out infinite;
+      filter: drop-shadow(0 8px 16px rgba(0,0,0,0.2));
+    }
+    .emoji-hand {
+      position: absolute; top: 10px; right: 10px;
+      font-size: 28px;
+      animation: wave 1.5s ease-in-out infinite;
+      transform-origin: bottom center;
+    }
+    .emoji-laptop {
+      font-size: 32px; margin-top: 4px;
+      animation: pop 2s ease-in-out infinite;
+    }
+    .emoji-sparkle1 {
+      position: absolute; top: 8px; left: 16px;
+      font-size: 18px;
+      animation: pop 2.2s ease-in-out infinite 0.3s;
+      opacity: 0.8;
+    }
+    .emoji-sparkle2 {
+      position: absolute; top: 30px; right: 4px;
+      font-size: 14px;
+      animation: pop 1.8s ease-in-out infinite 0.6s;
+      opacity: 0.7;
+    }
 
     /* Stats */
     .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
@@ -424,45 +457,12 @@
             <h2 id="bannerGreet">Halo, Creator!</h2>
             <p id="bannerMsg">Kamu punya tugas yang menunggu. Yuk mulai hari ini dengan semangat!</p>
           </div>
-          <div class="banner-avatar" id="bannerAvatar">
-            <svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
-              <!-- Dekorasi lingkaran -->
-              <circle cx="100" cy="110" r="95" fill="rgba(255,255,255,0.08)"/>
-              <circle cx="100" cy="110" r="70" fill="rgba(255,255,255,0.08)"/>
-              <!-- Kepala -->
-              <circle cx="100" cy="60" r="28" fill="#fde8d8"/>
-              <!-- Rambut -->
-              <ellipse cx="100" cy="38" rx="28" ry="16" fill="#3b2f2f"/>
-              <rect x="72" y="38" width="12" height="20" rx="6" fill="#3b2f2f"/>
-              <!-- Badan -->
-              <rect x="72" y="88" width="56" height="60" rx="16" fill="#fff"/>
-              <!-- Kerah -->
-              <polygon points="100,90 88,108 112,108" fill="#e8e0ff"/>
-              <!-- Lengan kiri -->
-              <rect x="44" y="92" width="30" height="14" rx="7" fill="#fde8d8" transform="rotate(15,44,92)"/>
-              <!-- Lengan kanan — angkat -->
-              <rect x="126" y="78" width="30" height="14" rx="7" fill="#fde8d8" transform="rotate(-35,126,78)"/>
-              <!-- Tangan kanan (telunjuk ke atas) -->
-              <circle cx="149" cy="65" r="7" fill="#fde8d8"/>
-              <rect x="147" y="44" width="5" height="18" rx="3" fill="#fde8d8"/>
-              <!-- Laptop -->
-              <rect x="55" y="148" width="90" height="54" rx="8" fill="#e8e0ff"/>
-              <rect x="60" y="152" width="80" height="42" rx="6" fill="#c7bfff"/>
-              <rect x="63" y="155" width="74" height="36" rx="4" fill="#1e1b4b"/>
-              <!-- Layar laptop (kode) -->
-              <rect x="67" y="159" width="30" height="3" rx="1.5" fill="#818cf8"/>
-              <rect x="67" y="165" width="20" height="3" rx="1.5" fill="#6ee7b7"/>
-              <rect x="67" y="171" width="25" height="3" rx="1.5" fill="#818cf8"/>
-              <rect x="67" y="177" width="15" height="3" rx="1.5" fill="#fbbf24"/>
-              <!-- Kaki laptop -->
-              <rect x="68" y="200" width="64" height="6" rx="3" fill="#c7bfff"/>
-              <!-- Kaki -->
-              <rect x="82" y="148" width="14" height="30" rx="7" fill="#3b2f2f"/>
-              <rect x="104" y="148" width="14" height="30" rx="7" fill="#3b2f2f"/>
-              <!-- Sepatu -->
-              <ellipse cx="89" cy="178" rx="12" ry="7" fill="#1e1b4b"/>
-              <ellipse cx="111" cy="178" rx="12" ry="7" fill="#1e1b4b"/>
-            </svg>
+          <div class="banner-emoji-wrap">
+            <span class="emoji-sparkle1">✨</span>
+            <span class="emoji-sparkle2">⭐</span>
+            <span class="emoji-hand">👋</span>
+            <span class="emoji-main">🧑‍💻</span>
+            <span class="emoji-laptop">💻</span>
           </div>
         </div>
 

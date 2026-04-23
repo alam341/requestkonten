@@ -8,82 +8,136 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #f4f6fb;
+      background: #eae8f5;
       min-height: 100vh;
       display: flex; align-items: center; justify-content: center;
       padding: 24px;
     }
     .card {
-      background: #fff; border-radius: 16px;
-      padding: 40px; width: 100%; max-width: 420px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      background: #fff;
+      border-radius: 24px;
+      padding: 36px 40px 32px;
+      width: 100%; max-width: 420px;
+      box-shadow: 0 8px 40px rgba(80,70,160,0.10);
     }
-    .logo { font-size: 22px; font-weight: 700; color: #4f46e5; margin-bottom: 24px; }
+
+    /* Brand */
+    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+    .brand-icon {
+      width: 52px; height: 52px; border-radius: 14px;
+      background: linear-gradient(135deg, #6c63ff, #4f46e5);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; color: #fff; font-weight: 800; letter-spacing: -1px;
+    }
+    .brand-text .name { font-size: 22px; font-weight: 700; color: #4f46e5; line-height: 1; }
+    .brand-text .tagline { font-size: 13px; color: #9ca3af; margin-top: 3px; }
+
+    /* Tabs */
     .tabs {
-      display: flex; gap: 0;
-      border: 1.5px solid #e5e7eb; border-radius: 8px;
-      overflow: hidden; margin-bottom: 28px;
+      display: flex;
+      background: #f0eef8;
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 28px;
     }
     .tab {
       flex: 1; padding: 10px;
-      text-align: center; font-size: 14px; font-weight: 500;
-      cursor: pointer; background: #fff; color: #6b7280;
-      border: none; transition: all 0.2s;
+      text-align: center; font-size: 14px; font-weight: 600;
+      cursor: pointer; border: none; background: transparent;
+      color: #9ca3af; border-radius: 9px;
+      transition: all 0.2s;
     }
-    .tab.active { background: #4f46e5; color: #fff; }
-    h2 { font-size: 18px; font-weight: 600; color: #1e1e2e; margin-bottom: 4px; }
-    p.sub { font-size: 13px; color: #6b7280; margin-bottom: 24px; }
-    .field { margin-bottom: 16px; }
-    label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px; }
+    .tab.active {
+      background: #fff;
+      color: #4f46e5;
+      box-shadow: 0 2px 8px rgba(80,70,160,0.12);
+    }
+
+    /* Fields */
+    .field { margin-bottom: 18px; }
+    label {
+      display: block;
+      font-size: 11px; font-weight: 700;
+      color: #6b7280; letter-spacing: 0.08em;
+      text-transform: uppercase; margin-bottom: 7px;
+    }
     input {
-      width: 100%; padding: 10px 14px;
-      border: 1.5px solid #e5e7eb; border-radius: 8px;
+      width: 100%; padding: 13px 16px;
+      border: none; border-radius: 12px;
       font-size: 14px; color: #1e1e2e;
-      background: #fafafa; outline: none; transition: border 0.2s;
+      background: #f5f4fb; outline: none;
+      transition: box-shadow 0.2s, background 0.2s;
     }
-    input:focus { border-color: #4f46e5; background: #fff; }
+    input:focus {
+      background: #eeecfb;
+      box-shadow: 0 0 0 2px #c7c2f5;
+    }
+    input::placeholder { color: #b0adc8; }
+
+    /* Button */
     .btn {
-      width: 100%; padding: 12px;
+      width: 100%; padding: 14px;
       background: #4f46e5; color: #fff;
-      border: none; border-radius: 8px;
-      font-size: 15px; font-weight: 600;
-      cursor: pointer; transition: background 0.2s; margin-top: 4px;
+      border: none; border-radius: 14px;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer; margin-top: 6px;
+      transition: background 0.2s, transform 0.1s;
+      letter-spacing: 0.01em;
     }
     .btn:hover { background: #4338ca; }
-    .btn:disabled { background: #a5b4fc; cursor: not-allowed; }
-    .error-msg { display: none; color: #dc2626; font-size: 13px; margin-top: 10px; text-align: center; }
-    .success-msg { display: none; color: #16a34a; font-size: 13px; margin-top: 10px; text-align: center; }
+    .btn:active { transform: scale(0.99); }
+    .btn:disabled { background: #c4c0f0; cursor: not-allowed; }
+
+    .footer-text {
+      text-align: center; font-size: 12px;
+      color: #b0adc8; margin-top: 16px;
+    }
+    .footer-text a { color: #4f46e5; text-decoration: none; font-weight: 600; }
+
+    .error-msg {
+      display: none; color: #dc2626;
+      font-size: 13px; margin-top: 10px; text-align: center;
+    }
+    .success-msg {
+      display: none; color: #16a34a;
+      font-size: 13px; margin-top: 10px; text-align: center;
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="logo">Adsy</div>
+
+    <div class="brand">
+      <div class="brand-icon">A</div>
+      <div class="brand-text">
+        <div class="name">Adsy</div>
+        <div class="tagline">Platform Content Creator · by Adsy</div>
+      </div>
+    </div>
 
     <div class="tabs">
-      <button class="tab active" id="tabLogin" onclick="switchTab('login')">Masuk</button>
+      <button class="tab active" id="tabLogin" onclick="switchTab('login')">Login</button>
       <button class="tab" id="tabRegister" onclick="switchTab('register')">Daftar</button>
     </div>
 
     <!-- Login -->
     <div id="loginSection">
-      <h2>Selamat datang</h2>
-      <p class="sub">Masuk untuk kelola dan pantau semua ordermu.</p>
       <div class="field">
         <label>Email</label>
         <input type="email" id="loginEmail" placeholder="email@kamu.com" />
       </div>
       <div class="field">
         <label>Password</label>
-        <input type="password" id="loginPassword" placeholder="••••••••" />
+        <input type="password" id="loginPassword" placeholder="Password" />
       </div>
-      <button class="btn" id="loginBtn" onclick="doLogin()">Masuk</button>
+      <button class="btn" id="loginBtn" onclick="doLogin()">Login</button>
       <p class="error-msg" id="loginError"></p>
+      <p class="footer-text">Dengan masuk, kamu setuju dengan syarat penggunaan.</p>
     </div>
 
     <!-- Register -->
     <div id="registerSection" style="display:none">
-      <h2>Buat akun</h2>
-      <p class="sub">Daftar untuk mulai request content creator.</p>
       <div class="field">
         <label>Nama</label>
         <input type="text" id="regName" placeholder="Nama kamu" />
@@ -100,10 +154,12 @@
         <label>Password</label>
         <input type="password" id="regPassword" placeholder="Min. 8 karakter" />
       </div>
-      <button class="btn" id="registerBtn" onclick="doRegister()">Daftar</button>
+      <button class="btn" id="registerBtn" onclick="doRegister()">Buat Akun</button>
       <p class="error-msg" id="registerError"></p>
       <p class="success-msg" id="registerSuccess"></p>
+      <p class="footer-text">Sudah punya akun? <a href="#" onclick="switchTab('login')">Login di sini</a></p>
     </div>
+
   </div>
 
   <script type="module">
@@ -116,6 +172,10 @@
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) window.location.href = 'dashboard.html';
     });
+
+    // Buka tab sesuai URL param ?tab=register
+    const tabParam = new URLSearchParams(window.location.search).get('tab');
+    if (tabParam === 'register') window.switchTab('register');
 
     window.switchTab = function (tab) {
       document.getElementById('loginSection').style.display = tab === 'login' ? 'block' : 'none';
@@ -138,7 +198,7 @@
       if (error) {
         err.textContent = 'Email atau password salah.';
         err.style.display = 'block';
-        btn.disabled = false; btn.textContent = 'Masuk';
+        btn.disabled = false; btn.textContent = 'Login';
       } else {
         window.location.href = 'dashboard.html';
       }
@@ -161,18 +221,18 @@
       btn.disabled = true; btn.textContent = 'Mendaftar...';
       err.style.display = 'none'; suc.style.display = 'none';
 
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email, password,
         options: { data: { name, wa_number: wa } }
       });
 
-      btn.disabled = false; btn.textContent = 'Daftar';
+      btn.disabled = false; btn.textContent = 'Buat Akun';
 
       if (error) {
         err.textContent = error.message || 'Gagal mendaftar.';
         err.style.display = 'block';
       } else {
-        suc.textContent = 'Akun berhasil dibuat! Cek email untuk verifikasi, lalu masuk.';
+        suc.textContent = 'Akun berhasil dibuat! Cek email untuk verifikasi, lalu login.';
         suc.style.display = 'block';
       }
     };

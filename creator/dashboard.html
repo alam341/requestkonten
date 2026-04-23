@@ -262,7 +262,51 @@
         .update({ status: newStatus })
         .eq('id', currentCreator.id);
 
-      if (error) alert('Gagal update status: ' + error.message);
+      if (error) { alert('Gagal update status: ' + error.message); return; }
+
+      // Kalau jadi tersedia, cek apakah ada order dari antrian yang baru di-assign
+      if (isOn) {
+        const toggleTime = new Date().toISOString();
+        setTimeout(async () => {
+          const { data: newOrder } = await supabase
+            .from('orders')
+            .select('*')
+            .eq('creator_id', currentCreator.id)
+            .eq('status', 'assigned')
+            .gte('assigned_at', toggleTime)
+            .order('assigned_at', { ascending: false })
+            .limit(1)
+            .single();
+
+          if (newOrder) {
+            const notifData = {
+              advertiser_name: newOrder.advertiser_name,
+              brand: newOrder.brand,
+              content_type: newOrder.content_type,
+              platform: newOrder.platform,
+              deadline: newOrder.deadline,
+              brief: newOrder.brief,
+              creator_name: currentCreator.name,
+            };
+
+            // WA ke creator
+            fetch('/api/send-wa', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ to: currentCreator.wa_number, type: 'creator_assigned', data: notifData }),
+            }).catch(() => {});
+
+            // WA ke advertiser
+            fetch('/api/send-wa', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ to: newOrder.wa_number, type: 'order_assigned', data: notifData }),
+            }).catch(() => {});
+
+            loadTasks();
+          }
+        }, 1000);
+      }
     };
 
     async function loadTasks() {

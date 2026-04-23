@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Creator — Adsy</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0eef8; min-height: 100vh; display: flex; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 220px; min-height: 100vh;
+      background: #fff; display: flex; flex-direction: column;
+      padding: 24px 16px; position: fixed; top: 0; left: 0; bottom: 0;
+      box-shadow: 2px 0 12px rgba(80,70,160,0.07); z-index: 10;
+    }
+    .sidebar-logo {
+      font-size: 22px; font-weight: 800; color: #4f46e5;
+      padding: 0 8px; margin-bottom: 32px; display: flex; align-items: center; gap: 8px;
+    }
+    .sidebar-logo .logo-icon {
+      width: 34px; height: 34px; background: #4f46e5;
+      border-radius: 9px; display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 16px; font-weight: 800;
+    }
+    .nav-section { font-size: 10px; font-weight: 700; color: #c4c0f0; letter-spacing: 0.1em; text-transform: uppercase; padding: 0 8px; margin-bottom: 8px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 10px;
+      font-size: 14px; font-weight: 500; color: #6b7280;
+      cursor: pointer; transition: all 0.2s; margin-bottom: 2px;
+      border: none; background: none; width: 100%; text-align: left;
+    }
+    .nav-item:hover { background: #f5f4fb; color: #4f46e5; }
+    .nav-item.active { background: #ede9fe; color: #4f46e5; font-weight: 600; }
+    .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+    .sidebar-bottom { margin-top: auto; }
+    .logout-btn {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 10px;
+      font-size: 14px; font-weight: 500; color: #9ca3af;
+      cursor: pointer; border: none; background: none; width: 100%;
+      transition: all 0.2s;
+    }
+    .logout-btn:hover { color: #dc2626; background: #fef2f2; }
+
+    /* Main */
+    .main { margin-left: 220px; flex: 1; display: flex; min-height: 100vh; }
+    .content { flex: 1; padding: 28px 24px; max-width: 100%; }
+
+    /* Right Panel */
+    .right-panel {
+      width: 280px; min-height: 100vh;
+      background: #fff; padding: 24px 20px;
+      box-shadow: -2px 0 12px rgba(80,70,160,0.07);
+      display: flex; flex-direction: column; gap: 20px;
+      position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    }
+
+    /* Header */
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .page-title { font-size: 20px; font-weight: 700; color: #1e1e2e; }
+    .page-subtitle { font-size: 13px; color: #9ca3af; margin-top: 2px; }
+
+    /* Banner */
+    .banner {
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      border-radius: 16px; padding: 24px 28px;
+      color: #fff; margin-bottom: 24px;
+      position: relative; overflow: hidden;
+    }
+    .banner::after {
+      content: '✦'; position: absolute;
+      right: 24px; top: 16px;
+      font-size: 60px; opacity: 0.08;
+    }
+    .banner h2 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+    .banner p { font-size: 13px; opacity: 0.85; line-height: 1.5; }
+
+    /* Stats */
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
+    .stat-card {
+      background: #fff; border-radius: 14px;
+      padding: 18px 16px;
+      box-shadow: 0 2px 12px rgba(80,70,160,0.07);
+    }
+    .stat-card .val { font-size: 26px; font-weight: 800; color: #1e1e2e; }
+    .stat-card .lbl { font-size: 12px; color: #9ca3af; margin-top: 4px; }
+    .stat-card.s1 .val { color: #4f46e5; }
+    .stat-card.s2 .val { color: #f59e0b; }
+    .stat-card.s3 .val { color: #10b981; }
+
+    /* Deadline Alert */
+    .alert-box {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 14px 18px; border-radius: 12px;
+      margin-bottom: 10px; font-size: 13px;
+    }
+    .alert-box.urgent { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; }
+    .alert-box.warning { background: #fffbeb; border: 1px solid #fde68a; color: #d97706; }
+    .alert-box .alert-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+    .alert-box .alert-text strong { display: block; font-weight: 700; margin-bottom: 2px; }
+
+    /* Table */
+    .table-card {
+      background: #fff; border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(80,70,160,0.07);
+      overflow: hidden;
+    }
+    .table-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 18px 20px; border-bottom: 1px solid #f3f4f6;
+    }
+    .table-header h3 { font-size: 15px; font-weight: 700; color: #1e1e2e; }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left; font-size: 11px; font-weight: 700;
+      color: #9ca3af; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 12px 20px; background: #fafafa; border-bottom: 1px solid #f3f4f6;
+    }
+    td { padding: 14px 20px; font-size: 13px; color: #374151; border-bottom: 1px solid #f9fafb; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafafa; }
+    .empty-td { text-align: center; color: #c4c0f0; padding: 40px; }
+
+    .badge {
+      font-size: 11px; font-weight: 600; padding: 4px 10px;
+      border-radius: 99px; text-transform: uppercase;
+    }
+    .badge.assigned { background: #ede9fe; color: #4f46e5; }
+    .badge.in_progress { background: #fef3c7; color: #d97706; }
+    .badge.done { background: #d1fae5; color: #059669; }
+
+    .act-btn {
+      padding: 6px 14px; border-radius: 7px;
+      font-size: 12px; font-weight: 600;
+      border: none; cursor: pointer; transition: all 0.2s;
+    }
+    .act-btn.start { background: #ede9fe; color: #4f46e5; }
+    .act-btn.start:hover { background: #4f46e5; color: #fff; }
+    .act-btn.finish { background: #d1fae5; color: #059669; }
+    .act-btn.finish:hover { background: #059669; color: #fff; }
+
+    /* Section pages */
+    .page-section { display: none; }
+    .page-section.active { display: block; }
+
+    /* Right Panel — Profile */
+    .rp-profile { display: flex; align-items: center; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid #f3f4f6; }
+    .rp-avatar {
+      width: 46px; height: 46px; border-radius: 50%;
+      background: #ede9fe; color: #4f46e5;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 700; overflow: hidden; flex-shrink: 0;
+    }
+    .rp-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .rp-name { font-size: 14px; font-weight: 700; color: #1e1e2e; }
+    .rp-role { font-size: 12px; color: #9ca3af; margin-top: 2px; }
+
+    /* Toggle */
+    .toggle-row { display: flex; justify-content: space-between; align-items: center; }
+    .toggle-row .lbl { font-size: 13px; font-weight: 600; color: #374151; }
+    .toggle-status { font-size: 12px; font-weight: 600; }
+    .toggle-status.on { color: #10b981; }
+    .toggle-status.off { color: #9ca3af; }
+    .toggle { position: relative; width: 42px; height: 24px; cursor: pointer; }
+    .toggle input { display: none; }
+    .toggle-track { width: 42px; height: 24px; background: #d1d5db; border-radius: 99px; transition: background 0.2s; }
+    .toggle input:checked + .toggle-track { background: #4f46e5; }
+    .toggle-thumb {
+      position: absolute; top: 3px; left: 3px;
+      width: 18px; height: 18px;
+      background: #fff; border-radius: 99px;
+      transition: left 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .toggle input:checked ~ .toggle-thumb { left: 21px; }
+
+    /* Calendar */
+    .rp-section-title { font-size: 13px; font-weight: 700; color: #1e1e2e; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .cal-nav { display: flex; align-items: center; gap: 8px; }
+    .cal-nav button { background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 14px; padding: 2px 4px; border-radius: 4px; }
+    .cal-nav button:hover { color: #4f46e5; background: #ede9fe; }
+    .cal-month { font-size: 12px; font-weight: 600; color: #4f46e5; }
+    .calendar { width: 100%; border-collapse: collapse; }
+    .calendar th { text-align: center; font-size: 10px; font-weight: 700; color: #9ca3af; padding: 4px 0; }
+    .calendar td { text-align: center; font-size: 12px; color: #374151; padding: 4px 2px; border-radius: 6px; cursor: default; }
+    .calendar td.today { background: #4f46e5; color: #fff; border-radius: 6px; font-weight: 700; }
+    .calendar td.has-deadline { background: #fef3c7; color: #d97706; border-radius: 6px; font-weight: 600; }
+    .calendar td.has-deadline.today { background: #f59e0b; color: #fff; }
+    .calendar td.other-month { color: #d1d5db; }
+
+    /* Queue */
+    .queue-list { display: flex; flex-direction: column; gap: 10px; }
+    .queue-item {
+      padding: 12px 14px; background: #fafafa;
+      border-radius: 10px; border-left: 3px solid #4f46e5;
+    }
+    .queue-item .q-brand { font-size: 13px; font-weight: 600; color: #1e1e2e; }
+    .queue-item .q-detail { font-size: 12px; color: #9ca3af; margin-top: 3px; }
+    .queue-item .q-deadline { font-size: 11px; color: #f59e0b; font-weight: 600; margin-top: 4px; }
+    .queue-empty { font-size: 13px; color: #c4c0f0; text-align: center; padding: 12px 0; }
+
+    /* History page */
+    .history-card {
+      background: #fff; border-radius: 12px;
+      padding: 16px 20px; margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(80,70,160,0.06);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .history-left .h-brand { font-size: 14px; font-weight: 600; color: #1e1e2e; }
+    .history-left .h-detail { font-size: 12px; color: #9ca3af; margin-top: 3px; }
+    .history-right { text-align: right; }
+    .drive-btn {
+      font-size: 12px; color: #4f46e5; font-weight: 600;
+      text-decoration: none; padding: 5px 12px;
+      background: #ede9fe; border-radius: 7px;
+    }
+    .drive-btn:hover { background: #4f46e5; color: #fff; }
+
+    /* Profile page */
+    .profile-card {
+      background: #fff; border-radius: 16px;
+      padding: 32px; box-shadow: 0 2px 12px rgba(80,70,160,0.07);
+      max-width: 480px;
+    }
+    .profile-avatar-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 28px; }
+    .profile-avatar {
+      width: 90px; height: 90px; border-radius: 50%;
+      background: #ede9fe; color: #4f46e5;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px; font-weight: 700; overflow: hidden;
+      border: 3px solid #e5e3f5;
+    }
+    .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .pf-label { font-size: 11px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+    .pf-value { font-size: 14px; color: #1e1e2e; font-weight: 500; padding: 12px 16px; background: #f5f4fb; border-radius: 10px; }
+    .pf-field { margin-bottom: 16px; }
+
+    /* Modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.4); z-index: 100;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #fff; border-radius: 20px;
+      padding: 32px; width: 100%; max-width: 440px; margin: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    .modal h3 { font-size: 17px; font-weight: 700; color: #1e1e2e; margin-bottom: 6px; }
+    .modal p { font-size: 13px; color: #9ca3af; margin-bottom: 20px; }
+    .modal input {
+      width: 100%; padding: 13px 16px;
+      border: none; border-radius: 12px;
+      font-size: 14px; color: #1e1e2e;
+      background: #f5f4fb; outline: none; margin-bottom: 14px;
+    }
+    .modal input:focus { box-shadow: 0 0 0 2px #c7c2f5; background: #eeecfb; }
+    .modal input::placeholder { color: #b0adc8; }
+    .modal-actions { display: flex; gap: 10px; }
+    .modal-btn {
+      flex: 1; padding: 12px; border-radius: 12px;
+      font-size: 14px; font-weight: 600;
+      border: none; cursor: pointer; transition: all 0.2s;
+    }
+    .modal-btn.cancel { background: #f5f4fb; color: #6b7280; }
+    .modal-btn.submit { background: #4f46e5; color: #fff; }
+    .modal-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">A</div>
+      Adsy
+    </div>
+    <div class="nav-section">Menu</div>
+    <button class="nav-item active" onclick="showPage('dashboard')">
+      <span class="icon">⊞</span> Dashboard
+    </button>
+    <button class="nav-item" onclick="showPage('tugas')">
+      <span class="icon">📋</span> Tugas Aktif
+    </button>
+    <button class="nav-item" onclick="showPage('riwayat')">
+      <span class="icon">✓</span> Riwayat
+    </button>
+    <button class="nav-item" onclick="showPage('profil')">
+      <span class="icon">👤</span> Profil
+    </button>
+    <div class="sidebar-bottom">
+      <button class="logout-btn" onclick="doLogout()">
+        <span class="icon">⎋</span> Keluar
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal Detail Order -->
+  <div class="modal-overlay" id="detailModal">
+    <div class="modal" style="max-width:520px">
+      <h3 id="detailBrand">—</h3>
+      <p id="detailAdv" style="margin-bottom:16px"></p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="background:#f5f4fb;border-radius:10px;padding:12px">
+            <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin-bottom:4px">Jenis Konten</div>
+            <div style="font-size:13px;font-weight:600;color:#1e1e2e" id="detailType">—</div>
+          </div>
+          <div style="background:#f5f4fb;border-radius:10px;padding:12px">
+            <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin-bottom:4px">Platform</div>
+            <div style="font-size:13px;font-weight:600;color:#1e1e2e" id="detailPlatform">—</div>
+          </div>
+          <div style="background:#f5f4fb;border-radius:10px;padding:12px">
+            <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin-bottom:4px">Jumlah Konten</div>
+            <div style="font-size:13px;font-weight:600;color:#1e1e2e" id="detailJumlah">—</div>
+          </div>
+          <div style="background:#f5f4fb;border-radius:10px;padding:12px">
+            <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin-bottom:4px">Deadline</div>
+            <div style="font-size:13px;font-weight:600;color:#1e1e2e" id="detailDeadline">—</div>
+          </div>
+        </div>
+        <div style="background:#f5f4fb;border-radius:10px;padding:12px">
+          <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin-bottom:6px">Brief</div>
+          <div style="font-size:13px;color:#374151;line-height:1.6" id="detailBrief">—</div>
+        </div>
+        <div style="background:#f5f4fb;border-radius:10px;padding:12px" id="detailRefWrap">
+          <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin-bottom:6px">Referensi</div>
+          <div style="font-size:13px;color:#4f46e5;word-break:break-all" id="detailRef">—</div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn cancel" onclick="closeDetailModal()">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Drive Link -->
+  <div class="modal-overlay" id="driveModal">
+    <div class="modal">
+      <h3>Upload Hasil Konten</h3>
+      <p>Paste link Google Drive hasil konten kamu. Pastikan link bisa diakses advertiser.</p>
+      <input type="url" id="driveLinkInput" placeholder="https://drive.google.com/..." />
+      <div class="modal-actions">
+        <button class="modal-btn cancel" onclick="closeModal()">Batal</button>
+        <button class="modal-btn submit" id="submitDriveBtn" onclick="submitDriveLink()">Kirim & Selesai</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="content">
+
+      <!-- DASHBOARD PAGE -->
+      <div class="page-section active" id="page-dashboard">
+        <div class="page-header">
+          <div>
+            <div class="page-title" id="welcomeTitle">Selamat Datang!</div>
+            <div class="page-subtitle" id="welcomeSub">Pantau semua tugasmu di sini.</div>
+          </div>
+        </div>
+
+        <!-- Banner -->
+        <div class="banner">
+          <h2 id="bannerGreet">Halo, Creator!</h2>
+          <p id="bannerMsg">Kamu punya tugas yang menunggu. Yuk mulai hari ini dengan semangat!</p>
+        </div>
+
+        <!-- Alert Deadline -->
+        <div id="deadlineAlerts"></div>
+
+        <!-- Stats -->
+        <div class="stats">
+          <div class="stat-card s1">
+            <div class="val" id="statAktif">—</div>
+            <div class="lbl">Tugas Aktif</div>
+          </div>
+          <div class="stat-card s2">
+            <div class="val" id="statDeadline">—</div>
+            <div class="lbl">Deadline Minggu Ini</div>
+          </div>
+          <div class="stat-card s3">
+            <div class="val" id="statSelesai">—</div>
+            <div class="lbl">Selesai</div>
+          </div>
+        </div>
+
+        <!-- Tabel Tugas -->
+        <div class="table-card">
+          <div class="table-header">
+            <h3>Tugas Terbaru</h3>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Brand</th>
+                <th>Jenis Konten</th>
+                <th>Advertiser</th>
+                <th>Deadline</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="dashTaskBody">
+              <tr><td colspan="6" class="empty-td">Memuat...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TUGAS AKTIF PAGE -->
+      <div class="page-section" id="page-tugas">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Tugas Aktif</div>
+            <div class="page-subtitle">Order yang sedang berjalan.</div>
+          </div>
+        </div>
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Brand</th>
+                <th>Jenis Konten</th>
+                <th>Advertiser</th>
+                <th>Platform</th>
+                <th>Deadline</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="aktifTaskBody">
+              <tr><td colspan="7" class="empty-td">Memuat...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RIWAYAT PAGE -->
+      <div class="page-section" id="page-riwayat">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Riwayat</div>
+            <div class="page-subtitle">Semua tugas yang sudah selesai.</div>
+          </div>
+        </div>
+        <div id="historyList"></div>
+      </div>
+
+      <!-- PROFIL PAGE -->
+      <div class="page-section" id="page-profil">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Profil Saya</div>
+            <div class="page-subtitle">Informasi akunmu sebagai creator.</div>
+          </div>
+        </div>
+        <div class="profile-card">
+          <div class="profile-avatar-wrap">
+            <div class="profile-avatar" id="profileAvatar">—</div>
+          </div>
+          <div class="pf-field">
+            <div class="pf-label">Nama</div>
+            <div class="pf-value" id="pfName">—</div>
+          </div>
+          <div class="pf-field">
+            <div class="pf-label">Email</div>
+            <div class="pf-value" id="pfEmail">—</div>
+          </div>
+          <div class="pf-field">
+            <div class="pf-label">No. WhatsApp</div>
+            <div class="pf-value" id="pfWa">—</div>
+          </div>
+          <div class="pf-field">
+            <div class="pf-label">Total Tugas Selesai</div>
+            <div class="pf-value" id="pfDone">—</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Panel -->
+    <div class="right-panel">
+
+      <!-- Profile -->
+      <div class="rp-profile">
+        <div class="rp-avatar" id="rpAvatar">—</div>
+        <div>
+          <div class="rp-name" id="rpName">—</div>
+          <div class="rp-role">Content Creator</div>
+        </div>
+      </div>
+
+      <!-- Availability Toggle -->
+      <div>
+        <div class="rp-section-title">Status</div>
+        <div class="toggle-row">
+          <span class="lbl">Availability</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="toggle-status" id="toggleLabel">—</span>
+            <label class="toggle">
+              <input type="checkbox" id="availToggle" onchange="toggleAvailability()" />
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Calendar -->
+      <div>
+        <div class="rp-section-title">
+          Schedule
+          <div class="cal-nav">
+            <button onclick="changeMonth(-1)">‹</button>
+            <span class="cal-month" id="calMonthLabel"></span>
+            <button onclick="changeMonth(1)">›</button>
+          </div>
+        </div>
+        <table class="calendar" id="calTable"></table>
+      </div>
+
+      <!-- Antrian Advertiser -->
+      <div>
+        <div class="rp-section-title">Antrian Advertiser</div>
+        <div class="queue-list" id="queueList">
+          <div class="queue-empty">Tidak ada antrian.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const SUPABASE_URL = 'https://woqznjubhmjraqapgyat.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvcXpuanViaG1qcmFxYXBneWF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MzUxNTgsImV4cCI6MjA5MjUxMTE1OH0.xBHG0aeKLutXyqTjlhpGVIYy7-wuI-ztI9e73wmRL04';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const SLA_DAYS = {
+      'Script': 2, 'Voice Over': 2,
+      'Desain Konten': 3, 'Foto Produk': 3, 'Video Produk': 3,
+      'Video Iklan': 5, 'Desain Landingpage': 5,
+    };
+
+    let currentCreator = null;
+    let allTasks = [];
+    let calYear, calMonth;
+
+    async function init() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { window.location.href = 'login.html'; return; }
+
+      const { data: creator } = await supabase
+        .from('creators')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (!creator) { alert('Data creator tidak ditemukan.'); return; }
+      currentCreator = creator;
+
+      // Navbar & profile
+      const initial = creator.name.charAt(0).toUpperCase();
+      const avatarHtml = creator.avatar_url
+        ? `<img src="${creator.avatar_url}" alt="avatar" />`
+        : initial;
+
+      document.getElementById('rpAvatar').innerHTML = avatarHtml;
+      document.getElementById('rpName').textContent = creator.name;
+      document.getElementById('profileAvatar').innerHTML = creator.avatar_url
+        ? `<img src="${creator.avatar_url}" alt="avatar" style="width:100%;height:100%;object-fit:cover" />`
+        : initial;
+
+      document.getElementById('pfName').textContent = creator.name;
+      document.getElementById('pfEmail').textContent = creator.email || '—';
+      document.getElementById('pfWa').textContent = creator.wa_number || '—';
+
+      // Toggle
+      const toggle = document.getElementById('availToggle');
+      toggle.checked = creator.status === 'tersedia';
+      updateToggleLabel(toggle.checked);
+
+      // Banner
+      const hour = new Date().getHours();
+      const greet = hour < 12 ? 'Selamat Pagi' : hour < 17 ? 'Selamat Siang' : 'Selamat Malam';
+      document.getElementById('bannerGreet').textContent = `${greet}, ${creator.name}!`;
+      document.getElementById('welcomeTitle').textContent = `Halo, ${creator.name}`;
+
+      // Calendar init
+      const now = new Date();
+      calYear = now.getFullYear();
+      calMonth = now.getMonth();
+
+      await loadTasks();
+    }
+
+    async function loadTasks() {
+      const { data } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('creator_id', currentCreator.id)
+        .in('status', ['assigned', 'in_progress', 'done'])
+        .order('assigned_at', { ascending: false });
+
+      allTasks = data || [];
+
+      const active = allTasks.filter(o => o.status !== 'done');
+      const done = allTasks.filter(o => o.status === 'done');
+
+      // Stats
+      const now = new Date();
+      const weekLater = new Date(); weekLater.setDate(now.getDate() + 7);
+      const deadlineThisWeek = active.filter(o => {
+        if (!o.deadline) return false;
+        const d = new Date(o.deadline);
+        return d >= now && d <= weekLater;
+      }).length;
+
+      document.getElementById('statAktif').textContent = active.length;
+      document.getElementById('statDeadline').textContent = deadlineThisWeek;
+      document.getElementById('statSelesai').textContent = done.length;
+      document.getElementById('pfDone').textContent = done.length + ' tugas';
+      document.getElementById('bannerMsg').textContent =
+        active.length > 0
+          ? `Kamu punya ${active.length} tugas aktif. Semangat mengerjakannya!`
+          : 'Semua tugas selesai. Siap menerima order baru!';
+
+      renderDeadlineAlerts(active);
+      renderDashTable(active.slice(0, 5));
+      renderAktifTable(active);
+      renderHistory(done);
+      renderCalendar();
+      renderQueue(active.filter(o => o.status === 'assigned'));
+    }
+
+    function renderDeadlineAlerts(active) {
+      const container = document.getElementById('deadlineAlerts');
+      const today = new Date(); today.setHours(0,0,0,0);
+      const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+
+      const alerts = [];
+      active.forEach(o => {
+        if (!o.deadline) return;
+        const d = new Date(o.deadline); d.setHours(0,0,0,0);
+        if (d.getTime() === today.getTime()) {
+          alerts.push(`<div class="alert-box urgent">
+            <span class="alert-icon">🔴</span>
+            <div class="alert-text">
+              <strong>Deadline Hari Ini!</strong>
+              ${o.brand} · ${o.content_type} — segera selesaikan dan upload hasilnya.
+            </div>
+          </div>`);
+        } else if (d.getTime() === tomorrow.getTime()) {
+          alerts.push(`<div class="alert-box warning">
+            <span class="alert-icon">⚠️</span>
+            <div class="alert-text">
+              <strong>Deadline Besok</strong>
+              ${o.brand} · ${o.content_type} — pastikan sudah siap di-submit.
+            </div>
+          </div>`);
+        }
+      });
+
+      container.innerHTML = alerts.join('');
+    }
+
+    function renderDashTable(tasks) {
+      const body = document.getElementById('dashTaskBody');
+      if (!tasks.length) {
+        body.innerHTML = '<tr><td colspan="6" class="empty-td">Belum ada tugas.</td></tr>'; return;
+      }
+      body.innerHTML = tasks.map(o => taskRow(o)).join('');
+    }
+
+    function renderAktifTable(tasks) {
+      const body = document.getElementById('aktifTaskBody');
+      if (!tasks.length) {
+        body.innerHTML = '<tr><td colspan="7" class="empty-td">Tidak ada tugas aktif.</td></tr>'; return;
+      }
+      body.innerHTML = tasks.map(o => taskRowFull(o)).join('');
+    }
+
+    function taskRow(o) {
+      const statusLabel = { assigned: 'Ditugaskan', in_progress: 'Dikerjakan', done: 'Selesai' };
+      const aksi = o.status === 'assigned'
+        ? `<button class="act-btn start" onclick="updateTaskStatus('${o.id}', 'in_progress')">Mulai</button>`
+        : o.status === 'in_progress'
+        ? `<button class="act-btn finish" onclick="openDriveModal('${o.id}','${o.wa_number}','${o.advertiser_name}','${o.brand}','${o.content_type}')">Selesai</button>`
+        : o.drive_link ? `<a href="${o.drive_link}" target="_blank" class="drive-btn">Drive</a>` : '—';
+      return `<tr>
+        <td><strong style="cursor:pointer;color:#4f46e5" onclick='openDetailModal(${JSON.stringify(o)})'>${o.brand}</strong></td>
+        <td>${o.content_type}</td>
+        <td>${o.advertiser_name}</td>
+        <td>${o.deadline || '—'}</td>
+        <td><span class="badge ${o.status}">${statusLabel[o.status]}</span></td>
+        <td style="display:flex;gap:6px;align-items:center">
+          <button class="act-btn" style="background:#f5f4fb;color:#6b7280" onclick='openDetailModal(${JSON.stringify(o)})'>Detail</button>
+          ${aksi}
+        </td>
+      </tr>`;
+    }
+
+    function taskRowFull(o) {
+      const statusLabel = { assigned: 'Ditugaskan', in_progress: 'Dikerjakan' };
+      const aksi = o.status === 'assigned'
+        ? `<button class="act-btn start" onclick="updateTaskStatus('${o.id}', 'in_progress')">Mulai</button>`
+        : `<button class="act-btn finish" onclick="openDriveModal('${o.id}','${o.wa_number}','${o.advertiser_name}','${o.brand}','${o.content_type}')">Selesai</button>`;
+      return `<tr>
+        <td><strong style="cursor:pointer;color:#4f46e5" onclick='openDetailModal(${JSON.stringify(o)})'>${o.brand}</strong></td>
+        <td>${o.content_type}</td>
+        <td>${o.advertiser_name}</td>
+        <td>${o.platform || '—'}</td>
+        <td>${o.deadline || '—'}</td>
+        <td><span class="badge ${o.status}">${statusLabel[o.status]}</span></td>
+        <td style="display:flex;gap:6px;align-items:center">
+          <button class="act-btn" style="background:#f5f4fb;color:#6b7280" onclick='openDetailModal(${JSON.stringify(o)})'>Detail</button>
+          ${aksi}
+        </td>
+      </tr>`;
+    }
+
+    function renderHistory(tasks) {
+      const list = document.getElementById('historyList');
+      if (!tasks.length) {
+        list.innerHTML = '<div style="text-align:center;color:#c4c0f0;padding:40px">Belum ada riwayat tugas selesai.</div>'; return;
+      }
+      list.innerHTML = tasks.map(o => `
+        <div class="history-card">
+          <div class="history-left">
+            <div class="h-brand">${o.brand}</div>
+            <div class="h-detail">${o.content_type} · ${o.advertiser_name} · ${o.deadline || 'No deadline'}</div>
+          </div>
+          <div class="history-right">
+            ${o.drive_link ? `<a href="${o.drive_link}" target="_blank" class="drive-btn">Lihat Drive</a>` : '<span style="color:#c4c0f0;font-size:12px">No link</span>'}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderQueue(assignedTasks) {
+      const list = document.getElementById('queueList');
+      if (!assignedTasks.length) {
+        list.innerHTML = '<div class="queue-empty">Tidak ada antrian.</div>'; return;
+      }
+      list.innerHTML = assignedTasks.map(o => `
+        <div class="queue-item">
+          <div class="q-brand">${o.brand}</div>
+          <div class="q-detail">${o.advertiser_name} · ${o.content_type}</div>
+          ${o.deadline ? `<div class="q-deadline">Deadline: ${o.deadline}</div>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function renderCalendar() {
+      const deadlineDates = new Set(
+        allTasks.filter(o => o.deadline && o.status !== 'done').map(o => o.deadline)
+      );
+      const today = new Date();
+      const year = calYear, month = calMonth;
+      const monthNames = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+      document.getElementById('calMonthLabel').textContent = `${monthNames[month]} ${year}`;
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const days = ['M','S','R','K','J','S','M'];
+
+      let html = '<tr>' + days.map(d => `<th>${d}</th>`).join('') + '</tr>';
+      let cells = [];
+
+      // Padding awal (Senin = 0)
+      const startPad = (firstDay === 0 ? 6 : firstDay - 1);
+      for (let i = 0; i < startPad; i++) cells.push('<td class="other-month"></td>');
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+        const hasDeadline = deadlineDates.has(dateStr);
+        const cls = [isToday ? 'today' : '', hasDeadline ? 'has-deadline' : ''].filter(Boolean).join(' ');
+        cells.push(`<td class="${cls}" title="${hasDeadline ? 'Ada deadline' : ''}">${d}</td>`);
+      }
+
+      // Bagi jadi baris 7
+      for (let i = 0; i < cells.length; i += 7) {
+        html += '<tr>' + cells.slice(i, i + 7).join('') + '</tr>';
+      }
+      document.getElementById('calTable').innerHTML = html;
+    }
+
+    window.changeMonth = function(dir) {
+      calMonth += dir;
+      if (calMonth > 11) { calMonth = 0; calYear++; }
+      if (calMonth < 0) { calMonth = 11; calYear--; }
+      renderCalendar();
+    };
+
+    function updateToggleLabel(isOn) {
+      const lbl = document.getElementById('toggleLabel');
+      lbl.textContent = isOn ? 'Tersedia' : 'Sibuk';
+      lbl.className = 'toggle-status ' + (isOn ? 'on' : 'off');
+    }
+
+    window.toggleAvailability = async function () {
+      const isOn = document.getElementById('availToggle').checked;
+      updateToggleLabel(isOn);
+      const newStatus = isOn ? 'tersedia' : 'sibuk';
+      const toggleTime = new Date().toISOString();
+
+      const { error } = await supabase
+        .from('creators').update({ status: newStatus }).eq('id', currentCreator.id);
+      if (error) { alert('Gagal update status: ' + error.message); return; }
+
+      if (isOn) {
+        setTimeout(async () => {
+          const { data: newOrder } = await supabase
+            .from('orders').select('*')
+            .eq('creator_id', currentCreator.id).eq('status', 'assigned')
+            .gte('assigned_at', toggleTime)
+            .order('assigned_at', { ascending: false }).limit(1).single();
+
+          if (newOrder) {
+            const notifData = {
+              advertiser_name: newOrder.advertiser_name, brand: newOrder.brand,
+              content_type: newOrder.content_type, platform: newOrder.platform,
+              deadline: newOrder.deadline, brief: newOrder.brief, creator_name: currentCreator.name,
+            };
+            fetch('/api/send-wa', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ to: currentCreator.wa_number, type: 'creator_assigned', data: notifData }) }).catch(() => {});
+            fetch('/api/send-wa', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ to: newOrder.wa_number, type: 'order_assigned', data: notifData }) }).catch(() => {});
+            loadTasks();
+          }
+        }, 1500);
+      }
+    };
+
+    window.updateTaskStatus = async function (orderId, newStatus) {
+      const { data: existing } = await supabase.from('orders').select('content_type, deadline').eq('id', orderId).single();
+      const updatePayload = { status: newStatus };
+      if (newStatus === 'in_progress' && !existing?.deadline) {
+        const sla = SLA_DAYS[existing?.content_type] || 3;
+        const deadline = new Date();
+        deadline.setDate(deadline.getDate() + sla);
+        updatePayload.deadline = deadline.toISOString().split('T')[0];
+      }
+      const { data: order, error } = await supabase.from('orders').update(updatePayload).eq('id', orderId).select().single();
+      if (error) { alert('Gagal update status: ' + error.message); return; }
+      if (newStatus === 'in_progress') {
+        fetch('/api/send-wa', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ to: order.wa_number, type: 'order_started', data: {
+            advertiser_name: order.advertiser_name, brand: order.brand,
+            content_type: order.content_type, creator_name: currentCreator.name,
+          }}) }).catch(() => {});
+      }
+      loadTasks();
+    };
+
+    let activeOrderId, activeWa, activeAdvertiserName, activeBrand, activeContentType;
+
+    window.openDriveModal = function (orderId, wa, advertiserName, brand, contentType) {
+      activeOrderId = orderId; activeWa = wa;
+      activeAdvertiserName = advertiserName; activeBrand = brand; activeContentType = contentType;
+      document.getElementById('driveLinkInput').value = '';
+      document.getElementById('driveModal').classList.add('show');
+    };
+
+    window.closeModal = function () { document.getElementById('driveModal').classList.remove('show'); };
+
+    window.openDetailModal = function (o) {
+      document.getElementById('detailBrand').textContent = o.brand;
+      document.getElementById('detailAdv').textContent = `Advertiser: ${o.advertiser_name} · WA: ${o.wa_number}`;
+      document.getElementById('detailType').textContent = o.content_type || '—';
+      document.getElementById('detailPlatform').textContent = o.platform || '—';
+      document.getElementById('detailJumlah').textContent = o.jumlah_konten ? o.jumlah_konten + ' konten' : '—';
+      document.getElementById('detailDeadline').textContent = o.deadline || '—';
+      document.getElementById('detailBrief').textContent = o.brief || '—';
+      const refWrap = document.getElementById('detailRefWrap');
+      if (o.referensi_konten) {
+        document.getElementById('detailRef').textContent = o.referensi_konten;
+        refWrap.style.display = 'block';
+      } else {
+        refWrap.style.display = 'none';
+      }
+      document.getElementById('detailModal').classList.add('show');
+    };
+
+    window.closeDetailModal = function () { document.getElementById('detailModal').classList.remove('show'); };
+
+    window.submitDriveLink = async function () {
+      const link = document.getElementById('driveLinkInput').value.trim();
+      const btn = document.getElementById('submitDriveBtn');
+      if (!link) { alert('Masukkan link Google Drive dulu.'); return; }
+      btn.disabled = true; btn.textContent = 'Menyimpan...';
+
+      const doneTime = new Date().toISOString();
+      const { error } = await supabase.from('orders').update({ status: 'done', drive_link: link }).eq('id', activeOrderId);
+      if (error) { alert('Gagal: ' + error.message); btn.disabled = false; btn.textContent = 'Kirim & Selesai'; return; }
+
+      fetch('/api/send-wa', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: activeWa, type: 'order_done', data: {
+          advertiser_name: activeAdvertiserName, brand: activeBrand,
+          content_type: activeContentType, creator_name: currentCreator.name, drive_link: link,
+        }}) }).catch(() => {});
+
+      btn.disabled = false; btn.textContent = 'Kirim & Selesai';
+      closeModal(); loadTasks();
+
+      setTimeout(async () => {
+        const { data: newOrder } = await supabase.from('orders').select('*')
+          .eq('creator_id', currentCreator.id).eq('status', 'assigned')
+          .gte('assigned_at', doneTime).order('assigned_at', { ascending: false }).limit(1).single();
+        if (newOrder) {
+          const notifData = {
+            advertiser_name: newOrder.advertiser_name, brand: newOrder.brand,
+            content_type: newOrder.content_type, platform: newOrder.platform,
+            deadline: newOrder.deadline, brief: newOrder.brief, creator_name: currentCreator.name,
+          };
+          fetch('/api/send-wa', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ to: currentCreator.wa_number, type: 'creator_assigned', data: notifData }) }).catch(() => {});
+          fetch('/api/send-wa', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ to: newOrder.wa_number, type: 'order_assigned', data: notifData }) }).catch(() => {});
+          loadTasks();
+        }
+      }, 1500);
+    };
+
+    window.showPage = function(page) {
+      document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      document.getElementById('page-' + page).classList.add('active');
+      event.currentTarget.classList.add('active');
+    };
+
+    window.doLogout = async function () {
+      await supabase.auth.signOut();
+      window.location.href = 'login.html';
+    };
+
+    init();
+  </script>
+</body>
+</html>

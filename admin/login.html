@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login — Adsy</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f0e17;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: #1a1928; border-radius: 24px;
+      padding: 40px; width: 100%; max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      border: 1px solid #2a2840;
+    }
+    .brand { margin-bottom: 32px; }
+    .brand .name { font-size: 24px; font-weight: 800; color: #fff; }
+    .brand .role {
+      display: inline-block; margin-top: 6px;
+      font-size: 11px; font-weight: 700;
+      background: #4f46e5; color: #fff;
+      padding: 3px 10px; border-radius: 99px;
+      letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .field { margin-bottom: 18px; }
+    label {
+      display: block; font-size: 11px; font-weight: 700;
+      color: #6b7280; letter-spacing: 0.08em;
+      text-transform: uppercase; margin-bottom: 7px;
+    }
+    input {
+      width: 100%; padding: 13px 16px;
+      border: 1px solid #2a2840; border-radius: 12px;
+      font-size: 14px; color: #fff;
+      background: #12111e; outline: none;
+      transition: border 0.2s;
+    }
+    input:focus { border-color: #4f46e5; }
+    input::placeholder { color: #4a4870; }
+    .btn {
+      width: 100%; padding: 14px;
+      background: #4f46e5; color: #fff;
+      border: none; border-radius: 14px;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer; margin-top: 4px;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #4338ca; }
+    .btn:disabled { background: #2d2b60; cursor: not-allowed; }
+    .error-msg { display: none; color: #f87171; font-size: 13px; margin-top: 10px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">
+      <div class="name">Adsy</div>
+      <span class="role">Admin Panel</span>
+    </div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="email" placeholder="admin@adsy.id" />
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="Password" />
+    </div>
+    <button class="btn" id="loginBtn" onclick="doLogin()">Masuk</button>
+    <p class="error-msg" id="errorMsg"></p>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const SUPABASE_URL = 'https://woqznjubhmjraqapgyat.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvcXpuanViaG1qcmFxYXBneWF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MzUxNTgsImV4cCI6MjA5MjUxMTE1OH0.xBHG0aeKLutXyqTjlhpGVIYy7-wuI-ztI9e73wmRL04';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (data.session) {
+        const { data: admin } = await supabase.from('admins').select('id').single();
+        if (admin) window.location.href = 'dashboard.html';
+      }
+    });
+
+    window.doLogin = async function () {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const btn = document.getElementById('loginBtn');
+      const err = document.getElementById('errorMsg');
+
+      btn.disabled = true; btn.textContent = 'Masuk...';
+      err.style.display = 'none';
+
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        err.textContent = 'Email atau password salah.';
+        err.style.display = 'block';
+        btn.disabled = false; btn.textContent = 'Masuk';
+        return;
+      }
+
+      // Cek apakah admin
+      const { data: admin } = await supabase.from('admins').select('id').single();
+      if (!admin) {
+        await supabase.auth.signOut();
+        err.textContent = 'Akun ini bukan akun admin.';
+        err.style.display = 'block';
+        btn.disabled = false; btn.textContent = 'Masuk';
+        return;
+      }
+
+      window.location.href = 'dashboard.html';
+    };
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') window.doLogin();
+    });
+  </script>
+</body>
+</html>

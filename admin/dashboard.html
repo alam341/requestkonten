@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — Adsy</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #0f0e17; min-height: 100vh; color: #e2e0f0; }
+
+    header {
+      background: #1a1928; padding: 14px 28px;
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid #2a2840;
+      position: sticky; top: 0; z-index: 10;
+    }
+    .logo { font-size: 18px; font-weight: 800; color: #fff; }
+    .logo span {
+      font-size: 10px; font-weight: 700; background: #4f46e5;
+      padding: 2px 8px; border-radius: 99px; margin-left: 8px;
+      letter-spacing: 0.08em; text-transform: uppercase; vertical-align: middle;
+    }
+    .logout-btn { font-size: 13px; color: #6b7280; background: none; border: none; cursor: pointer; }
+    .logout-btn:hover { color: #f87171; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 28px 20px; }
+
+    /* Stats */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
+    .stat {
+      background: #1a1928; border-radius: 14px;
+      padding: 20px; border: 1px solid #2a2840;
+    }
+    .stat .val { font-size: 28px; font-weight: 800; color: #fff; }
+    .stat .lbl { font-size: 12px; color: #6b7280; margin-top: 4px; }
+    .stat.s1 .val { color: #f59e0b; }
+    .stat.s2 .val { color: #60a5fa; }
+    .stat.s3 .val { color: #a78bfa; }
+    .stat.s4 .val { color: #34d399; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+    .tab-btn {
+      padding: 9px 20px; border-radius: 10px;
+      font-size: 13px; font-weight: 600;
+      border: none; cursor: pointer;
+      background: #1a1928; color: #6b7280;
+      border: 1px solid #2a2840;
+      transition: all 0.2s;
+    }
+    .tab-btn.active { background: #4f46e5; color: #fff; border-color: #4f46e5; }
+
+    /* Table */
+    .table-wrap { background: #1a1928; border-radius: 16px; border: 1px solid #2a2840; overflow: hidden; }
+    .table-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 20px; border-bottom: 1px solid #2a2840;
+    }
+    .table-header h3 { font-size: 14px; font-weight: 700; color: #fff; }
+    .search-input {
+      padding: 8px 14px; border-radius: 8px;
+      border: 1px solid #2a2840; background: #12111e;
+      font-size: 13px; color: #e2e0f0; outline: none; width: 200px;
+    }
+    .search-input:focus { border-color: #4f46e5; }
+    .search-input::placeholder { color: #4a4870; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left; font-size: 11px; font-weight: 700;
+      color: #6b7280; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 12px 20px; border-bottom: 1px solid #2a2840;
+    }
+    td { padding: 14px 20px; font-size: 13px; border-bottom: 1px solid #1f1e2e; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #1f1e2e; }
+
+    .badge {
+      font-size: 11px; font-weight: 600; padding: 3px 10px;
+      border-radius: 99px; text-transform: uppercase;
+    }
+    .badge.waiting { background: #451a03; color: #fbbf24; }
+    .badge.assigned { background: #1e3a5f; color: #60a5fa; }
+    .badge.in_progress { background: #2e1065; color: #a78bfa; }
+    .badge.done { background: #064e3b; color: #34d399; }
+    .badge.tersedia { background: #064e3b; color: #34d399; }
+    .badge.sibuk { background: #451a03; color: #fbbf24; }
+
+    .assign-select {
+      padding: 6px 10px; border-radius: 8px;
+      border: 1px solid #2a2840; background: #12111e;
+      font-size: 12px; color: #e2e0f0; outline: none; cursor: pointer;
+    }
+    .assign-select:focus { border-color: #4f46e5; }
+    .assign-btn {
+      padding: 6px 14px; border-radius: 7px;
+      background: #4f46e5; color: #fff;
+      font-size: 12px; font-weight: 600;
+      border: none; cursor: pointer; margin-left: 6px;
+      transition: background 0.2s;
+    }
+    .assign-btn:hover { background: #4338ca; }
+    .assign-btn:disabled { background: #2d2b60; cursor: not-allowed; }
+
+    .empty-row td { text-align: center; color: #4a4870; padding: 40px; }
+    .loading-row td { text-align: center; color: #4a4870; padding: 32px; }
+
+    .creator-cell { display: flex; align-items: center; gap: 10px; }
+    .creator-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .creator-dot.tersedia { background: #34d399; }
+    .creator-dot.sibuk { background: #fbbf24; }
+
+    @media (max-width: 640px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">Adsy <span>Admin</span></div>
+    <button class="logout-btn" onclick="doLogout()">Keluar</button>
+  </header>
+
+  <div class="container">
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat s1"><div class="val" id="sWaiting">—</div><div class="lbl">Menunggu</div></div>
+      <div class="stat s2"><div class="val" id="sAssigned">—</div><div class="lbl">Ditugaskan</div></div>
+      <div class="stat s3"><div class="val" id="sProgress">—</div><div class="lbl">Dikerjakan</div></div>
+      <div class="stat s4"><div class="val" id="sDone">—</div><div class="lbl">Selesai</div></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" id="tabOrders" onclick="switchTab('orders')">Semua Order</button>
+      <button class="tab-btn" id="tabCreators" onclick="switchTab('creators')">Creator</button>
+    </div>
+
+    <!-- Orders Tab -->
+    <div id="ordersTab">
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>Daftar Order</h3>
+          <input class="search-input" placeholder="Cari brand / advertiser..." oninput="filterTable(this.value)" />
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Advertiser</th>
+              <th>Brand</th>
+              <th>Jenis</th>
+              <th>Status</th>
+              <th>Creator</th>
+              <th>Assign Manual</th>
+            </tr>
+          </thead>
+          <tbody id="ordersBody">
+            <tr class="loading-row"><td colspan="6">Memuat...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Creators Tab -->
+    <div id="creatorsTab" style="display:none">
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>Daftar Creator</h3>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Nama</th>
+              <th>WhatsApp</th>
+              <th>Status</th>
+              <th>Tugas Aktif</th>
+              <th>Ubah Status</th>
+            </tr>
+          </thead>
+          <tbody id="creatorsBody">
+            <tr class="loading-row"><td colspan="5">Memuat...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const SUPABASE_URL = 'https://woqznjubhmjraqapgyat.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvcXpuanViaG1qcmFxYXBneWF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MzUxNTgsImV4cCI6MjA5MjUxMTE1OH0.xBHG0aeKLutXyqTjlhpGVIYy7-wuI-ztI9e73wmRL04';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let allOrders = [];
+    let allCreators = [];
+
+    async function init() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { window.location.href = 'login.html'; return; }
+
+      const { data: admin } = await supabase.from('admins').select('id').single();
+      if (!admin) { window.location.href = 'login.html'; return; }
+
+      loadOrders();
+      loadCreators();
+    }
+
+    async function loadOrders() {
+      const { data } = await supabase
+        .from('orders')
+        .select('*, creators(name)')
+        .order('created_at', { ascending: false });
+
+      allOrders = data || [];
+      updateStats(allOrders);
+      renderOrders(allOrders);
+    }
+
+    async function loadCreators() {
+      const { data } = await supabase
+        .from('creators')
+        .select('*')
+        .order('name');
+
+      allCreators = data || [];
+      renderCreators(allCreators);
+    }
+
+    function updateStats(orders) {
+      document.getElementById('sWaiting').textContent = orders.filter(o => o.status === 'waiting').length;
+      document.getElementById('sAssigned').textContent = orders.filter(o => o.status === 'assigned').length;
+      document.getElementById('sProgress').textContent = orders.filter(o => o.status === 'in_progress').length;
+      document.getElementById('sDone').textContent = orders.filter(o => o.status === 'done').length;
+    }
+
+    function renderOrders(orders) {
+      const body = document.getElementById('ordersBody');
+      if (!orders.length) {
+        body.innerHTML = '<tr class="empty-row"><td colspan="6">Belum ada order.</td></tr>';
+        return;
+      }
+
+      const statusLabel = { waiting: 'Menunggu', assigned: 'Ditugaskan', in_progress: 'Dikerjakan', done: 'Selesai' };
+
+      body.innerHTML = orders.map(order => `
+        <tr>
+          <td>${order.advertiser_name}</td>
+          <td><strong style="color:#fff">${order.brand}</strong></td>
+          <td>${order.content_type}</td>
+          <td><span class="badge ${order.status}">${statusLabel[order.status]}</span></td>
+          <td>${order.creators ? `<span style="color:#a78bfa;font-weight:600">${order.creators.name}</span>` : '<span style="color:#4a4870">—</span>'}</td>
+          <td>
+            ${order.status !== 'done' ? `
+              <select class="assign-select" id="sel-${order.id}">
+                <option value="">Pilih creator</option>
+                ${allCreators.map(c => `
+                  <option value="${c.id}" ${order.creator_id === c.id ? 'selected' : ''}>
+                    ${c.name} (${c.status}, ${c.active_tasks} tugas)
+                  </option>
+                `).join('')}
+              </select>
+              <button class="assign-btn" onclick="assignOrder('${order.id}')">Assign</button>
+            ` : '<span style="color:#4a4870;font-size:12px">Selesai</span>'}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderCreators(creators) {
+      const body = document.getElementById('creatorsBody');
+      if (!creators.length) {
+        body.innerHTML = '<tr class="empty-row"><td colspan="5">Belum ada creator.</td></tr>';
+        return;
+      }
+
+      body.innerHTML = creators.map(c => `
+        <tr>
+          <td>
+            <div class="creator-cell">
+              <div class="creator-dot ${c.status}"></div>
+              <span style="color:#fff;font-weight:600">${c.name}</span>
+            </div>
+          </td>
+          <td style="color:#9ca3af">${c.wa_number}</td>
+          <td><span class="badge ${c.status}">${c.status === 'tersedia' ? 'Tersedia' : 'Sibuk'}</span></td>
+          <td style="text-align:center">${c.active_tasks}</td>
+          <td>
+            <select class="assign-select" onchange="updateCreatorStatus('${c.id}', this.value)">
+              <option value="tersedia" ${c.status === 'tersedia' ? 'selected' : ''}>Tersedia</option>
+              <option value="sibuk" ${c.status === 'sibuk' ? 'selected' : ''}>Sibuk</option>
+            </select>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    window.assignOrder = async function (orderId) {
+      const select = document.getElementById(`sel-${orderId}`);
+      const creatorId = select.value;
+      if (!creatorId) { alert('Pilih creator dulu.'); return; }
+
+      const btn = select.nextElementSibling;
+      btn.disabled = true; btn.textContent = '...';
+
+      // Ambil creator_id lama (kalau ada) untuk kurangi active_tasks
+      const order = allOrders.find(o => o.id === orderId);
+      if (order.creator_id && order.creator_id !== creatorId) {
+        await supabase
+          .from('creators')
+          .update({ active_tasks: Math.max((allCreators.find(c => c.id === order.creator_id)?.active_tasks || 1) - 1, 0) })
+          .eq('id', order.creator_id);
+      }
+
+      // Update order
+      await supabase
+        .from('orders')
+        .update({ creator_id: creatorId, status: 'assigned', assigned_at: new Date().toISOString() })
+        .eq('id', orderId);
+
+      // Tambah active_tasks creator baru
+      const newCreator = allCreators.find(c => c.id === creatorId);
+      if (!order.creator_id || order.creator_id !== creatorId) {
+        await supabase
+          .from('creators')
+          .update({ active_tasks: (newCreator?.active_tasks || 0) + 1 })
+          .eq('id', creatorId);
+
+        // Hapus dari antrian kalau ada
+        await supabase.from('order_queue').delete().eq('order_id', orderId);
+      }
+
+      btn.disabled = false; btn.textContent = 'Assign';
+      loadOrders();
+      loadCreators();
+    };
+
+    window.updateCreatorStatus = async function (creatorId, newStatus) {
+      await supabase.from('creators').update({ status: newStatus }).eq('id', creatorId);
+      loadCreators();
+    };
+
+    window.filterTable = function (query) {
+      const q = query.toLowerCase();
+      const filtered = allOrders.filter(o =>
+        o.brand.toLowerCase().includes(q) ||
+        o.advertiser_name.toLowerCase().includes(q)
+      );
+      renderOrders(filtered);
+    };
+
+    window.switchTab = function (tab) {
+      document.getElementById('ordersTab').style.display = tab === 'orders' ? 'block' : 'none';
+      document.getElementById('creatorsTab').style.display = tab === 'creators' ? 'block' : 'none';
+      document.getElementById('tabOrders').className = 'tab-btn' + (tab === 'orders' ? ' active' : '');
+      document.getElementById('tabCreators').className = 'tab-btn' + (tab === 'creators' ? ' active' : '');
+    };
+
+    window.doLogout = async function () {
+      await supabase.auth.signOut();
+      window.location.href = 'login.html';
+    };
+
+    init();
+  </script>
+</body>
+</html>

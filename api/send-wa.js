@@ -66,6 +66,16 @@ Detail order:
 Pesan harus: singkat (max 4 baris), tenangkan advertiser, beritahu mereka akan dapat notif WA segera saat creator tersedia, pakai bahasa Indonesia santai.
 PENTING: Langsung tulis isi pesannya saja. Jangan tambahkan judul, header, atau kalimat pembuka seperti "Berikut pesan WhatsApp..." atau "Pesan untuk...".`,
 
+    deadline_reminder: `Kamu adalah asisten notifikasi WhatsApp untuk platform content creator bernama Adsy.
+Tulis pesan WhatsApp pengingat deadline untuk content creator bernama "${data.creator_name}".
+Detail tugas:
+- Brand: ${data.brand}
+- Jenis konten: ${data.content_type}
+- Deadline: BESOK (${data.deadline})
+- Advertiser: ${data.advertiser_name}
+Pesan harus: singkat (max 4 baris), pakai bahasa Indonesia santai tapi sedikit mengingatkan dengan tegas, minta creator segera selesaikan dan submit link drive hari ini.
+PENTING: Langsung tulis isi pesannya saja. Jangan tambahkan judul, header, atau kalimat pembuka seperti "Berikut pesan WhatsApp..." atau "Pesan untuk...".`,
+
     order_done: `Kamu adalah asisten notifikasi WhatsApp untuk platform content creator bernama Adsy.
 Tulis pesan WhatsApp singkat dan meriah untuk advertiser bernama "${data.advertiser_name}" bahwa konten mereka sudah selesai.
 Detail:

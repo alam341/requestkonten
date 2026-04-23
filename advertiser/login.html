@@ -173,10 +173,6 @@
       if (data.session) window.location.href = 'dashboard.html';
     });
 
-    // Buka tab sesuai URL param ?tab=register
-    const tabParam = new URLSearchParams(window.location.search).get('tab');
-    if (tabParam === 'register') window.switchTab('register');
-
     window.switchTab = function (tab) {
       document.getElementById('loginSection').style.display = tab === 'login' ? 'block' : 'none';
       document.getElementById('registerSection').style.display = tab === 'register' ? 'block' : 'none';
@@ -243,6 +239,10 @@
         isLogin ? window.doLogin() : window.doRegister();
       }
     });
+
+    // Buka tab sesuai URL param — harus setelah switchTab didefinisikan
+    const tabParam = new URLSearchParams(window.location.search).get('tab');
+    if (tabParam === 'register') window.switchTab('register');
   </script>
 </body>
 </html>

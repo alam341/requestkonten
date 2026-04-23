@@ -285,11 +285,27 @@
               body: JSON.stringify({ to: order.creators.wa_number, type: 'creator_assigned', data: notifData }),
             }).catch(() => {});
 
-            // WA ke advertiser
+            // WA ke advertiser — creator ditemukan
             fetch('/api/send-wa', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ to: order.wa_number, type: 'order_assigned', data: notifData }),
+            }).catch(() => {});
+
+          } else if (order?.status === 'waiting') {
+            // WA ke advertiser — masuk antrian
+            fetch('/api/send-wa', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                to: order.wa_number,
+                type: 'order_queued',
+                data: {
+                  advertiser_name: order.advertiser_name,
+                  brand: order.brand,
+                  content_type: order.content_type,
+                },
+              }),
             }).catch(() => {});
           }
         }, 500);

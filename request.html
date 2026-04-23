@@ -144,6 +144,14 @@
         <input type="text" id="platform" placeholder="Instagram, TikTok, YouTube, dll." />
       </div>
       <div class="field">
+        <label>Jumlah Konten *</label>
+        <input type="number" id="jumlah_konten" placeholder="Contoh: 3" min="1" required />
+      </div>
+      <div class="field">
+        <label>Referensi Konten</label>
+        <input type="text" id="referensi_konten" placeholder="Link atau deskripsi referensi" />
+      </div>
+      <div class="field">
         <label>Brief *</label>
         <textarea id="brief" placeholder="Jelaskan kebutuhan konten kamu..." required></textarea>
       </div>
@@ -215,6 +223,8 @@
         wa_number: document.getElementById('wa_number').value.trim(),
         content_type: document.getElementById('content_type').value,
         platform: document.getElementById('platform').value.trim(),
+        jumlah_konten: parseInt(document.getElementById('jumlah_konten').value) || 1,
+        referensi_konten: document.getElementById('referensi_konten').value.trim() || null,
         brief: document.getElementById('brief').value.trim(),
         deadline: document.getElementById('deadline').value || null,
         advertiser_id: session?.user?.id || null,

@@ -146,7 +146,7 @@
     <div class="logo">Adsy</div>
     <div class="header-right">
       <span class="user-name" id="userName">—</span>
-      <a href="../index.html" class="new-order-btn">+ Request Baru</a>
+      <a href="../request.html" class="new-order-btn">+ Request Baru</a>
       <button class="logout-btn" onclick="doLogout()">Keluar</button>
     </div>
   </header>
@@ -190,8 +190,8 @@
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-    const SUPABASE_URL = 'GANTI_SUPABASE_URL';
-    const SUPABASE_ANON_KEY = 'GANTI_SUPABASE_ANON_KEY';
+    const SUPABASE_URL = 'https://woqznjubhmjraqapgyat.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvcXpuanViaG1qcmFxYXBneWF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MzUxNTgsImV4cCI6MjA5MjUxMTE1OH0.xBHG0aeKLutXyqTjlhpGVIYy7-wuI-ztI9e73wmRL04';
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let allOrders = [];

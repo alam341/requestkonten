@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Request Content Creator — Adsy</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #eae8f5;
+      min-height: 100vh;
+    }
+    /* Navbar */
+    nav {
+      background: #fff;
+      padding: 14px 28px;
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 1px 0 #e5e3f5;
+      position: sticky; top: 0; z-index: 10;
+    }
+    .nav-logo { font-size: 20px; font-weight: 800; color: #4f46e5; text-decoration: none; }
+    .nav-right { display: flex; align-items: center; gap: 10px; }
+    .nav-user { font-size: 14px; color: #374151; font-weight: 500; }
+    .nav-btn {
+      padding: 8px 18px; border-radius: 10px;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; text-decoration: none;
+      transition: all 0.2s; border: none;
+    }
+    .nav-btn.outline { border: 1.5px solid #c7c2f5; color: #4f46e5; background: #f5f4fb; }
+    .nav-btn.outline:hover { background: #eceaf8; }
+    .nav-btn.solid { background: #4f46e5; color: #fff; }
+    .nav-btn.solid:hover { background: #4338ca; }
+    .nav-btn.ghost { background: none; color: #9ca3af; font-size: 13px; }
+    .nav-btn.ghost:hover { color: #dc2626; }
+
+    /* Main */
+    .page {
+      display: flex; align-items: center; justify-content: center;
+      padding: 40px 24px; min-height: calc(100vh - 53px);
+    }
+    .card {
+      background: #fff;
+      border-radius: 24px;
+      padding: 40px;
+      width: 100%; max-width: 520px;
+      box-shadow: 0 8px 40px rgba(80,70,160,0.10);
+    }
+    h1 { font-size: 20px; font-weight: 700; color: #1e1e2e; margin-bottom: 4px; }
+    p.sub { font-size: 14px; color: #9ca3af; margin-bottom: 28px; }
+    .field { margin-bottom: 16px; }
+    label {
+      display: block;
+      font-size: 11px; font-weight: 700;
+      color: #6b7280; letter-spacing: 0.08em;
+      text-transform: uppercase; margin-bottom: 7px;
+    }
+    input, select, textarea {
+      width: 100%; padding: 13px 16px;
+      border: none; border-radius: 12px;
+      font-size: 14px; color: #1e1e2e;
+      background: #f5f4fb; outline: none;
+      transition: box-shadow 0.2s, background 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+      background: #eeecfb;
+      box-shadow: 0 0 0 2px #c7c2f5;
+    }
+    input::placeholder, textarea::placeholder { color: #b0adc8; }
+    select { appearance: none; cursor: pointer; }
+    textarea { resize: vertical; min-height: 90px; }
+    .btn {
+      width: 100%; padding: 14px;
+      background: #4f46e5; color: #fff;
+      border: none; border-radius: 14px;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer; margin-top: 8px;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn:hover { background: #4338ca; }
+    .btn:active { transform: scale(0.99); }
+    .btn:disabled { background: #c4c0f0; cursor: not-allowed; }
+    .track-link {
+      text-align: center; margin-top: 16px;
+      font-size: 12px; color: #b0adc8;
+    }
+    .track-link a { color: #4f46e5; text-decoration: none; font-weight: 600; }
+    .success-box {
+      display: none;
+      background: #f0fdf4; border: 1.5px solid #86efac;
+      border-radius: 14px; padding: 24px;
+      text-align: center; margin-top: 16px;
+    }
+    .success-box h3 { color: #16a34a; font-size: 16px; margin-bottom: 6px; }
+    .success-box p { color: #166534; font-size: 14px; }
+    .error-msg {
+      display: none; color: #dc2626;
+      font-size: 13px; margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav>
+    <a class="nav-logo" href="index.html">Adsy</a>
+    <div class="nav-right" id="navRight">
+      <a href="advertiser/login.html?tab=login" class="nav-btn outline" id="btnMasuk">Masuk</a>
+      <a href="advertiser/login.html?tab=register" class="nav-btn solid" id="btnDaftar">Daftar</a>
+    </div>
+  </nav>
+
+  <div class="page">
+  <div class="card">
+    <h1>Request Content Creator</h1>
+    <p class="sub">Isi form di bawah, kami akan assign creator secepatnya.</p>
+
+    <form id="orderForm">
+      <div class="field">
+        <label>Nama Advertiser *</label>
+        <input type="text" id="advertiser_name" placeholder="Nama kamu" required />
+      </div>
+      <div class="field">
+        <label>Brand / Klien *</label>
+        <input type="text" id="brand" placeholder="Nama brand atau klien" required />
+      </div>
+      <div class="field">
+        <label>No. WhatsApp *</label>
+        <input type="tel" id="wa_number" placeholder="08xxxxxxxxxx" required />
+      </div>
+      <div class="field">
+        <label>Jenis Konten *</label>
+        <select id="content_type" required>
+          <option value="">-- Pilih jenis konten --</option>
+          <option value="foto">Foto</option>
+          <option value="desain">Desain</option>
+          <option value="script">Script</option>
+          <option value="voice">Voice</option>
+          <option value="video">Video</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Platform</label>
+        <input type="text" id="platform" placeholder="Instagram, TikTok, YouTube, dll." />
+      </div>
+      <div class="field">
+        <label>Brief *</label>
+        <textarea id="brief" placeholder="Jelaskan kebutuhan konten kamu..." required></textarea>
+      </div>
+      <div class="field">
+        <label>Deadline</label>
+        <input type="date" id="deadline" />
+      </div>
+
+      <button type="submit" class="btn" id="submitBtn">Kirim Request</button>
+      <p class="error-msg" id="errorMsg"></p>
+    </form>
+
+    <div class="success-box" id="successBox">
+      <h3>Request Terkirim!</h3>
+      <p>Kami sedang mencari creator yang tersedia. Kamu akan dihubungi via WhatsApp segera.</p>
+      <br />
+      <a href="track.html" style="color:#4f46e5; font-weight:600; font-size:14px;">Cek status ordermu →</a>
+    </div>
+
+    <p class="track-link" id="trackLink"></p>
+  </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const SUPABASE_URL = 'https://woqznjubhmjraqapgyat.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvcXpuanViaG1qcmFxYXBneWF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MzUxNTgsImV4cCI6MjA5MjUxMTE1OH0.xBHG0aeKLutXyqTjlhpGVIYy7-wuI-ztI9e73wmRL04';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    supabase.auth.getSession().then(({ data }) => {
+      // Kalau belum login, redirect ke landing page
+      if (!data.session) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      const meta = data.session.user.user_metadata;
+      if (meta?.name) document.getElementById('advertiser_name').value = meta.name;
+      if (meta?.wa_number) document.getElementById('wa_number').value = meta.wa_number;
+
+      const navRight = document.getElementById('navRight');
+      navRight.innerHTML = `
+        <span class="nav-user">Hi, ${meta?.name || 'Advertiser'}</span>
+        <a href="advertiser/dashboard.html" class="nav-btn outline">My Orders</a>
+        <button class="nav-btn ghost" onclick="doLogout()">Keluar</button>
+      `;
+      document.getElementById('trackLink').innerHTML = '';
+    });
+
+    window.doLogout = async function () {
+      await supabase.auth.signOut();
+      window.location.reload();
+    };
+
+    document.getElementById('orderForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const errorMsg = document.getElementById('errorMsg');
+      btn.disabled = true;
+      btn.textContent = 'Mengirim...';
+      errorMsg.style.display = 'none';
+
+      const { data: { session } } = await supabase.auth.getSession();
+
+      const payload = {
+        advertiser_name: document.getElementById('advertiser_name').value.trim(),
+        brand: document.getElementById('brand').value.trim(),
+        wa_number: document.getElementById('wa_number').value.trim(),
+        content_type: document.getElementById('content_type').value,
+        platform: document.getElementById('platform').value.trim(),
+        brief: document.getElementById('brief').value.trim(),
+        deadline: document.getElementById('deadline').value || null,
+        advertiser_id: session?.user?.id || null,
+      };
+
+      const { error } = await supabase.functions.invoke('submit-order', { body: payload });
+
+      if (error) {
+        errorMsg.textContent = 'Gagal mengirim request. Coba lagi.';
+        errorMsg.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Kirim Request';
+      } else {
+        document.getElementById('orderForm').style.display = 'none';
+        const successBox = document.getElementById('successBox');
+        successBox.style.display = 'block';
+        if (session) {
+          successBox.innerHTML = `
+            <h3>Request Terkirim!</h3>
+            <p>Kami sedang mencari creator yang tersedia. Kamu akan dihubungi via WhatsApp segera.</p>
+            <br />
+            <a href="advertiser/dashboard.html" style="color:#4f46e5;font-weight:600;font-size:14px;">Pantau progress di dashboard →</a>
+          `;
+        }
+      }
+    });
+  </script>
+</body>
+</html>

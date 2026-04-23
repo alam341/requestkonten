@@ -257,6 +257,9 @@
       updateToggleLabel(isOn);
       const newStatus = isOn ? 'tersedia' : 'sibuk';
 
+      // Catat waktu SEBELUM update agar filter assigned_at tepat
+      const toggleTime = new Date().toISOString();
+
       const { error } = await supabase
         .from('creators')
         .update({ status: newStatus })
@@ -266,7 +269,6 @@
 
       // Kalau jadi tersedia, cek apakah ada order dari antrian yang baru di-assign
       if (isOn) {
-        const toggleTime = new Date().toISOString();
         setTimeout(async () => {
           const { data: newOrder } = await supabase
             .from('orders')

@@ -496,6 +496,7 @@
                 <th>Brand</th>
                 <th>Jenis Konten</th>
                 <th>Advertiser</th>
+                <th>Tgl Masuk</th>
                 <th>Deadline</th>
                 <th>Status</th>
                 <th>Aksi</th>
@@ -716,7 +717,7 @@
         .select('*')
         .eq('creator_id', currentCreator.id)
         .in('status', ['assigned', 'in_progress', 'done'])
-        .order('assigned_at', { ascending: false });
+        .order('assigned_at', { ascending: true });
 
       allTasks = data || [];
 
@@ -803,10 +804,12 @@
         : o.status === 'in_progress'
         ? `<button class="act-btn finish" onclick="openDriveModal('${o.id}','${o.wa_number}','${o.advertiser_name}','${o.brand}','${o.content_type}')">Selesai</button>`
         : o.drive_link ? `<a href="${o.drive_link}" target="_blank" class="drive-btn">Drive</a>` : '—';
+      const tglMasuk = o.assigned_at ? fmtDate(o.assigned_at.split('T')[0]) : '—';
       return `<tr>
         <td><strong style="cursor:pointer;color:#4f46e5" onclick='openDetailModal(${JSON.stringify(o)})'>${o.brand}</strong></td>
         <td>${o.content_type}</td>
         <td>${o.advertiser_name}</td>
+        <td style="color:#9ca3af">${tglMasuk}</td>
         <td>${fmtDate(o.deadline)}</td>
         <td><span class="badge ${o.status}">${statusLabel[o.status]}</span></td>
         <td style="display:flex;gap:6px;align-items:center">

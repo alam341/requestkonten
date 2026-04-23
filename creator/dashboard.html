@@ -355,14 +355,20 @@
       }
 
       // Kirim WA ke advertiser
-      await fetch('/api/send-wa', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: activeWa,
-          message: `Halo ${activeAdvertiserName}, konten kamu sudah selesai! 🎉\n\nCreator: ${currentCreator.name}\n\nLink hasil konten:\n${link}\n\nTerima kasih sudah menggunakan Adsy!`,
-        }),
-      }).catch(() => {});
+      try {
+        const waRes = await fetch('/api/send-wa', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: activeWa,
+            message: `Halo ${activeAdvertiserName}, konten kamu sudah selesai! 🎉\n\nCreator: ${currentCreator.name}\n\nLink hasil konten:\n${link}\n\nTerima kasih sudah menggunakan Adsy!`,
+          }),
+        });
+        const waData = await waRes.json();
+        console.log('WA response:', waData);
+      } catch (waErr) {
+        console.error('WA error:', waErr);
+      }
 
       btn.disabled = false; btn.textContent = 'Kirim & Selesai';
       closeModal();

@@ -113,11 +113,51 @@
     .act-btn.done { background: #16a34a; color: #fff; }
     .act-btn.done:hover { background: #15803d; }
 
-    .empty-msg {
-      text-align: center; color: #9ca3af;
-      font-size: 14px; padding: 40px 0;
-    }
+    .empty-msg { text-align: center; color: #9ca3af; font-size: 14px; padding: 40px 0; }
     .loading { text-align: center; color: #6b7280; padding: 32px; }
+
+    /* Modal */
+    .modal-overlay {
+      display: none; position: fixed;
+      inset: 0; background: rgba(0,0,0,0.4);
+      z-index: 100; align-items: center; justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #fff; border-radius: 20px;
+      padding: 32px; width: 100%; max-width: 440px;
+      margin: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    .modal h3 { font-size: 17px; font-weight: 700; color: #1e1e2e; margin-bottom: 6px; }
+    .modal p { font-size: 13px; color: #9ca3af; margin-bottom: 20px; }
+    .modal input {
+      width: 100%; padding: 13px 16px;
+      border: none; border-radius: 12px;
+      font-size: 14px; color: #1e1e2e;
+      background: #f5f4fb; outline: none;
+      margin-bottom: 14px;
+      transition: box-shadow 0.2s;
+    }
+    .modal input:focus { box-shadow: 0 0 0 2px #c7c2f5; background: #eeecfb; }
+    .modal input::placeholder { color: #b0adc8; }
+    .modal-actions { display: flex; gap: 10px; }
+    .modal-btn {
+      flex: 1; padding: 12px; border-radius: 12px;
+      font-size: 14px; font-weight: 600;
+      border: none; cursor: pointer; transition: all 0.2s;
+    }
+    .modal-btn.cancel { background: #f5f4fb; color: #6b7280; }
+    .modal-btn.cancel:hover { background: #eceaf8; }
+    .modal-btn.submit { background: #4f46e5; color: #fff; }
+    .modal-btn.submit:hover { background: #4338ca; }
+    .modal-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .drive-link-box {
+      margin-top: 10px; padding: 10px 14px;
+      background: #f0fdf4; border-radius: 8px;
+      font-size: 13px;
+    }
+    .drive-link-box a { color: #16a34a; font-weight: 600; text-decoration: none; }
+    .drive-link-box a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -129,6 +169,19 @@
       <button class="logout-btn" onclick="doLogout()">Keluar</button>
     </div>
   </header>
+
+  <!-- Modal Drive Link -->
+  <div class="modal-overlay" id="driveModal">
+    <div class="modal">
+      <h3>Upload Hasil Konten</h3>
+      <p>Paste link Google Drive hasil konten kamu. Pastikan link bisa diakses oleh advertiser.</p>
+      <input type="url" id="driveLinkInput" placeholder="https://drive.google.com/..." />
+      <div class="modal-actions">
+        <button class="modal-btn cancel" onclick="closeModal()">Batal</button>
+        <button class="modal-btn submit" id="submitDriveBtn" onclick="submitDriveLink()">Kirim & Selesai</button>
+      </div>
+    </div>
+  </div>
 
   <div class="container">
     <!-- Status availability -->
@@ -241,9 +294,15 @@
           ${order.status !== 'done' ? `
             <div class="task-actions">
               ${order.status === 'assigned' ? `<button class="act-btn start" onclick="updateTaskStatus('${order.id}', 'in_progress')">Mulai Kerjakan</button>` : ''}
-              ${order.status === 'in_progress' ? `<button class="act-btn done" onclick="updateTaskStatus('${order.id}', 'done')">Tandai Selesai</button>` : ''}
+              ${order.status === 'in_progress' ? `<button class="act-btn done" onclick="openDriveModal('${order.id}', '${order.wa_number}', '${order.advertiser_name}')">Tandai Selesai</button>` : ''}
             </div>
-          ` : ''}
+          ` : `
+            ${order.drive_link ? `
+              <div class="drive-link-box">
+                Hasil konten: <a href="${order.drive_link}" target="_blank">Lihat di Google Drive</a>
+              </div>
+            ` : ''}
+          `}
         </div>
       `).join('');
     }
@@ -254,10 +313,64 @@
         .update({ status: newStatus })
         .eq('id', orderId);
 
+      if (error) { alert('Gagal update status: ' + error.message); return; }
+      loadTasks();
+    };
+
+    let activeOrderId = null;
+    let activeWa = null;
+    let activeAdvertiserName = null;
+
+    window.openDriveModal = function (orderId, wa, advertiserName) {
+      activeOrderId = orderId;
+      activeWa = wa;
+      activeAdvertiserName = advertiserName;
+      document.getElementById('driveLinkInput').value = '';
+      document.getElementById('driveModal').classList.add('show');
+    };
+
+    window.closeModal = function () {
+      document.getElementById('driveModal').classList.remove('show');
+    };
+
+    window.submitDriveLink = async function () {
+      const link = document.getElementById('driveLinkInput').value.trim();
+      const btn = document.getElementById('submitDriveBtn');
+
+      if (!link) {
+        alert('Masukkan link Google Drive dulu.'); return;
+      }
+
+      btn.disabled = true; btn.textContent = 'Menyimpan...';
+
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: 'done', drive_link: link })
+        .eq('id', activeOrderId);
+
       if (error) {
-        alert('Gagal update status: ' + error.message);
+        alert('Gagal: ' + error.message);
+        btn.disabled = false; btn.textContent = 'Kirim & Selesai';
         return;
       }
+
+      // Kirim WA ke advertiser via n8n
+      const N8N_ADVERTISER_WEBHOOK = 'GANTI_N8N_ADVERTISER_WEBHOOK';
+      if (N8N_ADVERTISER_WEBHOOK !== 'GANTI_N8N_ADVERTISER_WEBHOOK') {
+        await fetch(N8N_ADVERTISER_WEBHOOK, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: activeWa,
+            advertiser_name: activeAdvertiserName,
+            creator_name: currentCreator.name,
+            drive_link: link,
+          }),
+        }).catch(() => {});
+      }
+
+      btn.disabled = false; btn.textContent = 'Kirim & Selesai';
+      closeModal();
       loadTasks();
     };
 

@@ -230,7 +230,11 @@
         advertiser_id: session?.user?.id || null,
       };
 
-      const { error } = await supabase.from('orders').insert(payload);
+      const { data: inserted, error } = await supabase
+        .from('orders')
+        .insert(payload)
+        .select()
+        .single();
 
       if (error) {
         errorMsg.textContent = 'Error: ' + error.message;
@@ -239,14 +243,33 @@
         btn.textContent = 'Kirim Request';
       } else {
         document.getElementById('orderForm').style.display = 'none';
-        const successBox = document.getElementById('successBox');
-        successBox.innerHTML = `
+        document.getElementById('successBox').innerHTML = `
           <h3>Request Terkirim!</h3>
           <p>Kami sedang mencari creator yang tersedia. Kamu akan dihubungi via WhatsApp segera.</p>
           <br />
           <a href="advertiser/dashboard.html" style="color:#4f46e5;font-weight:600;font-size:14px;">Pantau progress di dashboard →</a>
         `;
-        successBox.style.display = 'block';
+        document.getElementById('successBox').style.display = 'block';
+
+        // Tunggu trigger auto-assign selesai, lalu kirim WA ke creator
+        setTimeout(async () => {
+          const { data: order } = await supabase
+            .from('orders')
+            .select('*, creators(name, wa_number)')
+            .eq('id', inserted.id)
+            .single();
+
+          if (order?.status === 'assigned' && order?.creators) {
+            await fetch('/api/send-wa', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                to: order.creators.wa_number,
+                message: `Halo ${order.creators.name}, kamu mendapat tugas baru! 📋\n\nBrand: ${order.brand}\nJenis: ${order.content_type}\n${order.platform ? `Platform: ${order.platform}\n` : ''}${order.deadline ? `Deadline: ${order.deadline}\n` : ''}${order.brief ? `\nBrief:\n${order.brief}` : ''}\n\nSilakan cek dashboard kamu.`,
+              }),
+            }).catch(() => {});
+          }
+        }, 2000);
       }
     });
   </script>

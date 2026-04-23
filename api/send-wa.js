@@ -3,29 +3,92 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { to, message } = req.body;
+  const { to, type, data } = req.body;
 
-  if (!to || !message) {
-    return res.status(400).json({ error: 'to dan message wajib diisi' });
+  if (!to || !type || !data) {
+    return res.status(400).json({ error: 'to, type, dan data wajib diisi' });
   }
 
   try {
-    const response = await fetch('https://api.fonnte.com/send', {
-      method: 'POST',
-      headers: {
-        'Authorization': process.env.FONNTE_TOKEN,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        target: to,
-        message: message,
-        countryCode: '62',
-      }),
-    });
-
-    const data = await response.json();
-    return res.status(200).json(data);
+    const message = await generateMessage(type, data);
+    const result = await sendWA(to, message);
+    return res.status(200).json({ success: true, message, fonnte: result });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
+}
+
+async function generateMessage(type, data) {
+  const prompts = {
+    creator_assigned: `Kamu adalah asisten notifikasi WhatsApp untuk platform content creator bernama Adsy.
+Tulis pesan WhatsApp singkat, hangat, dan menyemangati untuk content creator bernama "${data.creator_name}" yang baru saja mendapat tugas baru.
+Detail tugas:
+- Brand: ${data.brand}
+- Jenis konten: ${data.content_type}
+${data.platform ? `- Platform: ${data.platform}` : ''}
+${data.deadline ? `- Deadline: ${data.deadline}` : ''}
+${data.brief ? `- Brief: ${data.brief}` : ''}
+Pesan harus: singkat (max 5 baris), pakai bahasa Indonesia santai, menyemangati, ada info tugas penting, dan minta creator cek dashboard.`,
+
+    order_assigned: `Kamu adalah asisten notifikasi WhatsApp untuk platform content creator bernama Adsy.
+Tulis pesan WhatsApp singkat dan menggembirakan untuk advertiser bernama "${data.advertiser_name}" bahwa creator sudah ditemukan untuk order mereka.
+Detail:
+- Brand: ${data.brand}
+- Creator yang di-assign: ${data.creator_name}
+- Jenis konten: ${data.content_type}
+Pesan harus: singkat (max 4 baris), pakai bahasa Indonesia santai, terasa personal, meyakinkan advertiser bahwa ordernya dalam proses yang baik.`,
+
+    order_started: `Kamu adalah asisten notifikasi WhatsApp untuk platform content creator bernama Adsy.
+Tulis pesan WhatsApp singkat dan menyenangkan untuk advertiser bernama "${data.advertiser_name}" bahwa creator sudah mulai mengerjakan konten mereka.
+Detail:
+- Brand: ${data.brand}
+- Creator: ${data.creator_name}
+- Jenis konten: ${data.content_type}
+Pesan harus: singkat (max 4 baris), pakai bahasa Indonesia santai, membuat advertiser excited, minta mereka pantau di dashboard.`,
+
+    order_done: `Kamu adalah asisten notifikasi WhatsApp untuk platform content creator bernama Adsy.
+Tulis pesan WhatsApp singkat dan meriah untuk advertiser bernama "${data.advertiser_name}" bahwa konten mereka sudah selesai.
+Detail:
+- Brand: ${data.brand}
+- Creator: ${data.creator_name}
+- Jenis konten: ${data.content_type}
+- Link Google Drive: ${data.drive_link}
+Pesan harus: singkat (max 5 baris), pakai bahasa Indonesia santai, excited dan merayakan, sertakan link drive dengan jelas, ajak advertiser untuk review.`,
+  };
+
+  const prompt = prompts[type];
+  if (!prompt) throw new Error('Tipe notifikasi tidak dikenal: ' + type);
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': process.env.CLAUDE_API_KEY,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 300,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+
+  const result = await response.json();
+  return result.content[0].text;
+}
+
+async function sendWA(to, message) {
+  const response = await fetch('https://api.fonnte.com/send', {
+    method: 'POST',
+    headers: {
+      'Authorization': process.env.FONNTE_TOKEN,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      target: to,
+      message: message,
+      countryCode: '62',
+    }),
+  });
+  return response.json();
 }

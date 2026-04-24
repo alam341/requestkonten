@@ -267,9 +267,10 @@
         `;
         document.getElementById('successBox').style.display = 'block';
 
-        // Tunggu trigger auto-assign selesai, lalu kirim WA
-        setTimeout(async () => {
-
+        // Poll sampai trigger auto-assign selesai, max 5x tiap 2 detik
+        let pollCount = 0;
+        const pollAssign = async () => {
+          pollCount++;
           const { data: order } = await supabase
             .from('orders')
             .select('*, creators(name, wa_number)')
@@ -286,23 +287,22 @@
               creator_name: order.creators.name,
               advertiser_name: order.advertiser_name,
             };
-
-            // WA ke creator
             fetch('/api/send-wa', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ to: order.creators.wa_number, type: 'creator_assigned', data: notifData }),
             }).catch(() => {});
-
-            // WA ke advertiser — creator ditemukan
             fetch('/api/send-wa', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ to: order.wa_number, type: 'order_assigned', data: notifData }),
             }).catch(() => {});
 
+          } else if (order?.status === 'waiting' && pollCount < 5) {
+            // Belum di-assign, coba lagi 2 detik kemudian
+            setTimeout(pollAssign, 2000);
           } else if (order?.status === 'waiting') {
-            // WA ke advertiser — masuk antrian
+            // Setelah 5x poll tetap waiting — kirim notif antrian
             fetch('/api/send-wa', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -317,7 +317,8 @@
               }),
             }).catch(() => {});
           }
-        }, 1500);
+        };
+        setTimeout(pollAssign, 2000);
       }
     });
   </script>

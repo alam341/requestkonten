@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Dashboard — Adsy</title>
+  <title>Admin Dashboard — Maknarona by Adsy</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', sans-serif; background: #0f0e17; min-height: 100vh; color: #e2e0f0; }
@@ -14,11 +14,11 @@
       border-bottom: 1px solid #2a2840;
       position: sticky; top: 0; z-index: 10;
     }
-    .logo { font-size: 18px; font-weight: 800; color: #fff; }
+    .logo { display: flex; align-items: center; gap: 10px; }
     .logo span {
       font-size: 10px; font-weight: 700; background: #4f46e5;
-      padding: 2px 8px; border-radius: 99px; margin-left: 8px;
-      letter-spacing: 0.08em; text-transform: uppercase; vertical-align: middle;
+      padding: 2px 8px; border-radius: 99px;
+      letter-spacing: 0.08em; text-transform: uppercase;
     }
     .logout-btn { font-size: 13px; color: #6b7280; background: none; border: none; cursor: pointer; }
     .logout-btn:hover { color: #f87171; }
@@ -171,7 +171,10 @@
 </head>
 <body>
   <header>
-    <div class="logo">Adsy <span>Admin</span></div>
+    <div class="logo">
+      <img src="../assets/logo-maknarona.png" alt="Maknarona by Adsy" style="height:34px;width:auto;filter:brightness(1.15);">
+      <span>Admin</span>
+    </div>
     <button class="logout-btn" onclick="doLogout()">Keluar</button>
   </header>
 

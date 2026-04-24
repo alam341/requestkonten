@@ -977,7 +977,9 @@
       if (error) { alert('Gagal update status: ' + error.message); return; }
 
       if (isOn) {
-        setTimeout(async () => {
+        let pollToggle = 0;
+        const checkQueueAfterToggle = async () => {
+          pollToggle++;
           const { data: newOrder } = await supabase
             .from('orders').select('*')
             .eq('creator_id', currentCreator.id).eq('status', 'assigned')
@@ -995,8 +997,11 @@
             fetch('/api/send-wa', { method: 'POST', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ to: newOrder.wa_number, type: 'order_assigned', data: notifData }) }).catch(() => {});
             loadTasks();
+          } else if (pollToggle < 5) {
+            setTimeout(checkQueueAfterToggle, 2000);
           }
-        }, 1500);
+        };
+        setTimeout(checkQueueAfterToggle, 2000);
       }
     };
 
@@ -1071,7 +1076,9 @@
       btn.disabled = false; btn.textContent = 'Kirim & Selesai';
       closeModal(); loadTasks();
 
-      setTimeout(async () => {
+      let pollDone = 0;
+      const checkQueueAfterDone = async () => {
+        pollDone++;
         const { data: newOrder } = await supabase.from('orders').select('*')
           .eq('creator_id', currentCreator.id).eq('status', 'assigned')
           .gte('assigned_at', doneTime).order('assigned_at', { ascending: false }).limit(1).single();
@@ -1086,8 +1093,11 @@
           fetch('/api/send-wa', { method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ to: newOrder.wa_number, type: 'order_assigned', data: notifData }) }).catch(() => {});
           loadTasks();
+        } else if (pollDone < 5) {
+          setTimeout(checkQueueAfterDone, 2000);
         }
-      }, 1500);
+      };
+      setTimeout(checkQueueAfterDone, 2000);
     };
 
     window.showPage = function(page) {

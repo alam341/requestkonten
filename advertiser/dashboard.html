@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard Advertiser — Adsy</title>
+  <title>Dashboard Advertiser — Maknarona by Adsy</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', sans-serif; background: #f4f6fb; min-height: 100vh; }
@@ -13,7 +13,7 @@
       display: flex; justify-content: space-between; align-items: center;
       box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     }
-    .logo { font-size: 20px; font-weight: 700; color: #4f46e5; }
+    .logo { display: flex; align-items: center; }
     .header-right { display: flex; align-items: center; gap: 14px; }
     .user-name { font-size: 14px; color: #374151; font-weight: 500; }
     .new-order-btn {
@@ -143,7 +143,9 @@
 </head>
 <body>
   <header>
-    <div class="logo">Adsy</div>
+    <div class="logo">
+      <img src="../assets/logo-maknarona.png" alt="Maknarona by Adsy" style="height:36px;width:auto;">
+    </div>
     <div class="header-right">
       <span class="user-name" id="userName">—</span>
       <a href="../request.html" class="new-order-btn">+ Request Baru</a>

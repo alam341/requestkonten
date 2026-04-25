@@ -295,15 +295,27 @@
     .queue-empty { font-size: 13px; color: #c4c0f0; text-align: center; padding: 12px 0; }
 
     /* History page */
+    .history-filter { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .filter-btn {
+      padding: 6px 14px; border-radius: 99px; border: none; cursor: pointer;
+      font-size: 12px; font-weight: 600; background: #f0eef8; color: #6b7280;
+      transition: all 0.2s;
+    }
+    .filter-btn:hover { background: #ede9fe; color: #4f46e5; }
+    .filter-btn.active { background: #4f46e5; color: #fff; }
+
     .history-card {
       background: #fff; border-radius: 12px;
       padding: 16px 20px; margin-bottom: 12px;
       box-shadow: 0 2px 8px rgba(80,70,160,0.06);
       display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer; transition: all 0.2s;
     }
+    .history-card:hover { box-shadow: 0 4px 16px rgba(80,70,160,0.13); transform: translateY(-1px); }
     .history-left .h-brand { font-size: 14px; font-weight: 600; color: #1e1e2e; }
     .history-left .h-detail { font-size: 12px; color: #9ca3af; margin-top: 3px; }
-    .history-right { text-align: right; }
+    .history-left .h-done { font-size: 11px; color: #10b981; font-weight: 600; margin-top: 4px; }
+    .history-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
     .drive-btn {
       font-size: 12px; color: #4f46e5; font-weight: 600;
       text-decoration: none; padding: 5px 12px;
@@ -425,6 +437,10 @@
         <div style="background:#f5f4fb;border-radius:10px;padding:12px" id="detailRefWrap">
           <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin-bottom:6px">Referensi</div>
           <div style="font-size:13px;color:#4f46e5;word-break:break-all" id="detailRef">—</div>
+        </div>
+        <div style="background:#d1fae5;border-radius:10px;padding:12px" id="detailDriveWrap">
+          <div style="font-size:11px;font-weight:700;color:#059669;text-transform:uppercase;margin-bottom:6px">Hasil Konten</div>
+          <a id="detailDriveLink" href="#" target="_blank" style="font-size:13px;color:#059669;font-weight:600;word-break:break-all;text-decoration:underline">Lihat di Google Drive</a>
         </div>
       </div>
       <div class="modal-actions">
@@ -554,6 +570,7 @@
             <div class="page-subtitle">Semua tugas yang sudah selesai.</div>
           </div>
         </div>
+        <div class="history-filter" id="historyFilter"></div>
         <div id="historyList"></div>
       </div>
 
@@ -895,23 +912,87 @@
       </tr>`;
     }
 
+    let allDoneTasks = [];
+    let activeMonthFilter = 'all';
+
     function renderHistory(tasks) {
-      const list = document.getElementById('historyList');
-      if (!tasks.length) {
-        list.innerHTML = '<div style="text-align:center;color:#c4c0f0;padding:40px">Belum ada riwayat tugas selesai.</div>'; return;
-      }
-      list.innerHTML = tasks.map(o => `
-        <div class="history-card">
-          <div class="history-left">
-            <div class="h-brand">${o.brand}</div>
-            <div class="h-detail">${o.content_type} · ${o.advertiser_name} · ${fmtDate(o.deadline)}</div>
-          </div>
-          <div class="history-right">
-            ${o.drive_link ? `<a href="${o.drive_link}" target="_blank" class="drive-btn">Lihat Drive</a>` : '<span style="color:#c4c0f0;font-size:12px">No link</span>'}
-          </div>
-        </div>
-      `).join('');
+      allDoneTasks = tasks;
+      activeMonthFilter = 'all';
+      renderHistoryFilter();
+      renderHistoryCards();
     }
+
+    function renderHistoryFilter() {
+      const filter = document.getElementById('historyFilter');
+      const months = {};
+      allDoneTasks.forEach(o => {
+        const dateStr = o.updated_at || o.deadline;
+        if (!dateStr) return;
+        const d = new Date(dateStr);
+        const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+        const label = d.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+        months[key] = label;
+      });
+
+      const sortedMonths = Object.keys(months).sort().reverse();
+      if (sortedMonths.length < 2) { filter.innerHTML = ''; return; }
+
+      const buttons = [`<button class="filter-btn ${activeMonthFilter === 'all' ? 'active' : ''}" onclick="setMonthFilter('all')">Semua (${allDoneTasks.length})</button>`];
+      sortedMonths.forEach(key => {
+        const count = allDoneTasks.filter(o => {
+          const d = new Date(o.updated_at || o.deadline || '');
+          return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}` === key;
+        }).length;
+        buttons.push(`<button class="filter-btn ${activeMonthFilter === key ? 'active' : ''}" onclick="setMonthFilter('${key}')">${months[key]} (${count})</button>`);
+      });
+      filter.innerHTML = buttons.join('');
+    }
+
+    function renderHistoryCards() {
+      const list = document.getElementById('historyList');
+      let tasks = [...allDoneTasks].sort((a, b) => {
+        return new Date(b.updated_at || b.deadline || 0) - new Date(a.updated_at || a.deadline || 0);
+      });
+
+      if (activeMonthFilter !== 'all') {
+        tasks = tasks.filter(o => {
+          const d = new Date(o.updated_at || o.deadline || '');
+          const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+          return key === activeMonthFilter;
+        });
+      }
+
+      if (!tasks.length) {
+        list.innerHTML = '<div style="text-align:center;color:#c4c0f0;padding:40px">Belum ada riwayat tugas selesai.</div>';
+        return;
+      }
+
+      list.innerHTML = tasks.map(o => {
+        const selesai = o.updated_at ? fmtDate(o.updated_at.split('T')[0]) : (o.deadline ? fmtDate(o.deadline) : '—');
+        return `
+          <div class="history-card" onclick='openDetailModal(${JSON.stringify(o)})'>
+            <div class="history-left">
+              <div class="h-brand">${o.brand}</div>
+              <div class="h-detail">${o.content_type} · ${o.advertiser_name}</div>
+              <div class="h-done">Selesai: ${selesai}</div>
+            </div>
+            <div class="history-right">
+              ${o.drive_link
+                ? `<a href="${o.drive_link}" target="_blank" class="drive-btn" onclick="event.stopPropagation()">Lihat Drive</a>`
+                : '<span style="color:#c4c0f0;font-size:12px">No link</span>'
+              }
+              <span style="font-size:11px;color:#c4c0f0">Klik untuk detail</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.setMonthFilter = function(month) {
+      activeMonthFilter = month;
+      renderHistoryFilter();
+      renderHistoryCards();
+    };
 
     function renderQueue(assignedTasks) {
       const list = document.getElementById('queueList');
@@ -1046,6 +1127,7 @@
       document.getElementById('detailJumlah').textContent = o.jumlah_konten ? o.jumlah_konten + ' konten' : '—';
       document.getElementById('detailDeadline').textContent = fmtDate(o.deadline);
       document.getElementById('detailBrief').textContent = o.brief || '—';
+
       const refWrap = document.getElementById('detailRefWrap');
       if (o.referensi_konten) {
         document.getElementById('detailRef').textContent = o.referensi_konten;
@@ -1053,6 +1135,15 @@
       } else {
         refWrap.style.display = 'none';
       }
+
+      const driveWrap = document.getElementById('detailDriveWrap');
+      if (o.drive_link) {
+        document.getElementById('detailDriveLink').href = o.drive_link;
+        driveWrap.style.display = 'block';
+      } else {
+        driveWrap.style.display = 'none';
+      }
+
       document.getElementById('detailModal').classList.add('show');
     };
 

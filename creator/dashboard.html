@@ -339,6 +339,15 @@
     }
     .drive-btn:hover { background: #4f46e5; color: #fff; }
 
+    /* Monthly recap */
+    .recap-row { display: flex; align-items: center; gap: 12px; }
+    .recap-month { font-size: 13px; font-weight: 600; color: #374151; width: 110px; flex-shrink: 0; }
+    .recap-bar-wrap { flex: 1; background: #f0eef8; border-radius: 99px; height: 10px; overflow: hidden; }
+    .recap-bar { height: 10px; border-radius: 99px; background: linear-gradient(90deg, #6366f1, #818cf8); transition: width 0.5s ease; }
+    .recap-count { font-size: 13px; font-weight: 700; color: #4f46e5; width: 50px; text-align: right; flex-shrink: 0; }
+    .recap-this-month .recap-month { color: #4f46e5; }
+    .recap-this-month .recap-bar { background: linear-gradient(90deg, #4f46e5, #6366f1); }
+
     /* Profile page */
     .profile-card {
       background: #fff; border-radius: 16px;
@@ -547,6 +556,17 @@
               <tr><td colspan="6" class="empty-td">Memuat...</td></tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Rekap Bulanan -->
+        <div class="table-card" style="margin-top:20px">
+          <div class="table-header">
+            <h3>Rekap Bulanan</h3>
+            <span style="font-size:12px;color:#9ca3af">Order selesai per bulan</span>
+          </div>
+          <div id="monthlyRecap" style="padding:16px 20px;display:flex;flex-direction:column;gap:12px">
+            <div style="text-align:center;color:#c4c0f0;padding:20px">Memuat...</div>
+          </div>
         </div>
       </div>
 
@@ -837,6 +857,7 @@
       renderDashTable(active.slice(0, 5));
       renderAktifTable(active);
       renderHistory(done);
+      renderMonthlyRecap(done);
       renderCalendar();
       renderQueue(active.filter(o => o.status === 'assigned'));
     }
@@ -1010,6 +1031,50 @@
       renderHistoryFilter();
       renderHistoryCards();
     };
+
+    function renderMonthlyRecap(done) {
+      const monthNames = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+      const now = new Date();
+      const thisMonthKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+
+      // Hitung per bulan dari 6 bulan terakhir
+      const counts = {};
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+        const label = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+        counts[key] = { label, count: 0 };
+      }
+
+      done.forEach(o => {
+        const dateStr = o.updated_at || o.deadline;
+        if (!dateStr) return;
+        const d = new Date(dateStr);
+        const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+        if (counts[key]) counts[key].count++;
+      });
+
+      const container = document.getElementById('monthlyRecap');
+      const entries = Object.entries(counts);
+      const maxCount = Math.max(...entries.map(([,v]) => v.count), 1);
+
+      if (entries.every(([,v]) => v.count === 0)) {
+        container.innerHTML = '<div style="text-align:center;color:#c4c0f0;padding:20px">Belum ada order selesai.</div>';
+        return;
+      }
+
+      container.innerHTML = entries.map(([key, { label, count }]) => {
+        const isThis = key === thisMonthKey;
+        const barWidth = Math.round((count / maxCount) * 100);
+        return `<div class="recap-row ${isThis ? 'recap-this-month' : ''}">
+          <span class="recap-month">${label}${isThis ? ' ✦' : ''}</span>
+          <div class="recap-bar-wrap">
+            <div class="recap-bar" style="width:${barWidth}%"></div>
+          </div>
+          <span class="recap-count">${count} order</span>
+        </div>`;
+      }).join('');
+    }
 
     function renderQueue(assignedTasks) {
       const list = document.getElementById('queueList');

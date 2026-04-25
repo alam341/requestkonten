@@ -82,6 +82,7 @@
     .badge.assigned { background: #dbeafe; color: #1d4ed8; }
     .badge.in_progress { background: #ede9fe; color: #5b21b6; }
     .badge.done { background: #dcfce7; color: #15803d; }
+    .badge.revision { background: #fff7ed; color: #c2410c; }
 
     .order-meta { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 10px; }
     .meta-item { font-size: 13px; color: #6b7280; }
@@ -137,6 +138,53 @@
     .empty-msg { text-align: center; color: #9ca3af; font-size: 14px; padding: 48px 0; }
     .loading { text-align: center; color: #6b7280; padding: 32px; }
 
+    .revision-note-box {
+      margin-top: 10px; padding: 10px 14px;
+      background: #fff7ed; border-radius: 8px;
+      border-left: 3px solid #f97316;
+    }
+    .revision-note-box .rev-label { font-size: 11px; font-weight: 700; color: #c2410c; margin-bottom: 3px; }
+    .revision-note-box .rev-text { font-size: 13px; color: #9a3412; line-height: 1.5; }
+
+    .revision-btn {
+      margin-top: 10px; width: 100%; padding: 9px;
+      background: #fff7ed; color: #c2410c;
+      border: 1.5px solid #fed7aa; border-radius: 8px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .revision-btn:hover { background: #f97316; color: #fff; border-color: #f97316; }
+
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.4); z-index: 100;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-box {
+      background: #fff; border-radius: 20px;
+      padding: 28px; width: 100%; max-width: 440px; margin: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    .modal-box h3 { font-size: 17px; font-weight: 700; color: #1e1e2e; margin-bottom: 6px; }
+    .modal-box p { font-size: 13px; color: #9ca3af; margin-bottom: 16px; }
+    .modal-box textarea {
+      width: 100%; height: 100px; padding: 12px;
+      border: none; border-radius: 10px;
+      background: #f5f4fb; font-size: 13px;
+      resize: none; outline: none; margin-bottom: 14px;
+      font-family: inherit;
+    }
+    .modal-box textarea:focus { box-shadow: 0 0 0 2px #fed7aa; background: #fff7ed; }
+    .modal-actions { display: flex; gap: 8px; }
+    .modal-actions button {
+      flex: 1; padding: 12px; border-radius: 10px;
+      font-size: 14px; font-weight: 600; border: none; cursor: pointer;
+    }
+    .btn-cancel { background: #f5f4fb; color: #6b7280; }
+    .btn-submit { background: #f97316; color: #fff; }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
     @media (max-width: 480px) {
       .stats-row { grid-template-columns: repeat(2, 1fr); }
     }
@@ -157,6 +205,19 @@
       <button class="logout-btn" onclick="doLogout()">Keluar</button>
     </div>
   </header>
+
+  <!-- Revision Modal -->
+  <div class="modal-overlay" id="revisionModal">
+    <div class="modal-box">
+      <h3>Minta Revisi</h3>
+      <p>Jelaskan apa yang perlu diperbaiki oleh creator.</p>
+      <textarea id="revisionNoteInput" placeholder="Contoh: Tolong ubah warna background menjadi putih..."></textarea>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeRevisionModal()">Batal</button>
+        <button class="btn-submit" id="submitRevisionBtn" onclick="submitRevision()">Kirim Revisi</button>
+      </div>
+    </div>
+  </div>
 
   <div class="container">
     <!-- Stats -->
@@ -185,6 +246,7 @@
       <button class="filter-btn" onclick="filterOrders('waiting', this)">Menunggu</button>
       <button class="filter-btn" onclick="filterOrders('assigned', this)">Ditugaskan</button>
       <button class="filter-btn" onclick="filterOrders('in_progress', this)">Dikerjakan</button>
+      <button class="filter-btn" onclick="filterOrders('revision', this)">Revisi</button>
       <button class="filter-btn" onclick="filterOrders('done', this)">Selesai</button>
     </div>
 
@@ -203,6 +265,8 @@
 
     let allOrders = [];
     let currentFilter = 'all';
+    let activeRevisionOrderId = null;
+    let activeRevisionData = null;
 
     async function init() {
       const { data: { session } } = await supabase.auth.getSession();
@@ -213,12 +277,17 @@
       document.getElementById('userName').textContent = displayName;
 
       await loadOrders(session.user.id);
+
+      supabase.channel('adv-orders')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders',
+          filter: `advertiser_id=eq.${session.user.id}` }, () => loadOrders(session.user.id))
+        .subscribe();
     }
 
     async function loadOrders(userId) {
       const { data, error } = await supabase
         .from('orders')
-        .select('*, creators(name)')
+        .select('*, creators(name, wa_number)')
         .eq('advertiser_id', userId)
         .order('created_at', { ascending: false });
 
@@ -229,13 +298,14 @@
 
       allOrders = data;
       updateStats(data);
-      renderOrders(data);
+      const filtered = currentFilter === 'all' ? allOrders : allOrders.filter(o => o.status === currentFilter);
+      renderOrders(filtered);
     }
 
     function updateStats(data) {
       document.getElementById('countWaiting').textContent = data.filter(o => o.status === 'waiting').length;
       document.getElementById('countAssigned').textContent = data.filter(o => o.status === 'assigned').length;
-      document.getElementById('countProgress').textContent = data.filter(o => o.status === 'in_progress').length;
+      document.getElementById('countProgress').textContent = data.filter(o => ['in_progress','revision'].includes(o.status)).length;
       document.getElementById('countDone').textContent = data.filter(o => o.status === 'done').length;
     }
 
@@ -246,12 +316,14 @@
         return;
       }
 
-      const statusLabel = { waiting: 'Menunggu', assigned: 'Ditugaskan', in_progress: 'Dikerjakan', done: 'Selesai' };
+      const statusLabel = { waiting: 'Menunggu', assigned: 'Ditugaskan', in_progress: 'Dikerjakan', revision: 'Revisi', done: 'Selesai' };
       const stepOrder = ['waiting', 'assigned', 'in_progress', 'done'];
-      const stepNames = ['Request', 'Creator Assigned', 'Dikerjakan', 'Selesai'];
+      const stepNames = ['Request', 'Ditugaskan', 'Dikerjakan', 'Selesai'];
 
       list.innerHTML = data.map(order => {
-        const currentStep = stepOrder.indexOf(order.status);
+        // revision dianggap step in_progress di progress bar
+        const statusForStep = order.status === 'revision' ? 'in_progress' : order.status;
+        const currentStep = stepOrder.indexOf(statusForStep);
 
         const progressHTML = `
           <div class="progress-bar-wrap">
@@ -281,6 +353,29 @@
           <div class="queue-box">Sedang mencari creator yang tersedia untuk ordermu...</div>
         ` : '';
 
+        const revisionNoteHTML = order.status === 'revision' && order.revision_note ? `
+          <div class="revision-note-box">
+            <div class="rev-label">CATATAN REVISI${order.revision_count > 1 ? ` #${order.revision_count}` : ''}</div>
+            <div class="rev-text">${order.revision_note}</div>
+          </div>
+        ` : '';
+
+        const driveHTML = order.drive_link ? `
+          <div style="margin-top:12px;padding:12px 14px;background:#f0fdf4;border-radius:10px;display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:13px;color:#166534;font-weight:500;">
+              Hasil konten${order.revision_count > 0 ? ` (Revisi ke-${order.revision_count})` : ''} sudah dikirim
+            </span>
+            <a href="${order.drive_link}" target="_blank" style="font-size:13px;font-weight:700;color:#16a34a;text-decoration:none;background:#dcfce7;padding:6px 14px;border-radius:8px;">Lihat di Drive</a>
+          </div>
+        ` : '';
+
+        const revisionBtnHTML = order.status === 'done' && order.drive_link ? `
+          <button class="revision-btn"
+            onclick="openRevisionModal('${order.id}', '${order.creators?.wa_number || ''}', '${order.creators?.name || ''}', ${JSON.stringify(order.brand)}, ${JSON.stringify(order.content_type)}, ${order.revision_count || 0})">
+            Minta Revisi
+          </button>
+        ` : '';
+
         return `
           <div class="order-card">
             <div class="order-top">
@@ -294,19 +389,63 @@
               <div class="meta-item">Jenis: <span>${order.content_type}</span></div>
               ${order.platform ? `<div class="meta-item">Platform: <span>${order.platform}</span></div>` : ''}
               ${order.deadline ? `<div class="meta-item">Deadline: <span>${order.deadline}</span></div>` : ''}
+              ${order.revision_count > 0 ? `<div class="meta-item">Revisi: <span>${order.revision_count}x</span></div>` : ''}
             </div>
             ${progressHTML}
             ${creatorHTML}
-            ${order.drive_link ? `
-              <div style="margin-top:12px;padding:12px 14px;background:#f0fdf4;border-radius:10px;display:flex;align-items:center;justify-content:space-between;">
-                <span style="font-size:13px;color:#166534;font-weight:500;">Hasil konten sudah dikirim</span>
-                <a href="${order.drive_link}" target="_blank" style="font-size:13px;font-weight:700;color:#16a34a;text-decoration:none;background:#dcfce7;padding:6px 14px;border-radius:8px;">Lihat di Drive</a>
-              </div>
-            ` : ''}
+            ${revisionNoteHTML}
+            ${driveHTML}
+            ${revisionBtnHTML}
           </div>
         `;
       }).join('');
     }
+
+    window.openRevisionModal = function(orderId, creatorWa, creatorName, brand, contentType, revCount) {
+      activeRevisionOrderId = orderId;
+      activeRevisionData = { creatorWa, creatorName, brand, contentType, revCount };
+      document.getElementById('revisionNoteInput').value = '';
+      document.getElementById('revisionModal').classList.add('show');
+    };
+
+    window.closeRevisionModal = function() {
+      document.getElementById('revisionModal').classList.remove('show');
+    };
+
+    window.submitRevision = async function() {
+      const note = document.getElementById('revisionNoteInput').value.trim();
+      const btn = document.getElementById('submitRevisionBtn');
+      if (!note) { alert('Isi dulu catatan revisinya.'); return; }
+
+      btn.disabled = true; btn.textContent = 'Mengirim...';
+
+      const newRevCount = (activeRevisionData.revCount || 0) + 1;
+      const { error } = await supabase.from('orders').update({
+        status: 'revision',
+        revision_note: note,
+        revision_count: newRevCount,
+        drive_link: null,
+      }).eq('id', activeRevisionOrderId);
+
+      if (error) { alert('Gagal: ' + error.message); btn.disabled = false; btn.textContent = 'Kirim Revisi'; return; }
+
+      // Kirim notif WA ke creator
+      if (activeRevisionData.creatorWa) {
+        fetch('/api/send-wa', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ to: activeRevisionData.creatorWa, type: 'revision_request', data: {
+            creator_name: activeRevisionData.creatorName,
+            brand: activeRevisionData.brand,
+            content_type: activeRevisionData.contentType,
+            advertiser_name: document.getElementById('userName').textContent,
+            revision_note: note,
+            revision_count: newRevCount,
+          }})
+        }).catch(() => {});
+      }
+
+      btn.disabled = false; btn.textContent = 'Kirim Revisi';
+      closeRevisionModal();
+    };
 
     window.filterOrders = function (status, btn) {
       currentFilter = status;

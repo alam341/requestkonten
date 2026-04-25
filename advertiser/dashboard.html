@@ -267,6 +267,7 @@
     let currentFilter = 'all';
     let activeRevisionOrderId = null;
     let activeRevisionData = null;
+    const ordersMap = {};
 
     async function init() {
       const { data: { session } } = await supabase.auth.getSession();
@@ -297,6 +298,7 @@
       }
 
       allOrders = data;
+      data.forEach(o => ordersMap[o.id] = o);
       updateStats(data);
       const filtered = currentFilter === 'all' ? allOrders : allOrders.filter(o => o.status === currentFilter);
       renderOrders(filtered);
@@ -370,8 +372,7 @@
         ` : '';
 
         const revisionBtnHTML = order.status === 'done' && order.drive_link ? `
-          <button class="revision-btn"
-            onclick="openRevisionModal('${order.id}', '${order.creators?.wa_number || ''}', '${order.creators?.name || ''}', ${JSON.stringify(order.brand)}, ${JSON.stringify(order.content_type)}, ${order.revision_count || 0})">
+          <button class="revision-btn" onclick="openRevisionModal('${order.id}')">
             Minta Revisi
           </button>
         ` : '';
@@ -401,9 +402,17 @@
       }).join('');
     }
 
-    window.openRevisionModal = function(orderId, creatorWa, creatorName, brand, contentType, revCount) {
+    window.openRevisionModal = function(orderId) {
+      const order = ordersMap[orderId];
+      if (!order) return;
       activeRevisionOrderId = orderId;
-      activeRevisionData = { creatorWa, creatorName, brand, contentType, revCount };
+      activeRevisionData = {
+        creatorWa: order.creators?.wa_number || '',
+        creatorName: order.creators?.name || '',
+        brand: order.brand,
+        contentType: order.content_type,
+        revCount: order.revision_count || 0,
+      };
       document.getElementById('revisionNoteInput').value = '';
       document.getElementById('revisionModal').classList.add('show');
     };

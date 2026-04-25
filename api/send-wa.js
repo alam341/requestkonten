@@ -85,6 +85,17 @@ Detail:
 - Link Google Drive: ${data.drive_link}
 Pesan harus: singkat (max 5 baris), pakai bahasa Indonesia santai, excited dan merayakan, sertakan link drive dengan jelas, ajak advertiser untuk review.
 PENTING: Langsung tulis isi pesannya saja. Jangan tambahkan judul, header, atau kalimat pembuka seperti "Berikut pesan WhatsApp..." atau "Pesan untuk...".`,
+
+    revision_request: `Kamu adalah asisten notifikasi WhatsApp untuk platform content creator bernama Adsy.
+Tulis pesan WhatsApp untuk content creator bernama "${data.creator_name}" bahwa advertiser meminta revisi konten.
+Detail:
+- Brand: ${data.brand}
+- Jenis konten: ${data.content_type}
+- Advertiser: ${data.advertiser_name}
+- Catatan revisi: ${data.revision_note}
+${data.revision_count > 1 ? `- Ini adalah revisi ke-${data.revision_count}` : ''}
+Pesan harus: singkat (max 5 baris), pakai bahasa Indonesia santai, sampaikan catatan revisi dengan jelas, minta creator cek dashboard dan upload ulang hasilnya.
+PENTING: Langsung tulis isi pesannya saja. Jangan tambahkan judul, header, atau kalimat pembuka seperti "Berikut pesan WhatsApp..." atau "Pesan untuk...".`,
   };
 
   const prompt = prompts[type];

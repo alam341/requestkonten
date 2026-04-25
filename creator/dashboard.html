@@ -957,7 +957,6 @@
       });
 
       const sortedMonths = Object.keys(months).sort().reverse();
-      if (sortedMonths.length < 2) { filter.innerHTML = ''; return; }
 
       const buttons = [`<button class="filter-btn ${activeMonthFilter === 'all' ? 'active' : ''}" onclick="setMonthFilter('all')">Semua (${allDoneTasks.length})</button>`];
       sortedMonths.forEach(key => {

@@ -183,6 +183,7 @@
     }
     .badge.assigned { background: #ede9fe; color: #4f46e5; }
     .badge.in_progress { background: #fef3c7; color: #d97706; }
+    .badge.revision { background: #fff7ed; color: #c2410c; }
     .badge.done { background: #d1fae5; color: #059669; }
 
     .act-btn {
@@ -470,6 +471,10 @@
         <div style="background:#f5f4fb;border-radius:10px;padding:12px" id="detailRefWrap">
           <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin-bottom:6px">Referensi</div>
           <a href="#" target="_blank" rel="noopener" style="font-size:13px;color:#4f46e5;word-break:break-all;text-decoration:underline" id="detailRef">—</a>
+        </div>
+        <div style="background:#fff7ed;border-radius:10px;padding:12px;border-left:3px solid #f97316" id="detailRevisionWrap">
+          <div style="font-size:11px;font-weight:700;color:#c2410c;text-transform:uppercase;margin-bottom:6px" id="detailRevisionLabel">Catatan Revisi</div>
+          <div style="font-size:13px;color:#9a3412;line-height:1.6" id="detailRevisionNote">—</div>
         </div>
         <div style="background:#d1fae5;border-radius:10px;padding:12px" id="detailDriveWrap">
           <div style="font-size:11px;font-weight:700;color:#059669;text-transform:uppercase;margin-bottom:6px">Hasil Konten</div>
@@ -866,13 +871,14 @@
         .from('orders')
         .select('*')
         .eq('creator_id', currentCreator.id)
-        .in('status', ['assigned', 'in_progress', 'done'])
+        .in('status', ['assigned', 'in_progress', 'revision', 'done'])
         .order('assigned_at', { ascending: true });
 
       allTasks = data || [];
 
       const active = allTasks.filter(o => o.status !== 'done');
       const done = allTasks.filter(o => o.status === 'done');
+
 
       // Stats
       const now = new Date();
@@ -949,15 +955,18 @@
     }
 
     function taskRow(o) {
-      const statusLabel = { assigned: 'Ditugaskan', in_progress: 'Dikerjakan', done: 'Selesai' };
+      const statusLabel = { assigned: 'Ditugaskan', in_progress: 'Dikerjakan', revision: 'Revisi', done: 'Selesai' };
       const aksi = o.status === 'assigned'
         ? `<button class="act-btn start" onclick="updateTaskStatus('${o.id}', 'in_progress')">Mulai</button>`
         : o.status === 'in_progress'
         ? `<button class="act-btn finish" onclick="openDriveModal('${o.id}','${o.wa_number}','${o.advertiser_name}','${o.brand}','${o.content_type}')">Selesai</button>`
+        : o.status === 'revision'
+        ? `<button class="act-btn finish" onclick="openDriveModal('${o.id}','${o.wa_number}','${o.advertiser_name}','${o.brand}','${o.content_type}')">Submit Ulang</button>`
         : o.drive_link ? `<a href="${o.drive_link}" target="_blank" class="drive-btn">Drive</a>` : '—';
       const tglMasuk = o.assigned_at ? fmtDate(o.assigned_at.split('T')[0]) : '—';
+      const revBadge = o.revision_count > 0 && o.status !== 'done' ? `<span style="font-size:10px;background:#fff7ed;color:#c2410c;padding:2px 7px;border-radius:99px;font-weight:700;margin-left:4px">Rev ${o.revision_count}x</span>` : '';
       return `<tr>
-        <td><strong style="cursor:pointer;color:#4f46e5" onclick='openDetailModal(${JSON.stringify(o)})'>${o.brand}</strong></td>
+        <td><strong style="cursor:pointer;color:#4f46e5" onclick='openDetailModal(${JSON.stringify(o)})'>${o.brand}</strong>${revBadge}</td>
         <td>${o.content_type}</td>
         <td>${o.advertiser_name}</td>
         <td style="color:#9ca3af">${tglMasuk}</td>
@@ -971,12 +980,15 @@
     }
 
     function taskRowFull(o) {
-      const statusLabel = { assigned: 'Ditugaskan', in_progress: 'Dikerjakan' };
+      const statusLabel = { assigned: 'Ditugaskan', in_progress: 'Dikerjakan', revision: 'Revisi' };
       const aksi = o.status === 'assigned'
         ? `<button class="act-btn start" onclick="updateTaskStatus('${o.id}', 'in_progress')">Mulai</button>`
+        : o.status === 'revision'
+        ? `<button class="act-btn finish" onclick="openDriveModal('${o.id}','${o.wa_number}','${o.advertiser_name}','${o.brand}','${o.content_type}')">Submit Ulang</button>`
         : `<button class="act-btn finish" onclick="openDriveModal('${o.id}','${o.wa_number}','${o.advertiser_name}','${o.brand}','${o.content_type}')">Selesai</button>`;
+      const revBadge = o.revision_count > 0 ? `<span style="font-size:10px;background:#fff7ed;color:#c2410c;padding:2px 7px;border-radius:99px;font-weight:700;margin-left:4px">Rev ${o.revision_count}x</span>` : '';
       return `<tr>
-        <td><strong style="cursor:pointer;color:#4f46e5" onclick='openDetailModal(${JSON.stringify(o)})'>${o.brand}</strong></td>
+        <td><strong style="cursor:pointer;color:#4f46e5" onclick='openDetailModal(${JSON.stringify(o)})'>${o.brand}</strong>${revBadge}</td>
         <td>${o.content_type}</td>
         <td>${o.advertiser_name}</td>
         <td>${o.platform || '—'}</td>
@@ -1254,6 +1266,16 @@
         refWrap.style.display = 'block';
       } else {
         refWrap.style.display = 'none';
+      }
+
+      const revWrap = document.getElementById('detailRevisionWrap');
+      if (o.revision_note) {
+        document.getElementById('detailRevisionLabel').textContent =
+          `Catatan Revisi${o.revision_count > 1 ? ` #${o.revision_count}` : ''}`;
+        document.getElementById('detailRevisionNote').textContent = o.revision_note;
+        revWrap.style.display = 'block';
+      } else {
+        revWrap.style.display = 'none';
       }
 
       const driveWrap = document.getElementById('detailDriveWrap');

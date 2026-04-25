@@ -257,8 +257,12 @@
     .week-day {
       flex: 1; display: flex; flex-direction: column; align-items: center;
       gap: 6px; padding: 8px 4px; border-radius: 12px;
-      cursor: default; transition: all 0.2s;
+      cursor: pointer; transition: all 0.2s;
     }
+    .week-day:hover { background: #f0eef8; }
+    .week-day.today:hover { background: #4338ca; }
+    .week-day.selected { background: #ede9fe; outline: 2px solid #4f46e5; }
+    .week-day.selected.today { outline: 2px solid #fff; }
     .week-day .wd-name { font-size: 10px; font-weight: 700; color: #9ca3af; text-transform: uppercase; }
     .week-day .wd-num {
       font-size: 15px; font-weight: 700; color: #374151;
@@ -274,14 +278,26 @@
     .week-day.has-deadline .week-dot { background: #f59e0b; }
     .week-day.today .week-dot { background: rgba(255,255,255,0.5); }
 
+    /* Calendar filter banner */
+    .cal-filter-banner {
+      display: flex; align-items: center; justify-content: space-between;
+      background: #ede9fe; border-radius: 10px; padding: 8px 12px;
+      font-size: 12px; color: #4f46e5; font-weight: 600; margin-top: 10px;
+    }
+    .cal-filter-banner button {
+      background: none; border: none; color: #9ca3af; cursor: pointer;
+      font-size: 14px; line-height: 1; padding: 0 2px;
+    }
+    .cal-filter-banner button:hover { color: #4f46e5; }
+
     /* Queue */
     .queue-list { display: flex; flex-direction: column; gap: 10px; }
     .queue-item {
       display: flex; align-items: center; gap: 12px;
       padding: 10px 12px; border-radius: 12px;
-      background: #fafafa; transition: background 0.2s;
+      background: #fafafa; transition: background 0.2s; cursor: pointer;
     }
-    .queue-item:hover { background: #f0eef8; }
+    .queue-item:hover { background: #ede9fe; }
     .q-avatar {
       width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
       background: linear-gradient(135deg, #6c63ff, #4f46e5);
@@ -669,6 +685,7 @@
           <span class="cal-month-badge" id="calMonthLabel"></span>
         </div>
         <div class="week-cal" id="weekCal"></div>
+        <div id="calFilterBanner" style="display:none"></div>
       </div>
 
       <!-- Antrian Advertiser -->
@@ -1003,16 +1020,19 @@
       list.innerHTML = assignedTasks.map((o, i) => {
         const color = colors[i % colors.length];
         const initial = o.brand.charAt(0).toUpperCase();
-        return `<div class="queue-item">
+        return `<div class="queue-item" onclick='openDetailModal(${JSON.stringify(o)})' title="Klik untuk lihat detail">
           <div class="q-avatar" style="background:${color}">${initial}</div>
           <div class="q-info">
             <div class="q-brand">${o.brand}</div>
             <div class="q-detail">${o.advertiser_name} · ${o.content_type}</div>
             ${o.deadline ? `<div class="q-deadline">Deadline: ${fmtDate(o.deadline)}</div>` : ''}
           </div>
+          <span style="font-size:16px;color:#c4c0f0;flex-shrink:0">›</span>
         </div>`;
       }).join('');
     }
+
+    let calendarDateFilter = null;
 
     function renderCalendar() {
       const deadlineDates = new Set(
@@ -1031,15 +1051,53 @@
         const dateStr = d.toISOString().split('T')[0];
         const isToday = i === 0;
         const hasDeadline = deadlineDates.has(dateStr);
-        const cls = [isToday ? 'today' : '', hasDeadline ? 'has-deadline' : ''].filter(Boolean).join(' ');
-        html += `<div class="week-day ${cls}">
+        const isSelected = calendarDateFilter === dateStr;
+        const cls = [isToday ? 'today' : '', hasDeadline ? 'has-deadline' : '', isSelected ? 'selected' : ''].filter(Boolean).join(' ');
+        html += `<div class="week-day ${cls}" onclick="filterByCalendarDate('${dateStr}')">
           <span class="wd-name">${dayNames[d.getDay()]}</span>
           <span class="wd-num">${d.getDate()}</span>
           <span class="week-dot"></span>
         </div>`;
       }
       document.getElementById('weekCal').innerHTML = html;
+
+      // Update banner
+      const banner = document.getElementById('calFilterBanner');
+      if (calendarDateFilter) {
+        const tasksOnDate = allTasks.filter(o => o.deadline === calendarDateFilter && o.status !== 'done');
+        banner.style.display = 'flex';
+        banner.innerHTML = `<span>${tasksOnDate.length} tugas deadline ${fmtDate(calendarDateFilter)}</span>
+          <button onclick="clearCalendarFilter()" title="Reset filter">✕</button>`;
+      } else {
+        banner.style.display = 'none';
+      }
     }
+
+    window.filterByCalendarDate = function(dateStr) {
+      // Toggle: klik tanggal yang sama → reset filter
+      calendarDateFilter = calendarDateFilter === dateStr ? null : dateStr;
+      renderCalendar();
+
+      // Filter dash table
+      const active = allTasks.filter(o => o.status !== 'done');
+      const filtered = calendarDateFilter
+        ? active.filter(o => o.deadline === calendarDateFilter)
+        : active.slice(0, 5);
+      renderDashTable(filtered);
+
+      // Navigate ke dashboard page supaya tabel keliatan
+      document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      document.getElementById('page-dashboard').classList.add('active');
+      document.querySelector('.nav-item').classList.add('active');
+    };
+
+    window.clearCalendarFilter = function() {
+      calendarDateFilter = null;
+      renderCalendar();
+      const active = allTasks.filter(o => o.status !== 'done');
+      renderDashTable(active.slice(0, 5));
+    };
 
 
     function updateToggleLabel(isOn) {

@@ -446,7 +446,7 @@
         </div>
         <div style="background:#f5f4fb;border-radius:10px;padding:12px" id="detailRefWrap">
           <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin-bottom:6px">Referensi</div>
-          <div style="font-size:13px;color:#4f46e5;word-break:break-all" id="detailRef">—</div>
+          <a href="#" target="_blank" rel="noopener" style="font-size:13px;color:#4f46e5;word-break:break-all;text-decoration:underline" id="detailRef">—</a>
         </div>
         <div style="background:#d1fae5;border-radius:10px;padding:12px" id="detailDriveWrap">
           <div style="font-size:11px;font-weight:700;color:#059669;text-transform:uppercase;margin-bottom:6px">Hasil Konten</div>
@@ -1196,7 +1196,9 @@
 
       const refWrap = document.getElementById('detailRefWrap');
       if (o.referensi_konten) {
-        document.getElementById('detailRef').textContent = o.referensi_konten;
+        const refEl = document.getElementById('detailRef');
+        refEl.textContent = o.referensi_konten;
+        refEl.href = o.referensi_konten;
         refWrap.style.display = 'block';
       } else {
         refWrap.style.display = 'none';

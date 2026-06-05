@@ -432,33 +432,39 @@
 
       btn.disabled = true; btn.textContent = 'Mengirim...';
 
-      const newRevCount = (activeRevisionData.revCount || 0) + 1;
-      const { error } = await supabase.from('orders').update({
-        status: 'revision',
-        revision_note: note,
-        revision_count: newRevCount,
-        drive_link: null,
-      }).eq('id', activeRevisionOrderId);
+      try {
+        const newRevCount = (activeRevisionData.revCount || 0) + 1;
+        const { error } = await supabase.from('orders').update({
+          status: 'revision',
+          revision_note: note,
+          revision_count: newRevCount,
+          drive_link: null,
+        }).eq('id', activeRevisionOrderId);
 
-      if (error) { alert('Gagal: ' + error.message); btn.disabled = false; btn.textContent = 'Kirim Revisi'; return; }
+        if (error) { alert('Gagal: ' + error.message); return; }
 
-      // Kirim notif WA ke creator
-      if (activeRevisionData.creatorWa) {
-        fetch('/api/send-wa', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ to: activeRevisionData.creatorWa, type: 'revision_request', data: {
-            creator_name: activeRevisionData.creatorName,
-            brand: activeRevisionData.brand,
-            content_type: activeRevisionData.contentType,
-            advertiser_name: document.getElementById('userName').textContent,
-            revision_note: note,
-            revision_count: newRevCount,
-          }})
-        }).catch(() => {});
+        // Bug #6 fix: ambil advertiser_name dari ordersMap, bukan dari DOM
+        const order = ordersMap[activeRevisionOrderId];
+        if (activeRevisionData.creatorWa) {
+          fetch('/api/send-wa', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ to: activeRevisionData.creatorWa, type: 'revision_request', data: {
+              creator_name: activeRevisionData.creatorName,
+              brand: activeRevisionData.brand,
+              content_type: activeRevisionData.contentType,
+              advertiser_name: order?.advertiser_name || activeRevisionData.brand,
+              revision_note: note,
+              revision_count: newRevCount,
+            }})
+          }).catch(() => {});
+        }
+
+        closeRevisionModal();
+        await loadOrders(currentUserId);
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        btn.disabled = false; btn.textContent = 'Kirim Revisi';
       }
-
-      btn.disabled = false; btn.textContent = 'Kirim Revisi';
-      closeRevisionModal();
-      await loadOrders(currentUserId);
     };
 
     window.filterOrders = function (status, btn) {

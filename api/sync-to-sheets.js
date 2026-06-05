@@ -56,7 +56,8 @@ export default async function handler(req, res) {
     let response;
     if (first.status === 301 || first.status === 302) {
       const location = first.headers.get('location');
-      response = await fetch(location, { method: 'POST', headers, body });
+      // echo URL harus di-GET, bukan POST
+      response = await fetch(location, { method: 'GET' });
     } else {
       response = first;
     }

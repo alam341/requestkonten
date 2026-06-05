@@ -200,6 +200,32 @@
     .page-section { display: none; }
     .page-section.active { display: block; }
 
+    /* Pool cards */
+    .pool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin-top: 4px; }
+    .pool-card {
+      background: #fff; border-radius: 16px; padding: 20px;
+      box-shadow: 0 2px 12px rgba(80,70,160,0.08);
+      display: flex; flex-direction: column; gap: 12px;
+      border: 1.5px solid #ede9fe;
+    }
+    .pool-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .pool-brand { font-size: 15px; font-weight: 700; color: #1e1e2e; }
+    .pool-type { font-size: 12px; font-weight: 600; background: #ede9fe; color: #4f46e5; padding: 3px 10px; border-radius: 99px; white-space: nowrap; }
+    .pool-meta { font-size: 13px; color: #6b7280; display: flex; flex-direction: column; gap: 4px; }
+    .pool-meta span { display: flex; align-items: center; gap: 6px; }
+    .pool-footer { display: flex; gap: 8px; margin-top: 4px; }
+    .pool-btn {
+      flex: 1; padding: 10px; border: none; border-radius: 10px;
+      font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+    }
+    .pool-btn.ambil { background: #4f46e5; color: #fff; }
+    .pool-btn.ambil:hover { background: #4338ca; }
+    .pool-btn.antrian { background: #fff7ed; color: #c2410c; border: 1.5px solid #fed7aa; }
+    .pool-btn.antrian:hover { background: #ffedd5; }
+    .pool-btn:disabled { background: #f3f4f6; color: #d1d5db; cursor: not-allowed; border: 1.5px solid #e5e7eb; }
+    .pool-counter { font-size: 12px; color: #9ca3af; text-align: center; margin-bottom: 4px; }
+    .pool-counter strong { color: #4f46e5; }
+
     /* Right Panel — Profile */
     .rp-profile { display: flex; align-items: center; gap: 14px; padding-bottom: 18px; border-bottom: 1px solid #f3f4f6; }
     .rp-avatar {
@@ -424,6 +450,9 @@
     <button class="nav-item active" onclick="showPage('dashboard')">
       <span class="icon">⊞</span> Dashboard
     </button>
+    <button class="nav-item" onclick="showPage('pool')" id="navPool">
+      <span class="icon">🎯</span> Order Tersedia <span id="poolBadge" style="display:none;background:#ef4444;color:#fff;border-radius:99px;font-size:10px;font-weight:700;padding:1px 6px;margin-left:4px"></span>
+    </button>
     <button class="nav-item" onclick="showPage('tugas')">
       <span class="icon">📋</span> Tugas Aktif
     </button>
@@ -580,6 +609,20 @@
           <div id="monthlyRecap" style="padding:16px 20px;display:flex;flex-direction:column;gap:12px">
             <div style="text-align:center;color:#c4c0f0;padding:20px">Memuat...</div>
           </div>
+        </div>
+      </div>
+
+      <!-- ORDER TERSEDIA (POOL) PAGE -->
+      <div class="page-section" id="page-pool">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Order Tersedia</div>
+            <div class="page-subtitle">Pilih order yang ingin kamu kerjakan.</div>
+          </div>
+        </div>
+        <div class="pool-counter" id="poolCounter"></div>
+        <div class="pool-grid" id="poolGrid">
+          <div style="color:#c4c0f0;padding:32px;text-align:center;grid-column:1/-1">Memuat...</div>
         </div>
       </div>
 
@@ -855,7 +898,7 @@
 
       await loadTasks();
 
-      // Realtime — auto-refresh kalau ada perubahan order
+      // Realtime — auto-refresh order creator sendiri
       supabase
         .channel('creator-orders')
         .on('postgres_changes', {
@@ -865,22 +908,39 @@
           filter: `creator_id=eq.${currentCreator.id}`,
         }, () => { loadTasks(); })
         .subscribe();
+
+      // Realtime — auto-refresh pool order pending
+      supabase
+        .channel('pending-pool')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'orders',
+        }, () => { loadPendingPool(); })
+        .subscribe();
     }
+
+    let currentActiveCount = 0;
+    let currentQueuedCount = 0;
 
     async function loadTasks() {
       const { data } = await supabase
         .from('orders')
         .select('*')
         .eq('creator_id', currentCreator.id)
-        .in('status', ['assigned', 'in_progress', 'revision', 'done'])
+        .in('status', ['assigned', 'in_progress', 'revision', 'queued', 'done'])
         .order('assigned_at', { ascending: true });
 
       allTasks = data || [];
       tasksMap = {};
       allTasks.forEach(t => { tasksMap[t.id] = t; });
 
-      const active = allTasks.filter(o => o.status !== 'done');
+      const active = allTasks.filter(o => ['assigned', 'in_progress', 'revision'].includes(o.status));
+      const queued = allTasks.filter(o => o.status === 'queued');
       const done = allTasks.filter(o => o.status === 'done');
+
+      currentActiveCount = active.length;
+      currentQueuedCount = queued.length;
 
 
       // Stats
@@ -898,16 +958,17 @@
       document.getElementById('pfDone').textContent = done.length + ' tugas';
       document.getElementById('bannerMsg').textContent =
         active.length > 0
-          ? `Kamu punya ${active.length} tugas aktif. Semangat mengerjakannya!`
-          : 'Semua tugas selesai. Siap menerima order baru!';
+          ? `Kamu punya ${active.length} tugas aktif${queued.length > 0 ? ` + ${queued.length} di antrian` : ''}. Semangat!`
+          : 'Semua tugas selesai. Cek Order Tersedia untuk ambil order baru!';
 
       renderDeadlineAlerts(active);
       renderDashTable(active.slice(0, 5));
-      renderAktifTable(active);
+      renderAktifTable([...active, ...queued]);
       renderHistory(done);
       renderMonthlyRecap(done);
       renderCalendar();
       renderQueue(active.filter(o => o.status === 'assigned'));
+      loadPendingPool();
     }
 
     function renderDeadlineAlerts(active) {
@@ -1150,6 +1211,108 @@
       }).join('');
     }
 
+    async function loadPendingPool() {
+      const { data: orders } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('status', 'pending')
+        .order('pending_since', { ascending: true });
+
+      renderPool(orders || []);
+    }
+
+    function renderPool(orders) {
+      const grid = document.getElementById('poolGrid');
+      const counter = document.getElementById('poolCounter');
+      const badge = document.getElementById('poolBadge');
+
+      // Update badge di sidebar
+      if (orders.length > 0) {
+        badge.textContent = orders.length;
+        badge.style.display = 'inline';
+      } else {
+        badge.style.display = 'none';
+      }
+
+      if (!orders.length) {
+        counter.textContent = '';
+        grid.innerHTML = '<div style="color:#c4c0f0;padding:32px;text-align:center;grid-column:1/-1">Tidak ada order tersedia saat ini.</div>';
+        return;
+      }
+
+      const a = currentActiveCount;
+      const q = currentQueuedCount;
+      counter.innerHTML = `Tugas aktif kamu: <strong>${a}/3</strong> · Antrian kamu: <strong>${q}/2</strong>`;
+
+      grid.innerHTML = orders.map(o => {
+        const sinceStr = o.pending_since ? fmtDate(o.pending_since.split('T')[0]) : '—';
+
+        let btnHtml;
+        if (a < 3) {
+          btnHtml = `<button class="pool-btn ambil" onclick="claimOrder('${o.id}')">Ambil</button>`;
+        } else if (q < 2) {
+          btnHtml = `<button class="pool-btn antrian" onclick="queueMyOrder('${o.id}')">Masukkan Antrian</button>`;
+        } else {
+          btnHtml = `<button class="pool-btn" disabled>Penuh</button>`;
+        }
+
+        return `<div class="pool-card">
+          <div class="pool-card-top">
+            <div class="pool-brand">${o.brand}</div>
+            <div class="pool-type">${o.content_type}</div>
+          </div>
+          <div class="pool-meta">
+            <span>👤 ${o.advertiser_name}</span>
+            ${o.platform ? `<span>📱 ${o.platform}</span>` : ''}
+            ${o.deadline ? `<span>📅 Deadline: ${fmtDate(o.deadline)}</span>` : ''}
+            <span style="color:#c4c0f0;font-size:12px">Masuk: ${sinceStr}</span>
+          </div>
+          <div class="pool-footer">${btnHtml}</div>
+        </div>`;
+      }).join('');
+    }
+
+    window.claimOrder = async function(orderId) {
+      const btn = event.currentTarget;
+      btn.disabled = true; btn.textContent = 'Mengambil...';
+
+      const { error } = await supabase.from('orders').update({
+        status: 'assigned',
+        creator_id: currentCreator.id,
+        assigned_at: new Date().toISOString(),
+      }).eq('id', orderId).eq('status', 'pending');
+
+      if (error) { alert('Gagal mengambil order: ' + error.message); btn.disabled = false; btn.textContent = 'Ambil'; return; }
+
+      const order = (await supabase.from('orders').select('*').eq('id', orderId).single()).data;
+      if (order) {
+        const notifData = {
+          creator_name: currentCreator.name, brand: order.brand,
+          content_type: order.content_type, platform: order.platform,
+          deadline: order.deadline, brief: order.brief, advertiser_name: order.advertiser_name,
+        };
+        sendWANotif(currentCreator.wa_number, 'creator_assigned', notifData);
+        sendWANotif(order.wa_number, 'order_assigned', notifData);
+      }
+
+      await loadTasks();
+    };
+
+    window.queueMyOrder = async function(orderId) {
+      const btn = event.currentTarget;
+      btn.disabled = true; btn.textContent = 'Menyimpan...';
+
+      const { error } = await supabase.from('orders').update({
+        status: 'queued',
+        creator_id: currentCreator.id,
+        assigned_at: new Date().toISOString(),
+      }).eq('id', orderId).eq('status', 'pending');
+
+      if (error) { alert('Gagal masukkan antrian: ' + error.message); btn.disabled = false; btn.textContent = 'Masukkan Antrian'; return; }
+
+      await loadTasks();
+    };
+
     function renderCalendar() {
       const deadlineDates = new Set(
         allTasks.filter(o => o.deadline && o.status !== 'done').map(o => o.deadline)
@@ -1314,28 +1477,35 @@
       });
 
       btn.disabled = false; btn.textContent = 'Kirim & Selesai';
-      closeModal(); loadTasks();
+      closeModal();
 
-      let pollDone = 0;
-      const checkQueueAfterDone = async () => {
-        pollDone++;
-        const { data: newOrder } = await supabase.from('orders').select('*')
-          .eq('creator_id', currentCreator.id).eq('status', 'assigned')
-          .gte('assigned_at', doneTime).order('assigned_at', { ascending: false }).limit(1).single();
-        if (newOrder) {
-          const notifData = {
-            advertiser_name: newOrder.advertiser_name, brand: newOrder.brand,
-            content_type: newOrder.content_type, platform: newOrder.platform,
-            deadline: newOrder.deadline, brief: newOrder.brief, creator_name: currentCreator.name,
-          };
-          sendWANotif(currentCreator.wa_number, 'creator_assigned', notifData);
-          sendWANotif(newOrder.wa_number, 'order_assigned', notifData);
-          loadTasks();
-        } else if (pollDone < 5) {
-          setTimeout(checkQueueAfterDone, 2000);
-        }
-      };
-      setTimeout(checkQueueAfterDone, 2000);
+      // Cek antrian pribadi — kalau ada queued, promote ke assigned
+      const { data: nextQueued } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('creator_id', currentCreator.id)
+        .eq('status', 'queued')
+        .order('assigned_at', { ascending: true })
+        .limit(1);
+
+      if (nextQueued && nextQueued.length > 0) {
+        const next = nextQueued[0];
+        await supabase.from('orders').update({
+          status: 'assigned',
+          assigned_at: new Date().toISOString(),
+        }).eq('id', next.id);
+
+        sendWANotif(currentCreator.wa_number, 'queue_activated', {
+          creator_name: currentCreator.name, brand: next.brand,
+          content_type: next.content_type, advertiser_name: next.advertiser_name,
+        });
+        sendWANotif(next.wa_number, 'order_assigned', {
+          brand: next.brand, content_type: next.content_type,
+          creator_name: currentCreator.name, advertiser_name: next.advertiser_name,
+        });
+      }
+
+      loadTasks();
     };
 
     window.showPage = function(page) {

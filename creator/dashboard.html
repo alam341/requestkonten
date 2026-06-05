@@ -1268,6 +1268,7 @@
             <span>👤 ${o.advertiser_name}</span>
             ${o.platform ? `<span>📱 ${o.platform}</span>` : ''}
             ${o.deadline ? `<span>📅 Deadline: ${fmtDate(o.deadline)}</span>` : ''}
+            ${o.referensi_konten ? `<span>🔗 <a href="${o.referensi_konten}" target="_blank" rel="noopener" style="color:#4f46e5;text-decoration:underline;word-break:break-all">Lihat Referensi</a></span>` : ''}
             <span style="color:#c4c0f0;font-size:12px">Masuk: ${sinceStr}</span>
           </div>
           <div class="pool-footer">

@@ -270,15 +270,29 @@
         `;
         document.getElementById('successBox').style.display = 'block';
 
+        const notifData = {
+          brand: inserted.brand,
+          content_type: inserted.content_type,
+          platform: inserted.platform,
+          deadline: inserted.deadline,
+        };
+
+        // Bug #4 fix: notif konfirmasi ke advertiser
+        if (inserted.wa_number) {
+          fetch('/api/send-wa', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ to: inserted.wa_number, type: 'order_queued', data: {
+              advertiser_name: inserted.advertiser_name,
+              brand: inserted.brand,
+              content_type: inserted.content_type,
+            }}),
+          }).catch(() => {});
+        }
+
         // Blast WA ke semua creator
         const { data: creators } = await supabase.from('creators').select('wa_number').not('wa_number', 'is', null);
         if (creators && creators.length > 0) {
-          const notifData = {
-            brand: inserted.brand,
-            content_type: inserted.content_type,
-            platform: inserted.platform,
-            deadline: inserted.deadline,
-          };
           creators.forEach(c => {
             fetch('/api/send-wa', {
               method: 'POST',

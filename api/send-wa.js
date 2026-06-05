@@ -96,6 +96,24 @@ Detail:
 ${data.revision_count > 1 ? `- Ini adalah revisi ke-${data.revision_count}` : ''}
 Pesan harus: singkat (max 5 baris), pakai bahasa Indonesia santai, sampaikan catatan revisi dengan jelas, minta creator cek dashboard dan upload ulang hasilnya.
 PENTING: Langsung tulis isi pesannya saja. Jangan tambahkan judul, header, atau kalimat pembuka seperti "Berikut pesan WhatsApp..." atau "Pesan untuk...".`,
+
+    new_order_available: `Kamu adalah asisten notifikasi WhatsApp untuk platform content creator bernama Adsy.
+Tulis pesan WhatsApp singkat untuk content creator bahwa ada order baru yang tersedia dan bisa diambil.
+Detail order:
+- Brand/Produk: ${data.brand}
+- Jenis konten: ${data.content_type}${data.platform ? ` untuk ${data.platform}` : ''}
+${data.deadline ? `- Deadline: ${data.deadline}` : ''}
+Pesan harus: singkat (max 4 baris), semangat, ajak creator buka dashboard untuk ambil order ini sebelum diambil orang lain. Pakai bahasa Indonesia santai.
+PENTING: Langsung tulis isi pesannya saja. Jangan tambahkan judul, header, atau kalimat pembuka seperti "Berikut pesan WhatsApp..." atau "Pesan untuk...".`,
+
+    queue_activated: `Kamu adalah asisten notifikasi WhatsApp untuk platform content creator bernama Adsy.
+Tulis pesan WhatsApp untuk content creator bernama "${data.creator_name}" bahwa order dari antrian pribadinya sudah aktif dan siap dikerjakan.
+Detail:
+- Brand: ${data.brand}
+- Jenis konten: ${data.content_type}
+- Advertiser: ${data.advertiser_name}
+Pesan harus: singkat (max 4 baris), semangat, beritahu creator untuk segera buka dashboard dan mulai kerjakan. Pakai bahasa Indonesia santai.
+PENTING: Langsung tulis isi pesannya saja. Jangan tambahkan judul, header, atau kalimat pembuka seperti "Berikut pesan WhatsApp..." atau "Pesan untuk...".`,
   };
 
   const prompt = prompts[type];

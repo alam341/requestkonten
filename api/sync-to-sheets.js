@@ -50,18 +50,22 @@ export default async function handler(req, res) {
       redirect: 'manual',
     });
 
+    console.log('first status:', first.status);
+    console.log('location:', first.headers.get('location'));
+
     let response;
     if (first.status === 301 || first.status === 302) {
       const location = first.headers.get('location');
-      // Re-POST ke redirect URL dengan body yang sama
       response = await fetch(location, { method: 'POST', headers, body });
     } else {
       response = first;
     }
 
     const result = await response.text();
+    console.log('apps script result:', result);
     return res.status(200).json({ success: true, result });
   } catch (err) {
+    console.log('error:', err.message);
     return res.status(500).json({ error: err.message });
   }
 }

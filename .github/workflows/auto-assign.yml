@@ -1,0 +1,11 @@
+name: Auto Assign Pending Orders                                                                                                                                                                          
+  on:                                                                                                                                                                                                     
+    schedule:                                                                                                                                                                                               
+      - cron: "0 * * * *"                                                                                                                                                                                 
+    workflow_dispatch:
+  jobs:
+    auto-assign:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Auto-assign order pending > 24 jam                                                                                                                                                          
+          run: curl -X GET "https://requestkonten.vercel.app/api/cron-autoassign" -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

@@ -810,6 +810,7 @@
 
     let currentCreator = null;
     let allTasks = [];
+    let tasksMap = {};
 
     async function init() {
       const { data: { session } } = await supabase.auth.getSession();
@@ -875,6 +876,8 @@
         .order('assigned_at', { ascending: true });
 
       allTasks = data || [];
+      tasksMap = {};
+      allTasks.forEach(t => { tasksMap[t.id] = t; });
 
       const active = allTasks.filter(o => o.status !== 'done');
       const done = allTasks.filter(o => o.status === 'done');
@@ -959,21 +962,21 @@
       const aksi = o.status === 'assigned'
         ? `<button class="act-btn start" onclick="updateTaskStatus('${o.id}', 'in_progress')">Mulai</button>`
         : o.status === 'in_progress'
-        ? `<button class="act-btn finish" onclick="openDriveModal('${o.id}','${o.wa_number}','${o.advertiser_name}','${o.brand}','${o.content_type}')">Selesai</button>`
+        ? `<button class="act-btn finish" onclick="openDriveModal('${o.id}')">Selesai</button>`
         : o.status === 'revision'
-        ? `<button class="act-btn finish" onclick="openDriveModal('${o.id}','${o.wa_number}','${o.advertiser_name}','${o.brand}','${o.content_type}')">Submit Ulang</button>`
+        ? `<button class="act-btn finish" onclick="openDriveModal('${o.id}')">Submit Ulang</button>`
         : o.drive_link ? `<a href="${o.drive_link}" target="_blank" class="drive-btn">Drive</a>` : '—';
       const tglMasuk = o.assigned_at ? fmtDate(o.assigned_at.split('T')[0]) : '—';
       const revBadge = o.revision_count > 0 && o.status !== 'done' ? `<span style="font-size:10px;background:#fff7ed;color:#c2410c;padding:2px 7px;border-radius:99px;font-weight:700;margin-left:4px">Rev ${o.revision_count}x</span>` : '';
       return `<tr>
-        <td><strong style="cursor:pointer;color:#4f46e5" onclick='openDetailModal(${JSON.stringify(o)})'>${o.brand}</strong>${revBadge}</td>
+        <td><strong style="cursor:pointer;color:#4f46e5" onclick="openDetailModal('${o.id}')">${o.brand}</strong>${revBadge}</td>
         <td>${o.content_type}</td>
         <td>${o.advertiser_name}</td>
         <td style="color:#9ca3af">${tglMasuk}</td>
         <td>${fmtDate(o.deadline)}</td>
         <td><span class="badge ${o.status}">${statusLabel[o.status]}</span></td>
         <td style="display:flex;gap:6px;align-items:center">
-          <button class="act-btn" style="background:#f5f4fb;color:#6b7280" onclick='openDetailModal(${JSON.stringify(o)})'>Detail</button>
+          <button class="act-btn" style="background:#f5f4fb;color:#6b7280" onclick="openDetailModal('${o.id}')">Detail</button>
           ${aksi}
         </td>
       </tr>`;
@@ -984,18 +987,18 @@
       const aksi = o.status === 'assigned'
         ? `<button class="act-btn start" onclick="updateTaskStatus('${o.id}', 'in_progress')">Mulai</button>`
         : o.status === 'revision'
-        ? `<button class="act-btn finish" onclick="openDriveModal('${o.id}','${o.wa_number}','${o.advertiser_name}','${o.brand}','${o.content_type}')">Submit Ulang</button>`
-        : `<button class="act-btn finish" onclick="openDriveModal('${o.id}','${o.wa_number}','${o.advertiser_name}','${o.brand}','${o.content_type}')">Selesai</button>`;
+        ? `<button class="act-btn finish" onclick="openDriveModal('${o.id}')">Submit Ulang</button>`
+        : `<button class="act-btn finish" onclick="openDriveModal('${o.id}')">Selesai</button>`;
       const revBadge = o.revision_count > 0 ? `<span style="font-size:10px;background:#fff7ed;color:#c2410c;padding:2px 7px;border-radius:99px;font-weight:700;margin-left:4px">Rev ${o.revision_count}x</span>` : '';
       return `<tr>
-        <td><strong style="cursor:pointer;color:#4f46e5" onclick='openDetailModal(${JSON.stringify(o)})'>${o.brand}</strong>${revBadge}</td>
+        <td><strong style="cursor:pointer;color:#4f46e5" onclick="openDetailModal('${o.id}')">${o.brand}</strong>${revBadge}</td>
         <td>${o.content_type}</td>
         <td>${o.advertiser_name}</td>
         <td>${o.platform || '—'}</td>
         <td>${fmtDate(o.deadline)}</td>
         <td><span class="badge ${o.status}">${statusLabel[o.status]}</span></td>
         <td style="display:flex;gap:6px;align-items:center">
-          <button class="act-btn" style="background:#f5f4fb;color:#6b7280" onclick='openDetailModal(${JSON.stringify(o)})'>Detail</button>
+          <button class="act-btn" style="background:#f5f4fb;color:#6b7280" onclick="openDetailModal('${o.id}')">Detail</button>
           ${aksi}
         </td>
       </tr>`;
@@ -1058,7 +1061,7 @@
       list.innerHTML = tasks.map(o => {
         const selesai = o.updated_at ? fmtDate(o.updated_at.split('T')[0]) : (o.deadline ? fmtDate(o.deadline) : '—');
         return `
-          <div class="history-card" onclick='openDetailModal(${JSON.stringify(o)})'>
+          <div class="history-card" onclick="openDetailModal('${o.id}')">
             <div class="history-left">
               <div class="h-brand">${o.brand}</div>
               <div class="h-detail">${o.content_type} · ${o.advertiser_name}</div>
@@ -1135,7 +1138,7 @@
       list.innerHTML = assignedTasks.map((o, i) => {
         const color = colors[i % colors.length];
         const initial = o.brand.charAt(0).toUpperCase();
-        return `<div class="queue-item" onclick='openDetailModal(${JSON.stringify(o)})' title="Klik untuk lihat detail">
+        return `<div class="queue-item" onclick="openDetailModal('${o.id}')" title="Klik untuk lihat detail">
           <div class="q-avatar" style="background:${color}">${initial}</div>
           <div class="q-info">
             <div class="q-brand">${o.brand}</div>
@@ -1240,16 +1243,20 @@
 
     let activeOrderId, activeWa, activeAdvertiserName, activeBrand, activeContentType;
 
-    window.openDriveModal = function (orderId, wa, advertiserName, brand, contentType) {
-      activeOrderId = orderId; activeWa = wa;
-      activeAdvertiserName = advertiserName; activeBrand = brand; activeContentType = contentType;
+    window.openDriveModal = function (orderId) {
+      const o = tasksMap[orderId];
+      if (!o) return;
+      activeOrderId = orderId; activeWa = o.wa_number;
+      activeAdvertiserName = o.advertiser_name; activeBrand = o.brand; activeContentType = o.content_type;
       document.getElementById('driveLinkInput').value = '';
       document.getElementById('driveModal').classList.add('show');
     };
 
     window.closeModal = function () { document.getElementById('driveModal').classList.remove('show'); };
 
-    window.openDetailModal = function (o) {
+    window.openDetailModal = function (id) {
+      const o = tasksMap[id];
+      if (!o) return;
       document.getElementById('detailBrand').textContent = o.brand;
       document.getElementById('detailAdv').textContent = `Advertiser: ${o.advertiser_name} · WA: ${o.wa_number}`;
       document.getElementById('detailType').textContent = o.content_type || '—';

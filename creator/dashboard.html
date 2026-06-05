@@ -1027,7 +1027,9 @@
         ? `<button class="act-btn finish" onclick="openDriveModal('${o.id}')">Selesai</button>`
         : o.status === 'revision'
         ? `<button class="act-btn finish" onclick="openDriveModal('${o.id}')">Submit Ulang</button>`
-        : o.drive_link ? `<a href="${o.drive_link}" target="_blank" class="drive-btn">Drive</a>` : '—';
+        : o.drive_link
+          ? `<div style="display:flex;gap:6px"><a href="${o.drive_link}" target="_blank" class="drive-btn">Drive</a><button class="act-btn" style="background:#fff7ed;color:#c2410c;font-size:12px" onclick="openEditLinkModal('${o.id}')">Ganti Link</button></div>`
+          : `<button class="act-btn finish" onclick="openEditLinkModal('${o.id}')">Upload Link</button>`;
       const tglMasuk = o.assigned_at ? fmtDate(o.assigned_at.split('T')[0]) : '—';
       const revBadge = o.revision_count > 0 && o.status !== 'done' ? `<span style="font-size:10px;background:#fff7ed;color:#c2410c;padding:2px 7px;border-radius:99px;font-weight:700;margin-left:4px">Rev ${o.revision_count}x</span>` : '';
       return `<tr>
@@ -1134,7 +1136,7 @@
                 ? `<a href="${o.drive_link}" target="_blank" class="drive-btn" onclick="event.stopPropagation()">Lihat Drive</a>`
                 : '<span style="color:#c4c0f0;font-size:12px">No link</span>'
               }
-              <span style="font-size:11px;color:#c4c0f0">Klik untuk detail</span>
+              <button class="act-btn" style="background:#fff7ed;color:#c2410c;font-size:11px;padding:5px 10px" onclick="event.stopPropagation();openEditLinkModal('${o.id}')">Ganti Link</button>
             </div>
           </div>
         `;
@@ -1412,13 +1414,29 @@
     };
 
     let activeOrderId, activeWa, activeAdvertiserName, activeBrand, activeContentType;
+    let isEditLinkMode = false;
 
     window.openDriveModal = function (orderId) {
       const o = tasksMap[orderId];
       if (!o) return;
+      isEditLinkMode = false;
       activeOrderId = orderId; activeWa = o.wa_number;
       activeAdvertiserName = o.advertiser_name; activeBrand = o.brand; activeContentType = o.content_type;
       document.getElementById('driveLinkInput').value = '';
+      document.querySelector('#driveModal h3').textContent = 'Upload Hasil Konten';
+      document.getElementById('submitDriveBtn').textContent = 'Kirim & Selesai';
+      document.getElementById('driveModal').classList.add('show');
+    };
+
+    window.openEditLinkModal = function (orderId) {
+      const o = tasksMap[orderId];
+      if (!o) return;
+      isEditLinkMode = true;
+      activeOrderId = orderId; activeWa = o.wa_number;
+      activeAdvertiserName = o.advertiser_name; activeBrand = o.brand; activeContentType = o.content_type;
+      document.getElementById('driveLinkInput').value = o.drive_link || '';
+      document.querySelector('#driveModal h3').textContent = 'Ganti Link Drive';
+      document.getElementById('submitDriveBtn').textContent = 'Simpan Link Baru';
       document.getElementById('driveModal').classList.add('show');
     };
 
@@ -1483,6 +1501,14 @@
       const btn = document.getElementById('submitDriveBtn');
       if (!link) { alert('Masukkan link Google Drive dulu.'); return; }
       btn.disabled = true; btn.textContent = 'Menyimpan...';
+
+      if (isEditLinkMode) {
+        const { error } = await supabase.from('orders').update({ drive_link: link }).eq('id', activeOrderId);
+        if (error) { alert('Gagal: ' + error.message); btn.disabled = false; btn.textContent = 'Simpan Link Baru'; return; }
+        btn.disabled = false; btn.textContent = 'Simpan Link Baru';
+        closeModal(); loadTasks();
+        return;
+      }
 
       const doneTime = new Date().toISOString();
       const { error } = await supabase.from('orders').update({ status: 'done', drive_link: link }).eq('id', activeOrderId);

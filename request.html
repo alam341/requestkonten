@@ -237,6 +237,8 @@
         brief: document.getElementById('brief').value.trim(),
         deadline: document.getElementById('deadline').value || null,
         advertiser_id: session?.user?.id || null,
+        status: 'pending',
+        pending_since: new Date().toISOString(),
       };
 
       if (!payload.wa_number) {
@@ -262,64 +264,29 @@
         document.getElementById('orderForm').style.display = 'none';
         document.getElementById('successBox').innerHTML = `
           <h3>Request Terkirim!</h3>
-          <p>Kami sedang mencari creator yang tersedia. Kamu akan dihubungi via WhatsApp segera.</p>
+          <p>Order kamu sudah masuk ke pool creator. Creator akan segera mengambil ordermu dan kamu akan dihubungi via WhatsApp.</p>
           <br />
           <a href="advertiser/dashboard.html" style="color:#4f46e5;font-weight:600;font-size:14px;">Pantau progress di dashboard →</a>
         `;
         document.getElementById('successBox').style.display = 'block';
 
-        // Poll sampai trigger auto-assign selesai, max 5x tiap 2 detik
-        let pollCount = 0;
-        const pollAssign = async () => {
-          pollCount++;
-          const { data: order } = await supabase
-            .from('orders')
-            .select('*, creators(name, wa_number)')
-            .eq('id', inserted.id)
-            .single();
-
-          if (order?.status === 'assigned' && order?.creators) {
-            const notifData = {
-              brand: order.brand,
-              content_type: order.content_type,
-              platform: order.platform,
-              deadline: order.deadline,
-              brief: order.brief,
-              creator_name: order.creators.name,
-              advertiser_name: order.advertiser_name,
-            };
+        // Blast WA ke semua creator
+        const { data: creators } = await supabase.from('creators').select('wa_number').not('wa_number', 'is', null);
+        if (creators && creators.length > 0) {
+          const notifData = {
+            brand: inserted.brand,
+            content_type: inserted.content_type,
+            platform: inserted.platform,
+            deadline: inserted.deadline,
+          };
+          creators.forEach(c => {
             fetch('/api/send-wa', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ to: order.creators.wa_number, type: 'creator_assigned', data: notifData }),
+              body: JSON.stringify({ to: c.wa_number, type: 'new_order_available', data: notifData }),
             }).catch(() => {});
-            fetch('/api/send-wa', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ to: order.wa_number, type: 'order_assigned', data: notifData }),
-            }).catch(() => {});
-
-          } else if (order?.status === 'waiting' && pollCount < 5) {
-            // Belum di-assign, coba lagi 2 detik kemudian
-            setTimeout(pollAssign, 2000);
-          } else if (order?.status === 'waiting') {
-            // Setelah 5x poll tetap waiting — kirim notif antrian
-            fetch('/api/send-wa', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                to: order.wa_number,
-                type: 'order_queued',
-                data: {
-                  advertiser_name: order.advertiser_name,
-                  brand: order.brand,
-                  content_type: order.content_type,
-                },
-              }),
-            }).catch(() => {});
-          }
-        };
-        setTimeout(pollAssign, 2000);
+          });
+        }
       }
     });
   </script>

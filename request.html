@@ -226,6 +226,7 @@
 
       const { data: { session } } = await supabase.auth.getSession();
 
+      const meta = session?.user?.user_metadata || {};
       const payload = {
         advertiser_name: document.getElementById('advertiser_name').value.trim(),
         brand: document.getElementById('brand').value.trim(),
@@ -237,6 +238,7 @@
         brief: document.getElementById('brief').value.trim(),
         deadline: document.getElementById('deadline').value || null,
         advertiser_id: session?.user?.id || null,
+        team: meta.team || null,
         status: 'pending',
         pending_since: new Date().toISOString(),
       };

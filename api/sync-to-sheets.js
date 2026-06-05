@@ -1,25 +1,28 @@
-import { createClient } from '@supabase/supabase-js';
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  // Validasi secret dari Supabase webhook header
   const secret = req.headers['x-webhook-secret'];
   if (secret !== process.env.WEBHOOK_SECRET) return res.status(401).json({ error: 'Unauthorized' });
 
   const { record } = req.body;
   if (!record) return res.status(400).json({ error: 'no record' });
 
-  // Ambil nama creator kalau ada
+  // Ambil nama creator via Supabase REST API
   let creator_name = '';
   if (record.creator_id) {
-    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
-    const { data: creator } = await supabase
-      .from('creators')
-      .select('name')
-      .eq('id', record.creator_id)
-      .maybeSingle();
-    creator_name = creator?.name || '';
+    try {
+      const r = await fetch(
+        `${process.env.SUPABASE_URL}/rest/v1/creators?id=eq.${record.creator_id}&select=name`,
+        {
+          headers: {
+            'apikey': process.env.SUPABASE_SERVICE_KEY,
+            'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
+          },
+        }
+      );
+      const rows = await r.json();
+      creator_name = rows?.[0]?.name || '';
+    } catch (_) {}
   }
 
   const payload = {

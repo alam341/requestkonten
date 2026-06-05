@@ -119,6 +119,7 @@ PENTING: Langsung tulis isi pesannya saja. Jangan tambahkan judul, header, atau 
   const prompt = prompts[type];
   if (!prompt) throw new Error('Tipe notifikasi tidak dikenal: ' + type);
 
+  // Bug #8 fix: cek HTTP status sebelum parse JSON
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -133,7 +134,12 @@ PENTING: Langsung tulis isi pesannya saja. Jangan tambahkan judul, header, atau 
     }),
   });
 
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Claude API error ${response.status}: ${errText}`);
+  }
   const result = await response.json();
+  if (!result.content?.[0]?.text) throw new Error('Claude API response kosong');
   return result.content[0].text;
 }
 

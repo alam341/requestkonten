@@ -39,12 +39,26 @@ export default async function handler(req, res) {
   };
 
   try {
-    const response = await fetch(process.env.APPS_SCRIPT_URL, {
+    const body = JSON.stringify(payload);
+    const headers = { 'Content-Type': 'application/json' };
+
+    // POST pertama — tangkap redirect manual
+    const first = await fetch(process.env.APPS_SCRIPT_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      redirect: 'follow',
+      headers,
+      body,
+      redirect: 'manual',
     });
+
+    let response;
+    if (first.status === 301 || first.status === 302) {
+      const location = first.headers.get('location');
+      // Re-POST ke redirect URL dengan body yang sama
+      response = await fetch(location, { method: 'POST', headers, body });
+    } else {
+      response = first;
+    }
+
     const result = await response.text();
     return res.status(200).json({ success: true, result });
   } catch (err) {

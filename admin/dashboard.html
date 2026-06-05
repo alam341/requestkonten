@@ -23,6 +23,7 @@
       --nav-active: #2d2b60;
       --nav-active-text: #a78bfa;
       --input-bg: #12111e;
+      --accent: #a78bfa;
     }
     /* Light theme */
     body.light {
@@ -39,6 +40,7 @@
       --nav-active: #ede9fe;
       --nav-active-text: #4f46e5;
       --input-bg: #f5f4fb;
+      --accent: #4f46e5;
     }
 
     body { font-family: 'Segoe UI', sans-serif; background: var(--bg); min-height: 100vh; color: var(--text); display: flex; transition: background 0.2s, color 0.2s; }
@@ -424,10 +426,10 @@
       body.innerHTML = orders.map(o => `
         <tr>
           <td>${o.advertiser_name}</td>
-          <td><strong style="color:#fff">${o.brand}</strong></td>
+          <td><strong>${o.brand}</strong></td>
           <td>${o.content_type}</td>
           <td><span class="badge ${o.status}">${statusLabel[o.status] || o.status}</span></td>
-          <td>${o.creators ? `<span style="color:#a78bfa;font-weight:600">${o.creators.name}</span>` : '<span style="color:#4a4870">—</span>'}</td>
+          <td>${o.creators ? `<span style="color:var(--accent);font-weight:600">${o.creators.name}</span>` : '<span style="color:#4a4870">—</span>'}</td>
         </tr>
       `).join('');
     }
@@ -438,10 +440,10 @@
       body.innerHTML = orders.map(order => `
         <tr>
           <td>${order.advertiser_name}</td>
-          <td><strong style="color:#fff">${order.brand}</strong></td>
+          <td><strong>${order.brand}</strong></td>
           <td>${order.content_type}</td>
           <td><span class="badge ${order.status}">${statusLabel[order.status] || order.status}</span></td>
-          <td>${order.creators ? `<span style="color:#a78bfa;font-weight:600">${order.creators.name}</span>` : '<span style="color:#4a4870">—</span>'}</td>
+          <td>${order.creators ? `<span style="color:var(--accent);font-weight:600">${order.creators.name}</span>` : '<span style="color:#4a4870">—</span>'}</td>
           <td>
             ${order.status !== 'done' ? `
               <select class="assign-select" id="sel-${order.id}">
@@ -463,7 +465,7 @@
           <td>
             <div class="creator-cell">
               <div class="creator-dot ${c.status}"></div>
-              <span style="color:#fff;font-weight:600">${c.name}</span>
+              <span style="color:var(--text);font-weight:600">${c.name}</span>
             </div>
           </td>
           <td style="color:#9ca3af">${c.wa_number || '—'}</td>
@@ -530,12 +532,19 @@
       const from = `${year}-${month}-01T00:00:00.000Z`;
       const to = `${year}-${month}-${new Date(year, month, 0).getDate()}T23:59:59.999Z`;
 
-      const { data: orders } = await supabase
+      const { data: allDone } = await supabase
         .from('orders')
         .select('*, creators(name)')
-        .eq('status', 'done')
-        .gte('updated_at', from)
-        .lte('updated_at', to);
+        .eq('status', 'done');
+
+      const fromDate = new Date(from);
+      const toDate = new Date(to);
+      const orders = (allDone || []).filter(o => {
+        const ref = o.updated_at || o.deadline;
+        if (!ref) return false;
+        const d = new Date(ref);
+        return d >= fromDate && d <= toDate;
+      });
 
       laporanData = orders || [];
       const done = laporanData;

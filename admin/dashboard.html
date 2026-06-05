@@ -7,200 +7,306 @@
   <link rel="icon" type="image/png" href="../assets/logo-maknarona.png">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', sans-serif; background: #0f0e17; min-height: 100vh; color: #e2e0f0; }
 
-    header {
-      background: #1a1928; padding: 14px 28px;
-      display: flex; justify-content: space-between; align-items: center;
-      border-bottom: 1px solid #2a2840;
-      position: sticky; top: 0; z-index: 10;
+    /* Dark theme (default) */
+    :root {
+      --bg: #0f0e17;
+      --surface: #1a1928;
+      --surface2: #12111e;
+      --border: #2a2840;
+      --border2: #1f1e2e;
+      --text: #e2e0f0;
+      --text2: #6b7280;
+      --text3: #4a4870;
+      --hover: #1f1e2e;
+      --nav-hover: #22213a;
+      --nav-active: #2d2b60;
+      --nav-active-text: #a78bfa;
+      --input-bg: #12111e;
     }
-    .logo { display: flex; align-items: center; gap: 10px; }
-    .logo span {
+    /* Light theme */
+    body.light {
+      --bg: #f0eef8;
+      --surface: #ffffff;
+      --surface2: #f5f4fb;
+      --border: #e5e3f5;
+      --border2: #ede9fe;
+      --text: #1e1e2e;
+      --text2: #6b7280;
+      --text3: #c4c0f0;
+      --hover: #f5f4fb;
+      --nav-hover: #f0eef8;
+      --nav-active: #ede9fe;
+      --nav-active-text: #4f46e5;
+      --input-bg: #f5f4fb;
+    }
+
+    body { font-family: 'Segoe UI', sans-serif; background: var(--bg); min-height: 100vh; color: var(--text); display: flex; transition: background 0.2s, color 0.2s; }
+
+    /* Theme toggle */
+    .theme-toggle {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; border-radius: 10px;
+      cursor: pointer; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--text2);
+      font-size: 12px; font-weight: 600; margin-bottom: 8px;
+      transition: all 0.2s; width: 100%;
+    }
+    .theme-toggle:hover { color: var(--nav-active-text); border-color: var(--nav-active-text); }
+
+    /* Sidebar */
+    .sidebar {
+      width: 220px; min-height: 100vh;
+      background: var(--surface); display: flex; flex-direction: column;
+      padding: 24px 16px; position: fixed; top: 0; left: 0; bottom: 0;
+      border-right: 1px solid var(--border); z-index: 10;
+      transition: background 0.2s;
+    }
+    .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 0 8px; margin-bottom: 32px; }
+    .sidebar-logo .admin-badge {
       font-size: 10px; font-weight: 700; background: #4f46e5;
       padding: 2px 8px; border-radius: 99px;
-      letter-spacing: 0.08em; text-transform: uppercase;
+      letter-spacing: 0.08em; text-transform: uppercase; color: #fff;
     }
-    .logout-btn { font-size: 13px; color: #6b7280; background: none; border: none; cursor: pointer; }
-    .logout-btn:hover { color: #f87171; }
+    .nav-section {
+      font-size: 10px; font-weight: 700; color: var(--text3);
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 0 8px; margin-bottom: 8px; margin-top: 8px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 10px;
+      font-size: 14px; font-weight: 500; color: var(--text2);
+      cursor: pointer; transition: all 0.2s; margin-bottom: 2px;
+      border: none; background: none; width: 100%; text-align: left;
+    }
+    .nav-item:hover { background: var(--nav-hover); color: var(--nav-active-text); }
+    .nav-item.active { background: var(--nav-active); color: var(--nav-active-text); font-weight: 600; }
+    .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+    .sidebar-bottom { margin-top: auto; }
+    .logout-btn {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 10px;
+      font-size: 14px; font-weight: 500; color: var(--text2);
+      cursor: pointer; border: none; background: none; width: 100%; transition: all 0.2s;
+    }
+    .logout-btn:hover { color: #ef4444; background: #fef2f2; }
 
-    .container { max-width: 1100px; margin: 0 auto; padding: 28px 20px; }
+    /* Main */
+    .main { margin-left: 220px; flex: 1; padding: 28px 28px; min-height: 100vh; }
+
+    /* Page sections */
+    .page-section { display: none; }
+    .page-section.active { display: block; }
+
+    .page-header { margin-bottom: 24px; }
+    .page-title { font-size: 20px; font-weight: 700; color: var(--text); }
+    .page-subtitle { font-size: 13px; color: var(--text2); margin-top: 2px; }
 
     /* Stats */
     .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
-    .stat {
-      background: #1a1928; border-radius: 14px;
-      padding: 20px; border: 1px solid #2a2840;
-    }
-    .stat .val { font-size: 28px; font-weight: 800; color: #fff; }
-    .stat .lbl { font-size: 12px; color: #6b7280; margin-top: 4px; }
+    .stat { background: var(--surface); border-radius: 14px; padding: 20px; border: 1px solid var(--border); }
+    .stat .val { font-size: 28px; font-weight: 800; }
+    .stat .lbl { font-size: 12px; color: var(--text2); margin-top: 4px; }
     .stat.s1 .val { color: #f59e0b; }
     .stat.s2 .val { color: #60a5fa; }
     .stat.s3 .val { color: #a78bfa; }
     .stat.s4 .val { color: #34d399; }
 
-    /* Tabs */
-    .tabs { display: flex; gap: 4px; margin-bottom: 20px; }
-    .tab-btn {
-      padding: 9px 20px; border-radius: 10px;
-      font-size: 13px; font-weight: 600;
-      border: none; cursor: pointer;
-      background: #1a1928; color: #6b7280;
-      border: 1px solid #2a2840;
-      transition: all 0.2s;
-    }
-    .tab-btn.active { background: #4f46e5; color: #fff; border-color: #4f46e5; }
-
     /* Table */
-    .table-wrap { background: #1a1928; border-radius: 16px; border: 1px solid #2a2840; overflow: hidden; }
+    .table-wrap { background: var(--surface); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; }
     .table-header {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 16px 20px; border-bottom: 1px solid #2a2840;
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
     }
-    .table-header h3 { font-size: 14px; font-weight: 700; color: #fff; }
+    .table-header h3 { font-size: 14px; font-weight: 700; color: var(--text); }
     .search-input {
       padding: 8px 14px; border-radius: 8px;
-      border: 1px solid #2a2840; background: #12111e;
-      font-size: 13px; color: #e2e0f0; outline: none; width: 200px;
+      border: 1px solid var(--border); background: var(--input-bg);
+      font-size: 13px; color: var(--text); outline: none; width: 200px;
     }
     .search-input:focus { border-color: #4f46e5; }
-    .search-input::placeholder { color: #4a4870; }
+    .search-input::placeholder { color: var(--text3); }
 
     table { width: 100%; border-collapse: collapse; }
     th {
       text-align: left; font-size: 11px; font-weight: 700;
-      color: #6b7280; letter-spacing: 0.06em; text-transform: uppercase;
-      padding: 12px 20px; border-bottom: 1px solid #2a2840;
+      color: var(--text2); letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 12px 20px; border-bottom: 1px solid var(--border);
     }
-    td { padding: 14px 20px; font-size: 13px; border-bottom: 1px solid #1f1e2e; vertical-align: middle; }
+    td { padding: 14px 20px; font-size: 13px; border-bottom: 1px solid var(--border2); vertical-align: middle; color: var(--text); }
     tr:last-child td { border-bottom: none; }
-    tr:hover td { background: #1f1e2e; }
+    tr:hover td { background: var(--hover); }
 
-    .badge {
-      font-size: 11px; font-weight: 600; padding: 3px 10px;
-      border-radius: 99px; text-transform: uppercase;
-    }
-    .badge.waiting { background: #451a03; color: #fbbf24; }
-    .badge.assigned { background: #1e3a5f; color: #60a5fa; }
-    .badge.in_progress { background: #2e1065; color: #a78bfa; }
-    .badge.done { background: #064e3b; color: #34d399; }
-    .badge.tersedia { background: #064e3b; color: #34d399; }
-    .badge.sibuk { background: #451a03; color: #fbbf24; }
+    .badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 99px; text-transform: uppercase; }
+    .badge.pending, .badge.waiting { background: #fef3c7; color: #92400e; }
+    .badge.queued { background: #ffedd5; color: #c2410c; }
+    .badge.assigned { background: #dbeafe; color: #1d4ed8; }
+    .badge.in_progress { background: #ede9fe; color: #6d28d9; }
+    .badge.revision { background: #fee2e2; color: #b91c1c; }
+    .badge.done { background: #d1fae5; color: #065f46; }
+    .badge.tersedia { background: #d1fae5; color: #065f46; }
+    .badge.sibuk { background: #fef3c7; color: #92400e; }
+    /* Dark mode badges */
+    body:not(.light) .badge.pending, body:not(.light) .badge.waiting { background: #451a03; color: #fbbf24; }
+    body:not(.light) .badge.queued { background: #3b1f00; color: #fb923c; }
+    body:not(.light) .badge.assigned { background: #1e3a5f; color: #60a5fa; }
+    body:not(.light) .badge.in_progress { background: #2e1065; color: #a78bfa; }
+    body:not(.light) .badge.revision { background: #4c1d1d; color: #f87171; }
+    body:not(.light) .badge.done { background: #064e3b; color: #34d399; }
+    body:not(.light) .badge.tersedia { background: #064e3b; color: #34d399; }
+    body:not(.light) .badge.sibuk { background: #451a03; color: #fbbf24; }
 
     .assign-select {
       padding: 6px 10px; border-radius: 8px;
-      border: 1px solid #2a2840; background: #12111e;
-      font-size: 12px; color: #e2e0f0; outline: none; cursor: pointer;
+      border: 1px solid var(--border); background: var(--input-bg);
+      font-size: 12px; color: var(--text); outline: none; cursor: pointer;
     }
     .assign-select:focus { border-color: #4f46e5; }
     .assign-btn {
-      padding: 6px 14px; border-radius: 7px;
-      background: #4f46e5; color: #fff;
-      font-size: 12px; font-weight: 600;
-      border: none; cursor: pointer; margin-left: 6px;
-      transition: background 0.2s;
+      padding: 6px 14px; border-radius: 7px; background: #4f46e5; color: #fff;
+      font-size: 12px; font-weight: 600; border: none; cursor: pointer; margin-left: 6px; transition: background 0.2s;
     }
     .assign-btn:hover { background: #4338ca; }
-    .assign-btn:disabled { background: #2d2b60; cursor: not-allowed; }
+    .assign-btn:disabled { background: #c4c0f0; cursor: not-allowed; }
 
-    .empty-row td { text-align: center; color: #4a4870; padding: 40px; }
-    .loading-row td { text-align: center; color: #4a4870; padding: 32px; }
+    .empty-row td { text-align: center; color: var(--text3); padding: 40px; }
+    .loading-row td { text-align: center; color: var(--text3); padding: 32px; }
 
     .creator-cell { display: flex; align-items: center; gap: 10px; }
-    .creator-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      flex-shrink: 0;
-    }
+    .creator-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
     .creator-dot.tersedia { background: #34d399; }
     .creator-dot.sibuk { background: #fbbf24; }
 
     /* Laporan */
-    .laporan-header {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 20px;
-    }
+    .laporan-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 12px; flex-wrap: wrap; }
     .month-select {
       padding: 8px 14px; border-radius: 8px;
-      border: 1px solid #2a2840; background: #12111e;
-      font-size: 13px; color: #e2e0f0; outline: none; cursor: pointer;
+      border: 1px solid var(--border); background: var(--input-bg);
+      font-size: 13px; color: var(--text); outline: none; cursor: pointer;
     }
     .month-select:focus { border-color: #4f46e5; }
-    .laporan-stats {
-      display: grid; grid-template-columns: repeat(3, 1fr);
-      gap: 14px; margin-bottom: 24px;
+    .export-btn {
+      padding: 8px 16px; border-radius: 8px; background: #d1fae5; color: #065f46;
+      border: 1px solid #a7f3d0; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
     }
-    .lap-stat {
-      background: #1a1928; border-radius: 14px;
-      padding: 18px 20px; border: 1px solid #2a2840;
-    }
-    .lap-stat .val { font-size: 26px; font-weight: 800; }
-    .lap-stat .lbl { font-size: 12px; color: #6b7280; margin-top: 4px; }
-    .lap-stat.ls1 .val { color: #34d399; }
-    .lap-stat.ls2 .val { color: #60a5fa; }
-    .lap-stat.ls3 .val { color: #f59e0b; }
+    .export-btn:hover { background: #a7f3d0; }
+    body:not(.light) .export-btn { background: #064e3b; color: #34d399; border-color: #065f46; }
+    body:not(.light) .export-btn:hover { background: #065f46; }
 
-    .creator-report-card {
-      background: #1a1928; border-radius: 14px;
-      border: 1px solid #2a2840; margin-bottom: 14px;
-      overflow: hidden;
-    }
-    .crc-header {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 16px 20px; border-bottom: 1px solid #2a2840;
-    }
-    .crc-name { font-size: 15px; font-weight: 700; color: #fff; }
+    .laporan-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+    .lap-stat { background: var(--surface); border-radius: 14px; padding: 18px 20px; border: 1px solid var(--border); }
+    .lap-stat .val { font-size: 26px; font-weight: 800; }
+    .lap-stat .lbl { font-size: 12px; color: var(--text2); margin-top: 4px; }
+    .lap-stat.ls1 .val { color: #10b981; }
+    .lap-stat.ls2 .val { color: #3b82f6; }
+    .lap-stat.ls3 .val { color: #f59e0b; }
+    .lap-stat.ls4 .val { color: #8b5cf6; }
+
+    .section-title { font-size: 13px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; margin-top: 24px; }
+
+    .creator-report-card { background: var(--surface); border-radius: 14px; border: 1px solid var(--border); margin-bottom: 14px; overflow: hidden; }
+    .crc-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+    .crc-name { font-size: 15px; font-weight: 700; color: var(--text); }
     .crc-summary { display: flex; gap: 20px; }
     .crc-stat { text-align: right; }
-    .crc-stat .cv { font-size: 18px; font-weight: 800; color: #a78bfa; }
-    .crc-stat .cl { font-size: 11px; color: #6b7280; margin-top: 2px; }
-    .crc-stat.green .cv { color: #34d399; }
+    .crc-stat .cv { font-size: 18px; font-weight: 800; color: #8b5cf6; }
+    .crc-stat .cl { font-size: 11px; color: var(--text2); margin-top: 2px; }
+    .crc-stat.green .cv { color: #10b981; }
     .crc-breakdown { padding: 14px 20px; display: flex; flex-wrap: wrap; gap: 8px; }
     .breakdown-tag {
-      padding: 4px 12px; border-radius: 99px;
-      font-size: 12px; font-weight: 600;
-      background: #12111e; color: #9ca3af;
-      border: 1px solid #2a2840;
+      padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 600;
+      background: var(--surface2); color: var(--text2); border: 1px solid var(--border);
     }
-    .breakdown-tag span { color: #fff; margin-left: 4px; }
+    .breakdown-tag span { color: var(--text); margin-left: 4px; }
+
+    .type-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-bottom: 8px; }
+    .type-card { background: var(--surface2); border-radius: 10px; padding: 14px 16px; border: 1px solid var(--border); }
+    .type-card .tv { font-size: 22px; font-weight: 800; color: #a78bfa; }
+    .type-card .tl { font-size: 12px; color: #6b7280; margin-top: 2px; }
+
     .no-data { text-align: center; color: #4a4870; padding: 40px; font-size: 14px; }
 
-    @media (max-width: 640px) {
+    @media (max-width: 900px) {
       .stats { grid-template-columns: repeat(2, 1fr); }
       .laporan-stats { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
 <body>
-  <header>
-    <div class="logo">
-      <img src="../assets/logo-maknarona.png" alt="Maknarona by Adsy" style="height:34px;width:auto;filter:brightness(1.15);">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <img src="../assets/logo-maknarona.png" alt="Maknarona" style="height:34px;width:auto;filter:brightness(1.15);">
       <div>
-        <div style="font-size:14px;font-weight:800;color:#fff;line-height:1;">Maknarona</div>
-        <div style="font-size:10px;font-weight:500;color:#6b7280;line-height:1.4;">by Adsy</div>
+        <div style="font-size:13px;font-weight:800;color:#fff;line-height:1;">Maknarona</div>
+        <div style="font-size:10px;color:#6b7280;line-height:1.4;">by Adsy</div>
       </div>
-      <span>Admin</span>
-    </div>
-    <button class="logout-btn" onclick="doLogout()">Keluar</button>
-  </header>
-
-  <div class="container">
-    <!-- Stats -->
-    <div class="stats">
-      <div class="stat s1"><div class="val" id="sWaiting">—</div><div class="lbl">Menunggu</div></div>
-      <div class="stat s2"><div class="val" id="sAssigned">—</div><div class="lbl">Ditugaskan</div></div>
-      <div class="stat s3"><div class="val" id="sProgress">—</div><div class="lbl">Dikerjakan</div></div>
-      <div class="stat s4"><div class="val" id="sDone">—</div><div class="lbl">Selesai</div></div>
+      <span class="admin-badge">Admin</span>
     </div>
 
-    <!-- Tabs -->
-    <div class="tabs">
-      <button class="tab-btn active" id="tabOrders" onclick="switchTab('orders')">Semua Order</button>
-      <button class="tab-btn" id="tabCreators" onclick="switchTab('creators')">Creator</button>
-      <button class="tab-btn" id="tabLaporan" onclick="switchTab('laporan')">Laporan Bulanan</button>
+    <div class="nav-section">Menu</div>
+    <button class="nav-item active" onclick="showPage('dashboard', this)">
+      <span class="icon">⊞</span> Dashboard
+    </button>
+    <button class="nav-item" onclick="showPage('orders', this)">
+      <span class="icon">📋</span> Semua Order
+    </button>
+    <button class="nav-item" onclick="showPage('creators', this)">
+      <span class="icon">👥</span> Creator
+    </button>
+    <button class="nav-item" onclick="showPage('laporan', this)">
+      <span class="icon">📊</span> Laporan Bulanan
+    </button>
+
+    <div class="sidebar-bottom">
+      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">
+        <span id="themeIcon">☀️</span>
+        <span id="themeLabel">Tema Terang</span>
+      </button>
+      <button class="logout-btn" onclick="doLogout()">
+        <span class="icon">⎋</span> Keluar
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+
+    <!-- DASHBOARD PAGE -->
+    <div class="page-section active" id="page-dashboard">
+      <div class="page-header">
+        <div class="page-title">Dashboard</div>
+        <div class="page-subtitle">Overview semua aktivitas order.</div>
+      </div>
+      <div class="stats">
+        <div class="stat s1"><div class="val" id="sWaiting">—</div><div class="lbl">Menunggu</div></div>
+        <div class="stat s2"><div class="val" id="sAssigned">—</div><div class="lbl">Ditugaskan</div></div>
+        <div class="stat s3"><div class="val" id="sProgress">—</div><div class="lbl">Dikerjakan</div></div>
+        <div class="stat s4"><div class="val" id="sDone">—</div><div class="lbl">Selesai</div></div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>Order Terbaru</h3>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Advertiser</th><th>Brand</th><th>Jenis</th><th>Status</th><th>Creator</th></tr>
+          </thead>
+          <tbody id="dashOrderBody">
+            <tr class="loading-row"><td colspan="5">Memuat...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <!-- Orders Tab -->
-    <div id="ordersTab">
+    <!-- ORDERS PAGE -->
+    <div class="page-section" id="page-orders">
+      <div class="page-header">
+        <div class="page-title">Semua Order</div>
+        <div class="page-subtitle">Kelola dan assign order ke creator.</div>
+      </div>
       <div class="table-wrap">
         <div class="table-header">
           <h3>Daftar Order</h3>
@@ -209,12 +315,8 @@
         <table>
           <thead>
             <tr>
-              <th>Advertiser</th>
-              <th>Brand</th>
-              <th>Jenis</th>
-              <th>Status</th>
-              <th>Creator</th>
-              <th>Assign Manual</th>
+              <th>Advertiser</th><th>Brand</th><th>Jenis</th>
+              <th>Status</th><th>Creator</th><th>Assign Manual</th>
             </tr>
           </thead>
           <tbody id="ordersBody">
@@ -224,35 +326,17 @@
       </div>
     </div>
 
-    <!-- Laporan Tab -->
-    <div id="laporanTab" style="display:none">
-      <div class="laporan-header">
-        <h3 style="font-size:15px;font-weight:700;color:#fff">Rekap per Creator</h3>
-        <select class="month-select" id="monthSelect" onchange="loadLaporan()"></select>
+    <!-- CREATORS PAGE -->
+    <div class="page-section" id="page-creators">
+      <div class="page-header">
+        <div class="page-title">Creator</div>
+        <div class="page-subtitle">Status dan tugas aktif setiap creator.</div>
       </div>
-      <div class="laporan-stats">
-        <div class="lap-stat ls1"><div class="val" id="lsDone">—</div><div class="lbl">Order Selesai</div></div>
-        <div class="lap-stat ls2"><div class="val" id="lsKonten">—</div><div class="lbl">Total Konten Dibuat</div></div>
-        <div class="lap-stat ls3"><div class="val" id="lsCreator">—</div><div class="lbl">Creator Aktif</div></div>
-      </div>
-      <div id="laporanBody"></div>
-    </div>
-
-    <!-- Creators Tab -->
-    <div id="creatorsTab" style="display:none">
       <div class="table-wrap">
-        <div class="table-header">
-          <h3>Daftar Creator</h3>
-        </div>
+        <div class="table-header"><h3>Daftar Creator</h3></div>
         <table>
           <thead>
-            <tr>
-              <th>Nama</th>
-              <th>WhatsApp</th>
-              <th>Status</th>
-              <th>Tugas Aktif</th>
-              <th>Ubah Status</th>
-            </tr>
+            <tr><th>Nama</th><th>WhatsApp</th><th>Status</th><th>Tugas Aktif</th><th>Ubah Status</th></tr>
           </thead>
           <tbody id="creatorsBody">
             <tr class="loading-row"><td colspan="5">Memuat...</td></tr>
@@ -260,6 +344,29 @@
         </table>
       </div>
     </div>
+
+    <!-- LAPORAN PAGE -->
+    <div class="page-section" id="page-laporan">
+      <div class="page-header">
+        <div class="page-title">Laporan Bulanan</div>
+        <div class="page-subtitle">Rekap order selesai per bulan.</div>
+      </div>
+      <div class="laporan-toolbar">
+        <select class="month-select" id="monthSelect" onchange="loadLaporan()"></select>
+        <button class="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
+      </div>
+      <div class="laporan-stats">
+        <div class="lap-stat ls1"><div class="val" id="lsDone">—</div><div class="lbl">Order Selesai</div></div>
+        <div class="lap-stat ls2"><div class="val" id="lsKonten">—</div><div class="lbl">Total Konten</div></div>
+        <div class="lap-stat ls3"><div class="val" id="lsCreator">—</div><div class="lbl">Creator Aktif</div></div>
+        <div class="lap-stat ls4"><div class="val" id="lsRevisi">—</div><div class="lbl">Total Revisi</div></div>
+      </div>
+      <div class="section-title">Per Jenis Konten</div>
+      <div class="type-grid" id="typeGrid"></div>
+      <div class="section-title">Per Creator</div>
+      <div id="laporanBody"></div>
+    </div>
+
   </div>
 
   <script type="module">
@@ -271,16 +378,16 @@
 
     let allOrders = [];
     let allCreators = [];
+    let laporanData = [];
 
     async function init() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { window.location.href = 'login.html'; return; }
 
-      const { data: admin } = await supabase.from('admins').select('id').single();
+      const { data: admin } = await supabase.from('admins').select('id').maybeSingle();
       if (!admin) { window.location.href = 'login.html'; return; }
 
-      await loadCreators();
-      await loadOrders();
+      await Promise.all([loadCreators(), loadOrders()]);
       initMonthSelect();
     }
 
@@ -292,51 +399,54 @@
 
       allOrders = data || [];
       updateStats(allOrders);
+      renderDashOrders(allOrders.slice(0, 10));
       renderOrders(allOrders);
     }
 
     async function loadCreators() {
-      const { data } = await supabase
-        .from('creators')
-        .select('*')
-        .order('name');
-
+      const { data } = await supabase.from('creators').select('*').order('name');
       allCreators = data || [];
       renderCreators(allCreators);
     }
 
     function updateStats(orders) {
-      document.getElementById('sWaiting').textContent = orders.filter(o => o.status === 'waiting').length;
+      document.getElementById('sWaiting').textContent = orders.filter(o => ['pending','waiting','queued'].includes(o.status)).length;
       document.getElementById('sAssigned').textContent = orders.filter(o => o.status === 'assigned').length;
-      document.getElementById('sProgress').textContent = orders.filter(o => o.status === 'in_progress').length;
+      document.getElementById('sProgress').textContent = orders.filter(o => ['in_progress','revision'].includes(o.status)).length;
       document.getElementById('sDone').textContent = orders.filter(o => o.status === 'done').length;
+    }
+
+    const statusLabel = { pending: 'Menunggu', waiting: 'Menunggu', queued: 'Antrian', assigned: 'Ditugaskan', in_progress: 'Dikerjakan', revision: 'Revisi', done: 'Selesai' };
+
+    function renderDashOrders(orders) {
+      const body = document.getElementById('dashOrderBody');
+      if (!orders.length) { body.innerHTML = '<tr class="empty-row"><td colspan="5">Belum ada order.</td></tr>'; return; }
+      body.innerHTML = orders.map(o => `
+        <tr>
+          <td>${o.advertiser_name}</td>
+          <td><strong style="color:#fff">${o.brand}</strong></td>
+          <td>${o.content_type}</td>
+          <td><span class="badge ${o.status}">${statusLabel[o.status] || o.status}</span></td>
+          <td>${o.creators ? `<span style="color:#a78bfa;font-weight:600">${o.creators.name}</span>` : '<span style="color:#4a4870">—</span>'}</td>
+        </tr>
+      `).join('');
     }
 
     function renderOrders(orders) {
       const body = document.getElementById('ordersBody');
-      if (!orders.length) {
-        body.innerHTML = '<tr class="empty-row"><td colspan="6">Belum ada order.</td></tr>';
-        return;
-      }
-
-      const statusLabel = { waiting: 'Menunggu', assigned: 'Ditugaskan', in_progress: 'Dikerjakan', done: 'Selesai' };
-
+      if (!orders.length) { body.innerHTML = '<tr class="empty-row"><td colspan="6">Belum ada order.</td></tr>'; return; }
       body.innerHTML = orders.map(order => `
         <tr>
           <td>${order.advertiser_name}</td>
           <td><strong style="color:#fff">${order.brand}</strong></td>
           <td>${order.content_type}</td>
-          <td><span class="badge ${order.status}">${statusLabel[order.status]}</span></td>
+          <td><span class="badge ${order.status}">${statusLabel[order.status] || order.status}</span></td>
           <td>${order.creators ? `<span style="color:#a78bfa;font-weight:600">${order.creators.name}</span>` : '<span style="color:#4a4870">—</span>'}</td>
           <td>
             ${order.status !== 'done' ? `
               <select class="assign-select" id="sel-${order.id}">
                 <option value="">Pilih creator</option>
-                ${allCreators.map(c => `
-                  <option value="${c.id}" ${order.creator_id === c.id ? 'selected' : ''}>
-                    ${c.name} (${c.status}, ${c.active_tasks} tugas)
-                  </option>
-                `).join('')}
+                ${allCreators.map(c => `<option value="${c.id}" ${order.creator_id === c.id ? 'selected' : ''}>${c.name} (${c.active_tasks} tugas)</option>`).join('')}
               </select>
               <button class="assign-btn" onclick="assignOrder('${order.id}')">Assign</button>
             ` : '<span style="color:#4a4870;font-size:12px">Selesai</span>'}
@@ -347,11 +457,7 @@
 
     function renderCreators(creators) {
       const body = document.getElementById('creatorsBody');
-      if (!creators.length) {
-        body.innerHTML = '<tr class="empty-row"><td colspan="5">Belum ada creator.</td></tr>';
-        return;
-      }
-
+      if (!creators.length) { body.innerHTML = '<tr class="empty-row"><td colspan="5">Belum ada creator.</td></tr>'; return; }
       body.innerHTML = creators.map(c => `
         <tr>
           <td>
@@ -360,7 +466,7 @@
               <span style="color:#fff;font-weight:600">${c.name}</span>
             </div>
           </td>
-          <td style="color:#9ca3af">${c.wa_number}</td>
+          <td style="color:#9ca3af">${c.wa_number || '—'}</td>
           <td><span class="badge ${c.status}">${c.status === 'tersedia' ? 'Tersedia' : 'Sibuk'}</span></td>
           <td style="text-align:center">${c.active_tasks}</td>
           <td>
@@ -377,40 +483,21 @@
       const select = document.getElementById(`sel-${orderId}`);
       const creatorId = select.value;
       if (!creatorId) { alert('Pilih creator dulu.'); return; }
-
       const btn = select.nextElementSibling;
       btn.disabled = true; btn.textContent = '...';
 
-      // Ambil creator_id lama (kalau ada) untuk kurangi active_tasks
       const order = allOrders.find(o => o.id === orderId);
       if (order.creator_id && order.creator_id !== creatorId) {
-        await supabase
-          .from('creators')
-          .update({ active_tasks: Math.max((allCreators.find(c => c.id === order.creator_id)?.active_tasks || 1) - 1, 0) })
-          .eq('id', order.creator_id);
+        const old = allCreators.find(c => c.id === order.creator_id);
+        await supabase.from('creators').update({ active_tasks: Math.max((old?.active_tasks || 1) - 1, 0) }).eq('id', order.creator_id);
       }
-
-      // Update order
-      await supabase
-        .from('orders')
-        .update({ creator_id: creatorId, status: 'assigned', assigned_at: new Date().toISOString() })
-        .eq('id', orderId);
-
-      // Tambah active_tasks creator baru
-      const newCreator = allCreators.find(c => c.id === creatorId);
+      await supabase.from('orders').update({ creator_id: creatorId, status: 'assigned', assigned_at: new Date().toISOString() }).eq('id', orderId);
       if (!order.creator_id || order.creator_id !== creatorId) {
-        await supabase
-          .from('creators')
-          .update({ active_tasks: (newCreator?.active_tasks || 0) + 1 })
-          .eq('id', creatorId);
-
-        // Hapus dari antrian kalau ada
-        await supabase.from('order_queue').delete().eq('order_id', orderId);
+        const newC = allCreators.find(c => c.id === creatorId);
+        await supabase.from('creators').update({ active_tasks: (newC?.active_tasks || 0) + 1 }).eq('id', creatorId);
       }
-
       btn.disabled = false; btn.textContent = 'Assign';
-      loadOrders();
-      loadCreators();
+      await Promise.all([loadOrders(), loadCreators()]);
     };
 
     window.updateCreatorStatus = async function (creatorId, newStatus) {
@@ -420,21 +507,7 @@
 
     window.filterTable = function (query) {
       const q = query.toLowerCase();
-      const filtered = allOrders.filter(o =>
-        o.brand.toLowerCase().includes(q) ||
-        o.advertiser_name.toLowerCase().includes(q)
-      );
-      renderOrders(filtered);
-    };
-
-    window.switchTab = function (tab) {
-      document.getElementById('ordersTab').style.display = tab === 'orders' ? 'block' : 'none';
-      document.getElementById('creatorsTab').style.display = tab === 'creators' ? 'block' : 'none';
-      document.getElementById('laporanTab').style.display = tab === 'laporan' ? 'block' : 'none';
-      document.getElementById('tabOrders').className = 'tab-btn' + (tab === 'orders' ? ' active' : '');
-      document.getElementById('tabCreators').className = 'tab-btn' + (tab === 'creators' ? ' active' : '');
-      document.getElementById('tabLaporan').className = 'tab-btn' + (tab === 'laporan' ? ' active' : '');
-      if (tab === 'laporan') loadLaporan();
+      renderOrders(allOrders.filter(o => o.brand.toLowerCase().includes(q) || o.advertiser_name.toLowerCase().includes(q)));
     };
 
     function initMonthSelect() {
@@ -454,27 +527,41 @@
     window.loadLaporan = async function () {
       const val = document.getElementById('monthSelect').value;
       const [year, month] = val.split('-');
-      const from = `${year}-${month}-01`;
-      const lastDay = new Date(year, month, 0).getDate();
-      const to = `${year}-${month}-${lastDay}`;
+      const from = `${year}-${month}-01T00:00:00.000Z`;
+      const to = `${year}-${month}-${new Date(year, month, 0).getDate()}T23:59:59.999Z`;
 
       const { data: orders } = await supabase
         .from('orders')
         .select('*, creators(name)')
         .eq('status', 'done')
-        .gte('deadline', from)
-        .lte('deadline', to);
+        .gte('updated_at', from)
+        .lte('updated_at', to);
 
-      const done = orders || [];
+      laporanData = orders || [];
+      const done = laporanData;
 
       // Summary stats
-      const totalKonten = done.reduce((sum, o) => sum + (o.jumlah_konten || 1), 0);
+      const totalKonten = done.reduce((s, o) => s + (o.jumlah_konten || 1), 0);
+      const totalRevisi = done.reduce((s, o) => s + (o.revision_count || 0), 0);
       const creatorSet = new Set(done.map(o => o.creator_id).filter(Boolean));
       document.getElementById('lsDone').textContent = done.length;
       document.getElementById('lsKonten').textContent = totalKonten;
       document.getElementById('lsCreator').textContent = creatorSet.size;
+      document.getElementById('lsRevisi').textContent = totalRevisi;
 
-      // Group by creator
+      // Per jenis konten
+      const byType = {};
+      done.forEach(o => { byType[o.content_type] = (byType[o.content_type] || 0) + (o.jumlah_konten || 1); });
+      const typeGrid = document.getElementById('typeGrid');
+      if (Object.keys(byType).length) {
+        typeGrid.innerHTML = Object.entries(byType).sort((a,b) => b[1]-a[1]).map(([type, count]) =>
+          `<div class="type-card"><div class="tv">${count}</div><div class="tl">${type}</div></div>`
+        ).join('');
+      } else {
+        typeGrid.innerHTML = '';
+      }
+
+      // Per creator
       const byCreator = {};
       done.forEach(o => {
         const name = o.creators?.name || 'Unknown';
@@ -488,44 +575,77 @@
         body.innerHTML = '<div class="no-data">Tidak ada order selesai di bulan ini.</div>'; return;
       }
 
-      body.innerHTML = Object.values(byCreator).map(c => {
-        const totalOrder = c.orders.length;
-        const totalKontenC = c.orders.reduce((sum, o) => sum + (o.jumlah_konten || 1), 0);
-
-        // Breakdown per jenis konten
-        const byType = {};
-        c.orders.forEach(o => {
-          byType[o.content_type] = (byType[o.content_type] || 0) + (o.jumlah_konten || 1);
-        });
-        const tags = Object.entries(byType).map(([type, jumlah]) =>
-          `<div class="breakdown-tag">${type} <span>${jumlah}</span></div>`
-        ).join('');
-
-        return `
-          <div class="creator-report-card">
-            <div class="crc-header">
-              <div class="crc-name">${c.name}</div>
-              <div class="crc-summary">
-                <div class="crc-stat">
-                  <div class="cv">${totalOrder}</div>
-                  <div class="cl">Order Selesai</div>
-                </div>
-                <div class="crc-stat green">
-                  <div class="cv">${totalKontenC}</div>
-                  <div class="cl">Total Konten</div>
+      body.innerHTML = Object.values(byCreator)
+        .sort((a,b) => b.orders.length - a.orders.length)
+        .map(c => {
+          const totalOrder = c.orders.length;
+          const totalKontenC = c.orders.reduce((s, o) => s + (o.jumlah_konten || 1), 0);
+          const totalRevC = c.orders.reduce((s, o) => s + (o.revision_count || 0), 0);
+          const byTypeC = {};
+          c.orders.forEach(o => { byTypeC[o.content_type] = (byTypeC[o.content_type] || 0) + (o.jumlah_konten || 1); });
+          const tags = Object.entries(byTypeC).map(([type, jumlah]) =>
+            `<div class="breakdown-tag">${type} <span>${jumlah}</span></div>`
+          ).join('');
+          return `
+            <div class="creator-report-card">
+              <div class="crc-header">
+                <div class="crc-name">${c.name}</div>
+                <div class="crc-summary">
+                  <div class="crc-stat"><div class="cv">${totalOrder}</div><div class="cl">Order</div></div>
+                  <div class="crc-stat green"><div class="cv">${totalKontenC}</div><div class="cl">Konten</div></div>
+                  <div class="crc-stat"><div class="cv" style="color:#f87171">${totalRevC}</div><div class="cl">Revisi</div></div>
                 </div>
               </div>
-            </div>
-            <div class="crc-breakdown">${tags}</div>
-          </div>
-        `;
-      }).join('');
+              <div class="crc-breakdown">${tags}</div>
+            </div>`;
+        }).join('');
+    };
+
+    window.exportCSV = function () {
+      if (!laporanData.length) { alert('Tidak ada data untuk di-export.'); return; }
+      const rows = [['Brand', 'Advertiser', 'Jenis Konten', 'Creator', 'Jumlah Konten', 'Revisi', 'Tanggal Selesai']];
+      laporanData.forEach(o => {
+        rows.push([
+          o.brand, o.advertiser_name, o.content_type,
+          o.creators?.name || '—', o.jumlah_konten || 1,
+          o.revision_count || 0,
+          o.updated_at ? o.updated_at.split('T')[0] : '—',
+        ]);
+      });
+      const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+      const a = document.createElement('a');
+      a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+      const val = document.getElementById('monthSelect').value;
+      a.download = `laporan-${val}.csv`;
+      a.click();
+    };
+
+    window.showPage = function(page, btn) {
+      document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      document.getElementById('page-' + page).classList.add('active');
+      btn.classList.add('active');
+      if (page === 'laporan') loadLaporan();
     };
 
     window.doLogout = async function () {
       await supabase.auth.signOut();
       window.location.href = 'login.html';
     };
+
+    window.toggleTheme = function() {
+      const isLight = document.body.classList.toggle('light');
+      localStorage.setItem('adminTheme', isLight ? 'light' : 'dark');
+      document.getElementById('themeIcon').textContent = isLight ? '🌙' : '☀️';
+      document.getElementById('themeLabel').textContent = isLight ? 'Tema Gelap' : 'Tema Terang';
+    };
+
+    // Apply saved theme
+    if (localStorage.getItem('adminTheme') === 'light') {
+      document.body.classList.add('light');
+      document.getElementById('themeIcon').textContent = '🌙';
+      document.getElementById('themeLabel').textContent = 'Tema Gelap';
+    }
 
     init();
   </script>

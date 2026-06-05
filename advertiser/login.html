@@ -145,8 +145,20 @@
         <input type="tel" id="regWa" placeholder="08xxxxxxxxxx" />
       </div>
       <div class="field">
-        <label>Tim / Perusahaan</label>
-        <input type="text" id="regTeam" placeholder="Nama tim atau perusahaan" />
+        <label>Tim</label>
+        <select id="regTeam" style="width:100%;padding:13px 16px;border:none;border-radius:12px;font-size:14px;color:#1e1e2e;background:#f5f4fb;outline:none;appearance:none;cursor:pointer;transition:box-shadow 0.2s,background 0.2s;" onfocus="this.style.background='#eeecfb';this.style.boxShadow='0 0 0 2px #c7c2f5'" onblur="this.style.background='#f5f4fb';this.style.boxShadow=''" onchange="toggleOtherTeam(this.value)">
+          <option value="">-- Pilih tim --</option>
+          <option value="Akuisisi">Akuisisi</option>
+          <option value="CRM">CRM</option>
+          <option value="MP">MP</option>
+          <option value="Team Tiktok">Team Tiktok</option>
+          <option value="Managemen">Managemen</option>
+          <option value="Other">Other (ketik sendiri)</option>
+        </select>
+      </div>
+      <div class="field" id="otherTeamField" style="display:none">
+        <label>Nama Tim</label>
+        <input type="text" id="regTeamOther" placeholder="Ketik nama tim kamu" />
       </div>
       <div class="field">
         <label>Password</label>
@@ -198,16 +210,24 @@
       }
     };
 
+    window.toggleOtherTeam = function(val) {
+      document.getElementById('otherTeamField').style.display = val === 'Other' ? 'block' : 'none';
+    };
+
     window.doRegister = async function () {
       const name = document.getElementById('regName').value.trim();
       const email = document.getElementById('regEmail').value.trim();
       const wa = document.getElementById('regWa').value.trim();
       const password = document.getElementById('regPassword').value;
+      const teamSelect = document.getElementById('regTeam').value;
+      const team = teamSelect === 'Other'
+        ? document.getElementById('regTeamOther').value.trim()
+        : teamSelect;
       const btn = document.getElementById('registerBtn');
       const err = document.getElementById('registerError');
       const suc = document.getElementById('registerSuccess');
 
-      if (!name || !email || !wa || !password) {
+      if (!name || !email || !wa || !password || !team) {
         err.textContent = 'Semua field wajib diisi.';
         err.style.display = 'block'; return;
       }

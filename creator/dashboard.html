@@ -854,6 +854,7 @@
     let currentCreator = null;
     let allTasks = [];
     let tasksMap = {};
+    let poolMap = {};
 
     async function init() {
       const { data: { session } } = await supabase.auth.getSession();
@@ -1218,6 +1219,8 @@
         .eq('status', 'pending')
         .order('pending_since', { ascending: true });
 
+      poolMap = {};
+      (orders || []).forEach(o => { poolMap[o.id] = o; });
       renderPool(orders || []);
     }
 
@@ -1267,7 +1270,10 @@
             ${o.deadline ? `<span>📅 Deadline: ${fmtDate(o.deadline)}</span>` : ''}
             <span style="color:#c4c0f0;font-size:12px">Masuk: ${sinceStr}</span>
           </div>
-          <div class="pool-footer">${btnHtml}</div>
+          <div class="pool-footer">
+            <button class="pool-btn" style="background:#f5f4fb;color:#4f46e5;flex:0 0 auto;padding:10px 14px" onclick="openPoolDetail('${o.id}')">Detail</button>
+            ${btnHtml}
+          </div>
         </div>`;
       }).join('');
     }
@@ -1417,9 +1423,19 @@
 
     window.closeModal = function () { document.getElementById('driveModal').classList.remove('show'); };
 
+    window.openPoolDetail = function (id) {
+      const o = poolMap[id];
+      if (!o) return;
+      openDetailFromObject(o);
+    };
+
     window.openDetailModal = function (id) {
       const o = tasksMap[id];
       if (!o) return;
+      openDetailFromObject(o);
+    };
+
+    function openDetailFromObject(o) {
       document.getElementById('detailBrand').textContent = o.brand;
       document.getElementById('detailAdv').textContent = `Advertiser: ${o.advertiser_name} · WA: ${o.wa_number}`;
       document.getElementById('detailType').textContent = o.content_type || '—';

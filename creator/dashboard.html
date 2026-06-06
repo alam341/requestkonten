@@ -1515,8 +1515,7 @@
         return;
       }
 
-      const doneTime = new Date().toISOString();
-      const { error } = await supabase.from('orders').update({ status: 'done', drive_link: link, updated_at: doneTime }).eq('id', activeOrderId);
+      const { error } = await supabase.from('orders').update({ status: 'done', drive_link: link }).eq('id', activeOrderId);
       if (error) { alert('Gagal: ' + error.message); btn.disabled = false; btn.textContent = 'Kirim & Selesai'; return; }
 
       if (activeWa) sendWANotif(activeWa, 'order_done', {

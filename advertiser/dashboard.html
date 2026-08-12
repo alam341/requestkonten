@@ -203,7 +203,7 @@
     </div>
     <div class="header-right">
       <span class="user-name" id="userName">—</span>
-      <button onclick="showAdvPage('template')" style="padding:9px 16px;background:#ede9fe;color:#4f46e5;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='#ddd6fe'" onmouseout="this.style.background='#ede9fe'">🎬 Template Video</button>
+      <button onclick="showAdvPage('template')" style="padding:9px 16px;background:#ede9fe;color:#4f46e5;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='#ddd6fe'" onmouseout="this.style.background='#ede9fe'">🎬 Footage Video</button>
       <a href="../request.html" class="new-order-btn">+ Request Baru</a>
       <button class="logout-btn" onclick="doLogout()">Keluar</button>
     </div>
@@ -222,12 +222,12 @@
     </div>
   </div>
 
-  <!-- Template Video Page (hidden by default) -->
+  <!-- Footage Video Page (hidden by default) -->
   <div id="advTemplatePage" style="display:none;padding:28px;max-width:1200px;margin:0 auto;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
       <div>
-        <div style="font-size:20px;font-weight:700;color:#1e1e2e;">Template Video</div>
-        <div style="font-size:13px;color:#9ca3af;margin-top:2px;">Browse dan download template video untuk iklanmu.</div>
+        <div style="font-size:20px;font-weight:700;color:#1e1e2e;">Footage Video</div>
+        <div style="font-size:13px;color:#9ca3af;margin-top:2px;">Browse dan download footage video untuk iklanmu.</div>
       </div>
       <button onclick="showAdvPage('orders')" style="padding:9px 16px;background:#f5f4fb;color:#6b7280;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">← Kembali ke Order</button>
     </div>
@@ -247,6 +247,7 @@
     <div id="advTmplGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;">
       <div style="grid-column:1/-1;text-align:center;padding:40px;color:#9ca3af;">Memuat template...</div>
     </div>
+    <div id="advTmplPagination" style="display:flex;justify-content:center;align-items:center;gap:8px;margin-top:24px;flex-wrap:wrap;"></div>
   </div>
 
   <!-- Template Preview Modal (Advertiser) -->
@@ -555,30 +556,58 @@
       return match ? match[1] : null;
     }
 
+    function renderPagination(containerId, currentPage, totalCount, perPage, loadFn) {
+      const container = document.getElementById(containerId);
+      const totalPages = Math.ceil(totalCount / perPage);
+      if (totalPages <= 1) { container.innerHTML = ''; return; }
+      const btnStyle = (active) => `padding:7px 13px;border-radius:8px;border:1.5px solid ${active?'#4f46e5':'#e5e7eb'};background:${active?'#4f46e5':'#fff'};color:${active?'#fff':'#6b7280'};font-size:13px;font-weight:600;cursor:${active?'default':'pointer'};transition:all 0.2s;`;
+      let html = `<button style="${btnStyle(false)}opacity:${currentPage===1?'0.4':'1'}" ${currentPage===1?'disabled':''} onclick="${loadFn}(${currentPage-1})">← Prev</button>`;
+      for (let i = 1; i <= totalPages; i++) {
+        if (totalPages > 7 && i > 2 && i < totalPages - 1 && Math.abs(i - currentPage) > 1) {
+          if (i === 3 || i === totalPages - 2) html += `<span style="color:#9ca3af;padding:0 4px;">...</span>`;
+          continue;
+        }
+        html += `<button style="${btnStyle(i===currentPage)}" ${i===currentPage?'disabled':''} onclick="${loadFn}(${i})">${i}</button>`;
+      }
+      html += `<button style="${btnStyle(false)}opacity:${currentPage===totalPages?'0.4':'1'}" ${currentPage===totalPages?'disabled':''} onclick="${loadFn}(${currentPage+1})">Next →</button>`;
+      html += `<span style="font-size:12px;color:#9ca3af;margin-left:8px;">${totalCount} template</span>`;
+      container.innerHTML = html;
+    }
+
+    const ADV_PER_PAGE = 12;
+    let advTmplPage = 1;
+
     window.showAdvPage = function(page) {
       document.getElementById('advOrderPage').style.display = page === 'orders' ? 'block' : 'none';
       document.getElementById('advTemplatePage').style.display = page === 'template' ? 'block' : 'none';
-      if (page === 'template') loadAdvTemplates();
+      if (page === 'template') { advTmplPage = 1; loadAdvTemplates(); }
     };
 
-    window.loadAdvTemplates = async function() {
+    window.loadAdvTemplates = async function(page) {
+      if (page !== undefined) advTmplPage = page;
       const produk = document.getElementById('advTmplProduk').value;
       const search = document.getElementById('advTmplSearch').value.toLowerCase();
       const grid = document.getElementById('advTmplGrid');
       grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#9ca3af;">Memuat...</div>';
 
-      let query = supabase.from('video_templates').select('*').order('created_at', { ascending: false });
-      if (produk) query = query.eq('produk', produk);
-      const { data } = await query;
+      const from = (advTmplPage - 1) * ADV_PER_PAGE;
+      const to = from + ADV_PER_PAGE - 1;
 
-      const filtered = data ? (search ? data.filter(t => t.judul.toLowerCase().includes(search)) : data) : [];
-      if (filtered.length === 0) {
+      let query = supabase.from('video_templates').select('*', { count: 'exact' })
+        .order('created_at', { ascending: false }).range(from, to);
+      if (produk) query = query.eq('produk', produk);
+      if (search) query = query.ilike('judul', `%${search}%`);
+
+      const { data, count } = await query;
+
+      if (!data || data.length === 0) {
         grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#9ca3af;">🎬 Belum ada template.</div>';
+        document.getElementById('advTmplPagination').innerHTML = '';
         return;
       }
 
       const isNew = (createdAt) => (Date.now() - new Date(createdAt).getTime()) < 2 * 24 * 60 * 60 * 1000;
-      grid.innerHTML = filtered.map((t, i) => {
+      grid.innerHTML = data.map(t => {
         const fileId = t.file_id || extractFileId(t.link_drive);
         const thumbSrc = t.thumbnail_url || `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
         return `
@@ -612,6 +641,8 @@
           </div>
         `;
       }).join('');
+
+      renderPagination('advTmplPagination', advTmplPage, count, ADV_PER_PAGE, 'loadAdvTemplates');
     };
 
     window.openAdvTmplPreview = function(id, judul, produk, fileId, dlCount) {
@@ -648,9 +679,11 @@
       }
 
       const a = document.createElement('a');
-      a.href = `https://drive.google.com/uc?export=download&id=${fileId}`;
-      a.target = '_blank';
-      a.click();
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = `https://drive.google.com/uc?export=download&id=${fileId}`;
+      document.body.appendChild(iframe);
+      setTimeout(() => iframe.remove(), 10000);
     };
     // ── END TEMPLATE VIDEO ────────────────────────────────────
 

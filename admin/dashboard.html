@@ -188,6 +188,48 @@
       font-size: 13px; color: var(--text); outline: none; cursor: pointer;
     }
     .month-select:focus { border-color: #4f46e5; }
+
+    /* Perform Creator */
+    .podium-card {
+      display: flex; flex-direction: column; align-items: center;
+      background: var(--card); border-radius: 16px; padding: 20px 24px;
+      border: 2px solid var(--border); text-align: center; min-width: 140px; transition: all 0.2s;
+    }
+    .podium-card.rank1 { border-color: #f59e0b; background: linear-gradient(135deg, #fffbeb, #fef3c7); min-width: 160px; }
+    .podium-card.rank2 { border-color: #9ca3af; background: linear-gradient(135deg, #f9fafb, #f3f4f6); }
+    .podium-card.rank3 { border-color: #b45309; background: linear-gradient(135deg, #fff7ed, #ffedd5); }
+    body:not(.light) .podium-card.rank1 { background: linear-gradient(135deg, #292524, #44403c); }
+    body:not(.light) .podium-card.rank2 { background: linear-gradient(135deg, #1f2937, #374151); }
+    body:not(.light) .podium-card.rank3 { background: linear-gradient(135deg, #292524, #44403c); }
+    .podium-medal { font-size: 32px; margin-bottom: 8px; }
+    .podium-avatar {
+      width: 56px; height: 56px; border-radius: 50%;
+      font-size: 22px; font-weight: 800; color: #fff;
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;
+    }
+    .podium-name { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .podium-score { font-size: 12px; color: var(--text2); }
+    .podium-done { font-size: 22px; font-weight: 800; color: #4f46e5; margin: 6px 0 2px; }
+    .podium-ontime { font-size: 12px; font-weight: 600; }
+    .podium-empty { opacity: 0.4; }
+
+    .perform-card {
+      background: var(--card); border-radius: 14px; padding: 18px;
+      border: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px;
+    }
+    .perform-card-head { display: flex; align-items: center; gap: 12px; }
+    .perform-avatar {
+      width: 42px; height: 42px; border-radius: 50%;
+      font-size: 16px; font-weight: 800; color: #fff;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .perform-name { font-size: 14px; font-weight: 700; color: var(--text); }
+    .perform-rank { font-size: 11px; color: var(--text2); margin-top: 2px; }
+    .perform-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .perform-stat { background: var(--surface); border-radius: 10px; padding: 10px 12px; }
+    .perform-stat-val { font-size: 18px; font-weight: 800; color: var(--accent); line-height: 1; }
+    .perform-stat-lbl { font-size: 10px; color: var(--text2); text-transform: uppercase; font-weight: 600; margin-top: 3px; }
+    .perform-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 99px; background: var(--surface); color: var(--text2); }
     .export-btn {
       padding: 8px 16px; border-radius: 8px; background: #d1fae5; color: #065f46;
       border: 1px solid #a7f3d0; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
@@ -255,6 +297,9 @@
     <button class="nav-item" onclick="showPage('orders', this)">
       <span class="icon">📋</span> Semua Order
     </button>
+    <button class="nav-item" onclick="showPage('perform', this)">
+      <span class="icon">🏆</span> Perform Creator
+    </button>
     <button class="nav-item" onclick="showPage('creators', this)">
       <span class="icon">👥</span> Creator
     </button>
@@ -303,6 +348,10 @@
             <tr class="loading-row"><td colspan="5">Memuat...</td></tr>
           </tbody>
         </table>
+        <div id="dashPagination" style="display:flex;align-items:center;justify-content:space-between;padding:14px 4px 4px;gap:8px;flex-wrap:wrap">
+          <div id="dashPageInfo" style="font-size:13px;color:var(--text2)"></div>
+          <div style="display:flex;gap:6px" id="dashPageBtns"></div>
+        </div>
       </div>
     </div>
 
@@ -339,6 +388,23 @@
     </div>
 
     <!-- CREATORS PAGE -->
+    <!-- PERFORM CREATOR PAGE -->
+    <div class="page-section" id="page-perform">
+      <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+        <div>
+          <div class="page-title">Perform Creator</div>
+          <div class="page-subtitle">Ranking & statistik performa setiap creator.</div>
+        </div>
+        <select class="month-select" id="performMonthSelect" onchange="loadPerform()" style="min-width:140px"></select>
+      </div>
+
+      <!-- Podium Top 3 -->
+      <div id="podiumWrap" style="display:flex;align-items:flex-end;justify-content:center;gap:16px;margin-bottom:32px;flex-wrap:wrap"></div>
+
+      <!-- Cards semua creator -->
+      <div id="performCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px"></div>
+    </div>
+
     <div class="page-section" id="page-creators">
       <div class="page-header">
         <div class="page-title">Creator</div>
@@ -392,6 +458,7 @@
     let allCreators = [];
     let laporanData = [];
     let ordersCurrentPage = 1;
+    let dashCurrentPage = 1;
     const ORDERS_PER_PAGE = 15;
 
     async function init() {
@@ -405,6 +472,7 @@
       initMonthSelect();
       initDashMonthSelect();
       initOrdersMonthSelect();
+      initPerformMonthSelect();
     }
 
     async function loadOrders() {
@@ -480,7 +548,8 @@
       })();
       document.getElementById('dashTableTitle').textContent = label;
       updateStats(filtered);
-      renderDashOrders(val === 'all' ? filtered.slice(0, 10) : filtered);
+      dashCurrentPage = 1;
+      renderDashOrdersPaginated(filtered);
     };
 
     window.applyOrdersFilter = function() {
@@ -555,18 +624,60 @@
 
     const statusLabel = { pending: 'Menunggu', waiting: 'Menunggu', queued: 'Antrian', assigned: 'Ditugaskan', in_progress: 'Dikerjakan', revision: 'Revisi', done: 'Selesai' };
 
-    function renderDashOrders(orders) {
+    function renderDashOrdersPaginated(orders) {
+      const total = orders.length;
+      const totalPages = Math.max(1, Math.ceil(total / ORDERS_PER_PAGE));
+      if (dashCurrentPage > totalPages) dashCurrentPage = totalPages;
+
+      const start = (dashCurrentPage - 1) * ORDERS_PER_PAGE;
+      const pageData = orders.slice(start, start + ORDERS_PER_PAGE);
+
       const body = document.getElementById('dashOrderBody');
-      if (!orders.length) { body.innerHTML = '<tr class="empty-row"><td colspan="5">Belum ada order.</td></tr>'; return; }
-      body.innerHTML = orders.map(o => `
-        <tr>
-          <td>${o.advertiser_name}</td>
-          <td><strong>${o.brand}</strong></td>
-          <td>${o.content_type}</td>
-          <td><span class="badge ${o.status}">${statusLabel[o.status] || o.status}</span></td>
-          <td>${o.creators ? `<span style="color:var(--accent);font-weight:600">${o.creators.name}</span>` : '<span style="color:#4a4870">—</span>'}</td>
-        </tr>
-      `).join('');
+      if (!pageData.length) { body.innerHTML = '<tr class="empty-row"><td colspan="5">Belum ada order.</td></tr>'; }
+      else {
+        body.innerHTML = pageData.map(o => `
+          <tr>
+            <td>${o.advertiser_name}</td>
+            <td><strong>${o.brand}</strong></td>
+            <td>${o.content_type}</td>
+            <td><span class="badge ${o.status}">${statusLabel[o.status] || o.status}</span></td>
+            <td>${o.creators ? `<span style="color:var(--accent);font-weight:600">${o.creators.name}</span>` : '<span style="color:#4a4870">—</span>'}</td>
+          </tr>
+        `).join('');
+      }
+
+      document.getElementById('dashPageInfo').textContent =
+        total ? `Menampilkan ${start + 1}–${Math.min(start + ORDERS_PER_PAGE, total)} dari ${total} order` : '';
+
+      const btns = document.getElementById('dashPageBtns');
+      btns.innerHTML = '';
+      if (totalPages <= 1) return;
+
+      if (dashCurrentPage > 1) {
+        const prev = document.createElement('button');
+        prev.innerHTML = '‹ Prev';
+        prev.style.cssText = `padding:6px 12px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;background:var(--card);color:var(--text2)`;
+        prev.onclick = () => { dashCurrentPage--; renderDashOrdersPaginated(orders); };
+        btns.appendChild(prev);
+      }
+
+      const startPage = Math.max(1, dashCurrentPage - 2);
+      const endPage = Math.min(totalPages, startPage + 4);
+      for (let p = startPage; p <= endPage; p++) {
+        const btn = document.createElement('button');
+        btn.textContent = p;
+        btn.style.cssText = `padding:6px 12px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;background:${p === dashCurrentPage ? '#4f46e5' : 'var(--card)'};color:${p === dashCurrentPage ? '#fff' : 'var(--text2)'}`;
+        btn.onclick = () => { dashCurrentPage = p; renderDashOrdersPaginated(orders); };
+        btns.appendChild(btn);
+      }
+
+      if (dashCurrentPage < totalPages) {
+        const next = document.createElement('button');
+        next.innerHTML = 'Next ›';
+        next.style.cssText = `padding:6px 12px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;background:var(--card);color:var(--text2)`;
+        next.onclick = () => { dashCurrentPage++; renderDashOrdersPaginated(orders); };
+        btns.appendChild(next);
+      }
     }
 
     function renderOrders(orders) {
@@ -642,6 +753,165 @@
       loadCreators();
     };
 
+
+    function initPerformMonthSelect() {
+      const select = document.getElementById('performMonthSelect');
+      const now = new Date();
+      const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+      for (let i = 0; i < 12; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+        const lbl = `${months[d.getMonth()]} ${d.getFullYear()}`;
+        const opt = new Option(lbl, val);
+        if (i === 0) opt.selected = true;
+        select.appendChild(opt);
+      }
+    }
+
+    window.loadPerform = async function() {
+      const val = document.getElementById('performMonthSelect').value;
+      const [year, month] = val.split('-').map(Number);
+      const from = new Date(year, month - 1, 1).toISOString();
+      const to = new Date(year, month, 0, 23, 59, 59).toISOString();
+
+      // Ambil semua order done bulan ini + order aktif semua creator
+      const [{ data: doneOrders }, { data: activeOrders }] = await Promise.all([
+        supabase.from('orders').select('creator_id, content_type, assigned_at, creator_deadline, revision_note, updated_at')
+          .eq('status', 'done').gte('updated_at', from).lte('updated_at', to),
+        supabase.from('orders').select('creator_id')
+          .in('status', ['assigned', 'in_progress', 'revision'])
+      ]);
+
+      // Hitung stats per creator
+      const statsMap = {};
+      allCreators.forEach(c => {
+        statsMap[c.id] = { creator: c, selesai: 0, aktif: 0, onTimeCount: 0, onTimeDenom: 0, revisiCount: 0, totalDays: 0, contentCount: {} };
+      });
+
+      (activeOrders || []).forEach(o => {
+        if (statsMap[o.creator_id]) statsMap[o.creator_id].aktif++;
+      });
+
+      (doneOrders || []).forEach(o => {
+        const s = statsMap[o.creator_id];
+        if (!s) return;
+        s.selesai++;
+
+        // Revisi rate
+        if (o.revision_note) s.revisiCount++;
+
+        // On-time rate
+        if (o.creator_deadline && o.updated_at) {
+          s.onTimeDenom++;
+          if (new Date(o.updated_at) <= new Date(o.creator_deadline + 'T23:59:59')) s.onTimeCount++;
+        }
+
+        // Avg days
+        if (o.assigned_at && o.updated_at) {
+          s.totalDays += (new Date(o.updated_at) - new Date(o.assigned_at)) / 86400000;
+        }
+
+        // Konten terbanyak
+        if (o.content_type) {
+          s.contentCount[o.content_type] = (s.contentCount[o.content_type] || 0) + 1;
+        }
+      });
+
+      // Hitung score & filter yang punya selesai > 0
+      const results = Object.values(statsMap).map(s => {
+        const onTimeRate = s.onTimeDenom > 0 ? Math.round((s.onTimeCount / s.onTimeDenom) * 100) : null;
+        const revisiRate = s.selesai > 0 ? Math.round((s.revisiCount / s.selesai) * 100) : 0;
+        const avgDays = s.selesai > 0 ? (s.totalDays / s.selesai).toFixed(1) : null;
+        const topContent = Object.entries(s.contentCount).sort((a,b) => b[1]-a[1])[0]?.[0] || null;
+        const score = s.selesai * (onTimeRate !== null ? onTimeRate / 100 : 0.5);
+        return { ...s, onTimeRate, revisiRate, avgDays, topContent, score };
+      })
+      .filter(s => s.selesai > 0)
+      .sort((a, b) => b.score - a.score);
+
+      renderPodium(results);
+      renderPerformCards(results);
+    };
+
+    const avatarColors = ['#4f46e5','#7c3aed','#0ea5e9','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4'];
+
+    function renderPodium(results) {
+      const wrap = document.getElementById('podiumWrap');
+      const medals = ['🥇','🥈','🥉'];
+      const rankClass = ['rank1','rank2','rank3'];
+      const order = [1, 0, 2]; // tampil: 2nd, 1st, 3rd
+
+      wrap.innerHTML = order.map(i => {
+        const s = results[i];
+        const isEmpty = !s;
+        const color = s ? avatarColors[allCreators.findIndex(c => c.id === s.creator.id) % avatarColors.length] : '#9ca3af';
+        const initial = s ? s.creator.name.charAt(0).toUpperCase() : '?';
+        const height = i === 0 ? '180px' : i === 1 ? '150px' : '140px';
+
+        return `<div class="podium-card ${rankClass[i]} ${isEmpty ? 'podium-empty' : ''}" style="height:${height};justify-content:center">
+          <div class="podium-medal">${medals[i]}</div>
+          ${isEmpty
+            ? `<div style="font-size:13px;color:var(--text2);font-weight:600">Belum ada data</div>`
+            : `<div class="podium-avatar" style="background:${color}">${initial}</div>
+               <div class="podium-name">${s.creator.name}</div>
+               <div class="podium-done">${s.selesai} order</div>
+               <div class="podium-ontime" style="color:${s.onTimeRate >= 80 ? '#10b981' : s.onTimeRate >= 50 ? '#f59e0b' : '#ef4444'}">
+                 On-time ${s.onTimeRate !== null ? s.onTimeRate + '%' : '—'}
+               </div>`
+          }
+        </div>`;
+      }).join('');
+    }
+
+    function renderPerformCards(results) {
+      const wrap = document.getElementById('performCards');
+      if (!results.length) {
+        wrap.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text2);padding:32px">Belum ada data performa bulan ini.</div>';
+        return;
+      }
+      wrap.innerHTML = results.map((s, i) => {
+        const color = avatarColors[allCreators.findIndex(c => c.id === s.creator.id) % avatarColors.length];
+        const initial = s.creator.name.charAt(0).toUpperCase();
+        const onTimeColor = s.onTimeRate >= 80 ? '#10b981' : s.onTimeRate >= 50 ? '#f59e0b' : '#ef4444';
+        const rankLabel = i === 0 ? '🥇 Rank #1' : i === 1 ? '🥈 Rank #2' : i === 2 ? '🥉 Rank #3' : `Rank #${i+1}`;
+
+        return `<div class="perform-card">
+          <div class="perform-card-head">
+            <div class="perform-avatar" style="background:${color}">${initial}</div>
+            <div>
+              <div class="perform-name">${s.creator.name}</div>
+              <div class="perform-rank">${rankLabel}</div>
+            </div>
+          </div>
+          <div class="perform-stats">
+            <div class="perform-stat">
+              <div class="perform-stat-val">${s.selesai}</div>
+              <div class="perform-stat-lbl">Selesai</div>
+            </div>
+            <div class="perform-stat">
+              <div class="perform-stat-val">${s.aktif}</div>
+              <div class="perform-stat-lbl">Aktif Sekarang</div>
+            </div>
+            <div class="perform-stat">
+              <div class="perform-stat-val" style="color:${onTimeColor}">${s.onTimeRate !== null ? s.onTimeRate + '%' : '—'}</div>
+              <div class="perform-stat-lbl">On-Time Rate</div>
+            </div>
+            <div class="perform-stat">
+              <div class="perform-stat-val" style="color:${s.revisiRate > 30 ? '#ef4444' : '#10b981'}">${s.revisiRate}%</div>
+              <div class="perform-stat-lbl">Revisi Rate</div>
+            </div>
+            <div class="perform-stat">
+              <div class="perform-stat-val">${s.avgDays ?? '—'}</div>
+              <div class="perform-stat-lbl">Rata-rata Hari</div>
+            </div>
+            <div class="perform-stat" style="grid-column:span 1">
+              <div class="perform-stat-val" style="font-size:12px;color:var(--text)">${s.topContent ?? '—'}</div>
+              <div class="perform-stat-lbl">Konten Terbanyak</div>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
 
     function initMonthSelect() {
       const select = document.getElementById('monthSelect');
@@ -766,6 +1036,7 @@
       document.getElementById('page-' + page).classList.add('active');
       btn.classList.add('active');
       if (page === 'laporan') loadLaporan();
+      if (page === 'perform') loadPerform();
     };
 
     window.doLogout = async function () {

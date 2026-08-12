@@ -520,6 +520,22 @@
   </div>
 
   <!-- Modal Drive Link -->
+  <!-- Modal Deadline Creator -->
+  <div class="modal-overlay" id="claimDeadlineModal">
+    <div class="modal" style="max-width:400px">
+      <h3>Tentukan Deadline Kamu</h3>
+      <p id="claimDeadlineOrderName" style="margin-bottom:16px;font-weight:600;color:#4f46e5"></p>
+      <div style="margin-bottom:6px;font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase">Deadline Advertiser</div>
+      <div style="font-size:14px;font-weight:700;color:#1e1e2e;margin-bottom:16px" id="claimDeadlineAdv">—</div>
+      <div style="margin-bottom:6px;font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase">Deadline Kamu <span style="color:#ef4444">*</span></div>
+      <input type="date" id="claimDeadlineInput" style="width:100%;padding:13px 16px;border:none;border-radius:12px;font-size:14px;color:#1e1e2e;background:#f5f4fb;outline:none;margin-bottom:16px;box-sizing:border-box" oninput="onClaimDeadlineChange()" />
+      <div class="modal-actions">
+        <button class="modal-btn cancel" onclick="closeClaimDeadlineModal()">Batal</button>
+        <button class="modal-btn submit" id="claimDeadlineSubmitBtn" onclick="confirmClaimOrder()" disabled>Ambil Order</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="driveModal">
     <div class="modal">
       <h3>Upload Hasil Konten</h3>
@@ -1335,17 +1351,55 @@
       }).join('');
     }
 
-    window.claimOrder = async function(orderId) {
-      const btn = event.currentTarget;
-      btn.disabled = true; btn.textContent = 'Mengambil...';
+    let pendingClaimOrderId = null;
+
+    window.claimOrder = function(orderId) {
+      // Cari data order dari pool yang sudah di-render
+      const order = poolMap[orderId];
+      pendingClaimOrderId = orderId;
+
+      // Set info di modal
+      document.getElementById('claimDeadlineOrderName').textContent = order ? `${order.brand} — ${order.content_type}` : '';
+      document.getElementById('claimDeadlineAdv').textContent = order?.deadline ? fmtDate(order.deadline) : '—';
+
+      // Set min date = hari ini
+      const today = new Date().toISOString().split('T')[0];
+      const deadlineInput = document.getElementById('claimDeadlineInput');
+      deadlineInput.min = today;
+      deadlineInput.value = '';
+      document.getElementById('claimDeadlineSubmitBtn').disabled = true;
+
+      document.getElementById('claimDeadlineModal').classList.add('show');
+    };
+
+    window.onClaimDeadlineChange = function() {
+      const val = document.getElementById('claimDeadlineInput').value;
+      document.getElementById('claimDeadlineSubmitBtn').disabled = !val;
+    };
+
+    window.closeClaimDeadlineModal = function() {
+      document.getElementById('claimDeadlineModal').classList.remove('show');
+      pendingClaimOrderId = null;
+    };
+
+    window.confirmClaimOrder = async function() {
+      const orderId = pendingClaimOrderId;
+      const creatorDeadline = document.getElementById('claimDeadlineInput').value;
+      if (!orderId || !creatorDeadline) return;
+
+      const submitBtn = document.getElementById('claimDeadlineSubmitBtn');
+      submitBtn.disabled = true; submitBtn.textContent = 'Mengambil...';
 
       const { error } = await supabase.from('orders').update({
         status: 'assigned',
         creator_id: currentCreator.id,
         assigned_at: new Date().toISOString(),
+        creator_deadline: creatorDeadline,
       }).eq('id', orderId).eq('status', 'pending').is('creator_id', null);
 
-      if (error) { alert('Gagal mengambil order: ' + error.message); btn.disabled = false; btn.textContent = 'Ambil'; return; }
+      if (error) { alert('Gagal mengambil order: ' + error.message); submitBtn.disabled = false; submitBtn.textContent = 'Ambil Order'; return; }
+
+      closeClaimDeadlineModal();
 
       // Bug #2 fix: proper error handling untuk .single()
       const { data: order, error: fetchErr } = await supabase.from('orders').select('*').eq('id', orderId).single();

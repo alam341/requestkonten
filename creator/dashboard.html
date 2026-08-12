@@ -824,9 +824,10 @@
         <iframe id="tmplPreviewIframe" src="" allowfullscreen allow="autoplay" style="width:100%;height:100%;border:none;"></iframe>
         <div style="position:absolute;top:0;right:0;width:52px;height:52px;background:#000;border-radius:0 0 0 8px;pointer-events:none;"></div>
       </div>
-      <button onclick="doTmplDownload()" style="width:100%;padding:13px;background:#4f46e5;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;">
+      <button id="crDlBtn" onclick="doTmplDownload()" style="width:100%;padding:13px;background:#4f46e5;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.2s;">
         ⬇ Download Video
       </button>
+      <div id="crDlStatus" style="display:none;margin-top:10px;padding:10px 14px;background:#f0fdf4;border-radius:8px;font-size:13px;color:#16a34a;text-align:center;border:1px solid #bbf7d0;"></div>
     </div>
   </div>
 
@@ -1725,6 +1726,12 @@
     window.doTmplDownload = async function() {
       if (!currentPreviewTmpl) return;
       const { id, fileId } = currentPreviewTmpl;
+      const btn = document.getElementById('crDlBtn');
+      const status = document.getElementById('crDlStatus');
+
+      btn.disabled = true;
+      btn.textContent = '⏳ Menyiapkan download...';
+      btn.style.background = '#6b7280';
 
       await supabase.from('template_downloads').insert({
         template_id: id,
@@ -1738,13 +1745,23 @@
       const n = parseInt(dlEl.textContent.match(/\d+/) || [0]) + 1;
       dlEl.textContent = `⬇ Didownload ${n}x`;
 
-      const a = document.createElement('a');
       const iframe = document.createElement('iframe');
       iframe.style.display = 'none';
       iframe.src = `https://drive.google.com/uc?export=download&id=${fileId}`;
       document.body.appendChild(iframe);
       setTimeout(() => iframe.remove(), 10000);
-      showToast('Download dimulai!', 'success');
+
+      status.style.display = 'block';
+      status.innerHTML = '✅ Download dimulai! Cek folder <strong>Downloads</strong> kamu.';
+      btn.textContent = '✓ Sedang Diunduh';
+      btn.style.background = '#10b981';
+
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = '⬇ Download Video';
+        btn.style.background = '#4f46e5';
+        status.style.display = 'none';
+      }, 5000);
     };
     // ── END TEMPLATE VIDEO ───────────────────────────────────
 

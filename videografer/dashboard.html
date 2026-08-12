@@ -337,6 +337,18 @@
             <label>Link Google Drive</label>
             <input type="url" id="uploadLink" placeholder="https://drive.google.com/file/d/..." />
           </div>
+          <div class="form-field full">
+            <label>File Video <span style="color:#9ca3af;font-weight:400;text-transform:none;">(untuk generate thumbnail otomatis)</span></label>
+            <div id="thumbDropzone" onclick="document.getElementById('thumbFileInput').click()"
+              style="border:2px dashed #c7c2f5;border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:all 0.2s;background:#fafafa;">
+              <div id="thumbDropzoneContent">
+                <div style="font-size:28px;margin-bottom:6px;">🎬</div>
+                <div style="font-size:13px;font-weight:600;color:#4f46e5;">Klik untuk pilih file video</div>
+                <div style="font-size:12px;color:#9ca3af;margin-top:4px;">MP4, MOV, AVI — thumbnail diambil otomatis dari frame pertama</div>
+              </div>
+            </div>
+            <input type="file" id="thumbFileInput" accept="video/*" style="display:none;" onchange="handleThumbFile(event)" />
+          </div>
         </div>
         <div style="margin-top:16px;padding:14px;background:#f0eef8;border-radius:10px;font-size:13px;color:#6b7280;line-height:1.6;">
           <strong style="color:#4f46e5;">💡 Cara share link Drive:</strong><br>
@@ -508,8 +520,68 @@
     }
 
     function thumbUrl(fileId) {
-      return `https://drive.google.com/thumbnail?id=${fileId}&sz=w400`;
+      return `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
     }
+
+    // ── THUMBNAIL EXTRACTION ─────────────────────────────────
+    let pendingThumbFile = null;
+    let pendingThumbPreviewUrl = null;
+
+    window.handleThumbFile = function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      pendingThumbFile = file;
+
+      // Preview nama file di dropzone
+      const dz = document.getElementById('thumbDropzoneContent');
+      dz.innerHTML = `
+        <div style="font-size:24px;margin-bottom:6px;">✅</div>
+        <div style="font-size:13px;font-weight:700;color:#10b981;">${file.name}</div>
+        <div style="font-size:11px;color:#9ca3af;margin-top:4px;">${(file.size/1024/1024).toFixed(1)} MB — Thumbnail akan digenerate otomatis</div>
+      `;
+      document.getElementById('thumbDropzone').style.borderColor = '#10b981';
+      document.getElementById('thumbDropzone').style.background = '#f0fdf4';
+    };
+
+    async function extractThumbnail(videoFile) {
+      return new Promise((resolve) => {
+        const timeout = setTimeout(() => resolve(null), 10000);
+        const video = document.createElement('video');
+        const canvas = document.createElement('canvas');
+        const url = URL.createObjectURL(videoFile);
+
+        video.onloadedmetadata = () => {
+          video.currentTime = Math.min(1, video.duration * 0.1);
+        };
+        video.onseeked = () => {
+          // Resize max 640px width, pertahankan aspect ratio
+          const maxW = 640;
+          const scale = Math.min(1, maxW / video.videoWidth);
+          canvas.width = Math.round(video.videoWidth * scale);
+          canvas.height = Math.round(video.videoHeight * scale);
+          canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob(blob => {
+            URL.revokeObjectURL(url);
+            clearTimeout(timeout);
+            resolve(blob);
+          }, 'image/jpeg', 0.8);
+        };
+        video.onerror = () => { URL.revokeObjectURL(url); clearTimeout(timeout); resolve(null); };
+        video.src = url;
+        video.load();
+      });
+    }
+
+    async function uploadThumbnail(blob, templateId) {
+      const path = `${templateId}.jpg`;
+      const { error } = await supabase.storage.from('thumbnails').upload(path, blob, {
+        contentType: 'image/jpeg', upsert: true
+      });
+      if (error) return null;
+      const { data } = supabase.storage.from('thumbnails').getPublicUrl(path);
+      return data.publicUrl;
+    }
+    // ── END THUMBNAIL EXTRACTION ─────────────────────────────
 
     function showToast(msg, type = 'info', duration = 4000) {
       const wrap = document.getElementById('toastWrap');
@@ -623,11 +695,12 @@
       grid.innerHTML = templates.map((t, i) => {
         const fileId = t.file_id || extractFileId(t.link_drive);
         const isOwner = showOwnerActions && t.uploaded_by === currentVg.user_id;
+        const thumbSrc = t.thumbnail_url || `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
         return `
           <div class="template-card">
             <div class="template-thumb" onclick="openPreview('${t.id}','${t.judul}','${t.produk}','${fileId}',${t.download_count||0})"
               style="position:relative;overflow:hidden;">
-              <img src="https://drive.google.com/thumbnail?id=${fileId}&sz=w800" alt="${t.judul}" style="width:100%;height:100%;object-fit:cover;"
+              <img src="${thumbSrc}" alt="${t.judul}" style="width:100%;height:100%;object-fit:cover;"
                 loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'thumb-placeholder\\'>🎬</div>'" />
               <div style="position:absolute;inset:0;background:rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;"
                 onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0'">
@@ -676,25 +749,43 @@
         msg.style.color = '#dc2626'; msg.textContent = 'Link Google Drive tidak valid.'; return;
       }
 
-      btn.disabled = true; btn.textContent = 'Mengupload...'; msg.textContent = '';
+      btn.disabled = true; msg.textContent = '';
 
-      const { error } = await supabase.from('video_templates').insert({
+      // Step 1: Insert dulu ke DB untuk dapat ID
+      btn.textContent = 'Menyimpan...';
+      const { data: inserted, error } = await supabase.from('video_templates').insert({
         judul, produk, link_drive: link, file_id: fileId,
         uploaded_by: currentVg.user_id,
         uploader_name: currentVg.name,
         download_count: 0
-      });
-
-      btn.disabled = false; btn.textContent = 'Upload Template';
+      }).select().single();
 
       if (error) {
+        btn.disabled = false; btn.textContent = 'Upload Template';
         msg.style.color = '#dc2626'; msg.textContent = 'Gagal upload: ' + error.message;
-      } else {
-        msg.style.color = '#10b981'; msg.textContent = '✅ Template berhasil diupload!';
-        showToast('Template berhasil ditambahkan!', 'success');
-        resetUploadForm();
-        await loadDashboardStats();
+        return;
       }
+
+      // Step 2: Extract & upload thumbnail kalau ada file video
+      if (pendingThumbFile && inserted?.id) {
+        btn.textContent = 'Generate thumbnail...';
+        msg.style.color = '#6b7280'; msg.textContent = '⏳ Mengambil frame dari video...';
+
+        const thumbBlob = await extractThumbnail(pendingThumbFile);
+        if (thumbBlob) {
+          msg.textContent = '⏳ Mengupload thumbnail...';
+          const thumbUrl = await uploadThumbnail(thumbBlob, inserted.id);
+          if (thumbUrl) {
+            await supabase.from('video_templates').update({ thumbnail_url: thumbUrl }).eq('id', inserted.id);
+          }
+        }
+      }
+
+      btn.disabled = false; btn.textContent = 'Upload Template';
+      msg.style.color = '#10b981'; msg.textContent = '✅ Template berhasil diupload!';
+      showToast('Template berhasil ditambahkan!', 'success');
+      resetUploadForm();
+      await loadDashboardStats();
     };
 
     window.resetUploadForm = function() {
@@ -702,6 +793,15 @@
       document.getElementById('uploadProduk').value = '';
       document.getElementById('uploadLink').value = '';
       document.getElementById('uploadMsg').textContent = '';
+      pendingThumbFile = null;
+      document.getElementById('thumbFileInput').value = '';
+      document.getElementById('thumbDropzoneContent').innerHTML = `
+        <div style="font-size:28px;margin-bottom:6px;">🎬</div>
+        <div style="font-size:13px;font-weight:600;color:#4f46e5;">Klik untuk pilih file video</div>
+        <div style="font-size:12px;color:#9ca3af;margin-top:4px;">MP4, MOV, AVI — thumbnail diambil otomatis dari frame pertama</div>
+      `;
+      document.getElementById('thumbDropzone').style.borderColor = '#c7c2f5';
+      document.getElementById('thumbDropzone').style.background = '#fafafa';
     };
 
     window.openEdit = function(id, judul, produk, link) {

@@ -475,6 +475,7 @@
       <button class="preview-dl-btn" id="previewDlBtn" onclick="doDownloadFromPreview()">
         ⬇ Download Video
       </button>
+      <div id="previewDlStatus" style="display:none;margin-top:10px;font-size:13px;color:#16a34a;background:#f0fdf4;padding:10px 14px;border-radius:8px;text-align:center;"></div>
     </div>
   </div>
 
@@ -801,6 +802,12 @@
       if (!currentPreviewFileId) return;
       const { id, fileId } = currentPreviewFileId;
 
+      const btn = document.getElementById('previewDlBtn');
+      const status = document.getElementById('previewDlStatus');
+
+      btn.disabled = true; btn.textContent = '⏳ Menyiapkan download...'; btn.style.background = '#6b7280';
+      status.style.display = 'none';
+
       // Catat download
       await supabase.from('template_downloads').insert({
         template_id: id,
@@ -815,15 +822,21 @@
       const current = parseInt(dlEl.textContent.match(/\d+/) || [0]) + 1;
       dlEl.textContent = `⬇ Didownload ${current}x`;
 
-      // Trigger download
-      const a = document.createElement('a');
+      // Trigger download via hidden iframe
       const iframe = document.createElement('iframe');
       iframe.style.display = 'none';
       iframe.src = `https://drive.google.com/uc?export=download&id=${fileId}`;
       document.body.appendChild(iframe);
       setTimeout(() => iframe.remove(), 10000);
 
-      showToast('Download dimulai!', 'success');
+      status.innerHTML = '✅ Download dimulai! Cek folder <strong>Downloads</strong> kamu.';
+      status.style.display = 'block';
+      btn.textContent = '✓ Sedang Diunduh'; btn.style.background = '#10b981';
+
+      setTimeout(() => {
+        btn.disabled = false; btn.textContent = '⬇ Download Video'; btn.style.background = '';
+        status.style.display = 'none';
+      }, 5000);
     };
 
     // Close modal on backdrop click

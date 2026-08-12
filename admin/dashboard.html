@@ -933,8 +933,8 @@
               <div class="perform-stat-val" style="color:${s.revisiRate > 30 ? '#ef4444' : '#10b981'}">${s.revisiRate}%</div>
               <div class="perform-stat-lbl">Revisi Rate</div>
             </div>
-            <div class="perform-stat" style="grid-column:span 2">
-              <div class="perform-stat-val" style="font-size:13px;color:var(--text)">${s.topContent ?? '—'}</div>
+            <div class="perform-stat">
+              <div class="perform-stat-val" style="font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.topContent ?? '—'}</div>
               <div class="perform-stat-lbl">Konten Terbanyak</div>
             </div>
           </div>

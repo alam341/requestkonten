@@ -467,7 +467,7 @@
         <button onclick="closeModal('previewModal')" style="background:none;border:none;font-size:20px;cursor:pointer;color:#9ca3af;padding:4px">✕</button>
       </div>
       <div class="preview-iframe-wrap">
-        <iframe id="previewIframe" src="" allowfullscreen></iframe>
+        <iframe id="previewIframe" src="" allowfullscreen allow="autoplay" style="width:100%;height:100%;border:none;"></iframe>
       </div>
       <button class="preview-dl-btn" id="previewDlBtn" onclick="doDownloadFromPreview()">
         ⬇ Download Video
@@ -612,14 +612,6 @@
       renderGrid('semuaGrid', filtered, false);
     };
 
-    const gradients = [
-      'linear-gradient(135deg,#6366f1,#818cf8)',
-      'linear-gradient(135deg,#8b5cf6,#a78bfa)',
-      'linear-gradient(135deg,#4f46e5,#6366f1)',
-      'linear-gradient(135deg,#7c3aed,#8b5cf6)',
-      'linear-gradient(135deg,#5b21b6,#7c3aed)',
-    ];
-
     function renderGrid(gridId, templates, showOwnerActions) {
       const grid = document.getElementById(gridId);
       if (!templates || templates.length === 0) {
@@ -629,15 +621,18 @@
       grid.innerHTML = templates.map((t, i) => {
         const fileId = t.file_id || extractFileId(t.link_drive);
         const isOwner = showOwnerActions && t.uploaded_by === currentVg.user_id;
-        const grad = gradients[i % gradients.length];
         return `
           <div class="template-card">
             <div class="template-thumb" onclick="openPreview('${t.id}','${t.judul}','${t.produk}','${fileId}',${t.download_count||0})"
-              style="background:${grad};flex-direction:column;gap:8px;">
-              <div style="width:48px;height:48px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,0.4);">
-                <span style="font-size:18px;margin-left:3px;color:#fff;">▶</span>
+              style="position:relative;overflow:hidden;">
+              <img src="https://drive.google.com/thumbnail?id=${fileId}&sz=w800" alt="${t.judul}" style="width:100%;height:100%;object-fit:cover;"
+                loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'thumb-placeholder\\'>🎬</div>'" />
+              <div style="position:absolute;inset:0;background:rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;"
+                onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0'">
+                <div style="width:48px;height:48px;background:rgba(255,255,255,0.9);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                  <span style="font-size:18px;margin-left:3px;">▶</span>
+                </div>
               </div>
-              <span style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.75);letter-spacing:0.05em;">KLIK UNTUK PLAY</span>
             </div>
             <div class="template-info">
               <div class="template-title" title="${t.judul}">${t.judul}</div>
@@ -752,7 +747,7 @@
       document.getElementById('previewTitle').textContent = judul;
       document.getElementById('previewProduk').textContent = produk;
       document.getElementById('previewDl').textContent = `⬇ Didownload ${dlCount}x`;
-      document.getElementById('previewIframe').src = `https://drive.google.com/file/d/${fileId}/preview`;
+      document.getElementById('previewIframe').src = `https://drive.google.com/file/d/${fileId}/preview?autoplay=1`;
       document.getElementById('previewModal').classList.add('show');
     };
 

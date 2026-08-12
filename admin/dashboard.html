@@ -284,10 +284,10 @@
     <div class="sidebar-logo">
       <img src="../assets/logo-maknarona.png" alt="Maknarona" style="height:34px;width:auto;filter:brightness(1.15);">
       <div>
-        <div style="font-size:13px;font-weight:800;color:#fff;line-height:1;">Maknarona</div>
+        <div style="font-size:13px;font-weight:800;color:var(--text);line-height:1;">Maknarona</div>
         <div style="font-size:10px;color:#6b7280;line-height:1.4;">by Adsy</div>
       </div>
-      <span class="admin-badge">Admin</span>
+      <span class="admin-badge">SPV</span>
     </div>
 
     <div class="nav-section">Menu</div>
@@ -774,33 +774,37 @@
       const fromDate = new Date(year, month - 1, 1);
       const toDate = new Date(year, month, 0, 23, 59, 59);
 
-      // Ambil semua order done (filter client-side) + order aktif semua creator
-      const [{ data: allDone }, { data: activeOrders }] = await Promise.all([
-        supabase.from('orders').select('creator_id, content_type, assigned_at, creator_deadline, revision_note, updated_at, deadline')
-          .eq('status', 'done'),
-        supabase.from('orders').select('creator_id')
-          .in('status', ['assigned', 'in_progress', 'revision'])
-      ]);
-
-      // Filter client-side pakai updated_at || deadline (sama seperti laporan bulanan)
-      const doneOrders = (allDone || []).filter(o => {
+      // Pakai allOrders yang sudah ada, filter client-side
+      const doneOrders = allOrders.filter(o => {
+        if (o.status !== 'done') return false;
         const ref = o.updated_at || o.deadline;
         if (!ref) return false;
         const d = new Date(ref);
         return d >= fromDate && d <= toDate;
       });
 
-      // Hitung stats per creator
+      const activeOrders = allOrders.filter(o =>
+        ['assigned', 'in_progress', 'revision'].includes(o.status)
+      );
+
+      // Hitung stats per creator — pakai data dari orders langsung (creator via join)
       const statsMap = {};
       allCreators.forEach(c => {
         statsMap[c.id] = { creator: c, selesai: 0, aktif: 0, onTimeCount: 0, onTimeDenom: 0, revisiCount: 0, totalDays: 0, contentCount: {} };
       });
 
-      (activeOrders || []).forEach(o => {
+      // Fallback: creator yang ada di orders tapi belum di allCreators
+      [...doneOrders, ...activeOrders].forEach(o => {
+        if (!o.creator_id || statsMap[o.creator_id]) return;
+        const name = o.creators?.name || o.creator_name || 'Unknown';
+        statsMap[o.creator_id] = { creator: { id: o.creator_id, name }, selesai: 0, aktif: 0, onTimeCount: 0, onTimeDenom: 0, revisiCount: 0, totalDays: 0, contentCount: {} };
+      });
+
+      activeOrders.forEach(o => {
         if (statsMap[o.creator_id]) statsMap[o.creator_id].aktif++;
       });
 
-      (doneOrders || []).forEach(o => {
+      doneOrders.forEach(o => {
         const s = statsMap[o.creator_id];
         if (!s) return;
         s.selesai++;
@@ -843,6 +847,11 @@
 
     const avatarColors = ['#4f46e5','#7c3aed','#0ea5e9','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4'];
 
+    function creatorColor(creatorId) {
+      const idx = allCreators.findIndex(c => c.id === creatorId);
+      return avatarColors[(idx >= 0 ? idx : Math.abs(creatorId?.charCodeAt(0) || 0)) % avatarColors.length];
+    }
+
     function renderPodium(results) {
       const wrap = document.getElementById('podiumWrap');
       const medals = ['🥇','🥈','🥉'];
@@ -852,7 +861,7 @@
       wrap.innerHTML = order.map(i => {
         const s = results[i];
         const isEmpty = !s;
-        const color = s ? avatarColors[allCreators.findIndex(c => c.id === s.creator.id) % avatarColors.length] : '#9ca3af';
+        const color = s ? creatorColor(s.creator.id) : '#9ca3af';
         const initial = s ? s.creator.name.charAt(0).toUpperCase() : '?';
         const height = i === 0 ? '180px' : i === 1 ? '150px' : '140px';
 
@@ -878,7 +887,7 @@
         return;
       }
       wrap.innerHTML = results.map((s, i) => {
-        const color = avatarColors[allCreators.findIndex(c => c.id === s.creator.id) % avatarColors.length];
+        const color = creatorColor(s.creator.id);
         const initial = s.creator.name.charAt(0).toUpperCase();
         const onTimeColor = s.onTimeRate >= 80 ? '#10b981' : s.onTimeRate >= 50 ? '#f59e0b' : '#ef4444';
         const rankLabel = i === 0 ? '🥇 Rank #1' : i === 1 ? '🥈 Rank #2' : i === 2 ? '🥉 Rank #3' : `Rank #${i+1}`;

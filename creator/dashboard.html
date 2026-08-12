@@ -460,7 +460,7 @@
       <span class="icon">✓</span> Riwayat
     </button>
     <button class="nav-item" onclick="showPage('template')">
-      <span class="icon">🎬</span> Template Video
+      <span class="icon">🎬</span> Footage Video
     </button>
     <button class="nav-item" onclick="showPage('profil')">
       <span class="icon">👤</span> Profil
@@ -673,12 +673,12 @@
       <div class="page-section" id="page-template">
         <div class="page-header">
           <div>
-            <div class="page-title">Template Video</div>
-            <div class="page-subtitle">Browse dan download template video untuk kontenmu.</div>
+            <div class="page-title">Footage Video</div>
+            <div class="page-subtitle">Browse dan download footage video untuk kontenmu.</div>
           </div>
         </div>
         <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap;">
-          <select id="tmplFilterProduk" onchange="loadTemplates()" style="padding:9px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;color:#374151;background:#fff;outline:none;cursor:pointer;font-family:inherit;">
+          <select id="tmplFilterProduk" onchange="tmplPage=1;loadTemplates()" style="padding:9px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;color:#374151;background:#fff;outline:none;cursor:pointer;font-family:inherit;">
             <option value="">Semua Produk</option>
             <option>Primagold</option><option>Numata</option><option>Herbapil</option>
             <option>Youzhi Cream</option><option>Youzhi Tube</option><option>Onaire</option>
@@ -687,12 +687,13 @@
             <option>Oiri</option><option>Noradix</option><option>Bajakah</option>
             <option>Provitasi</option><option>Channabumax</option>
           </select>
-          <input id="tmplSearch" type="text" placeholder="🔍 Cari judul..." oninput="loadTemplates()"
+          <input id="tmplSearch" type="text" placeholder="🔍 Cari judul..." oninput="tmplPage=1;loadTemplates()"
             style="padding:9px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;color:#374151;background:#fff;outline:none;font-family:inherit;min-width:200px;" />
         </div>
         <div id="tmplGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;">
           <div style="grid-column:1/-1;text-align:center;padding:40px;color:#9ca3af;">Memuat template...</div>
         </div>
+        <div id="tmplPagination" style="display:flex;justify-content:center;align-items:center;gap:8px;margin-top:24px;flex-wrap:wrap;"></div>
       </div>
 
       <!-- PROFIL PAGE -->
@@ -806,7 +807,7 @@
   <!-- Toast Container -->
   <div class="toast-wrap" id="toastWrap"></div>
 
-  <!-- Template Video Preview Modal -->
+  <!-- Footage Video Preview Modal -->
   <div id="tmplPreviewModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center;" onclick="if(event.target===this)closeTmplPreview()">
     <div style="background:#fff;border-radius:20px;padding:28px;width:100%;max-width:640px;margin:20px;box-shadow:0 20px 60px rgba(0,0,0,0.25);max-height:90vh;overflow-y:auto;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
@@ -1623,25 +1624,52 @@
 
     let currentPreviewTmpl = null;
 
-    window.loadTemplates = async function() {
+    function renderPagination(containerId, currentPage, totalCount, perPage, loadFn) {
+      const container = document.getElementById(containerId);
+      const totalPages = Math.ceil(totalCount / perPage);
+      if (totalPages <= 1) { container.innerHTML = ''; return; }
+      const btnStyle = (active) => `padding:7px 13px;border-radius:8px;border:1.5px solid ${active?'#4f46e5':'#e5e7eb'};background:${active?'#4f46e5':'#fff'};color:${active?'#fff':'#6b7280'};font-size:13px;font-weight:600;cursor:${active?'default':'pointer'};transition:all 0.2s;`;
+      let html = `<button style="${btnStyle(false)}opacity:${currentPage===1?'0.4':'1'}" ${currentPage===1?'disabled':''} onclick="${loadFn}(${currentPage-1})">← Prev</button>`;
+      for (let i = 1; i <= totalPages; i++) {
+        if (totalPages > 7 && i > 2 && i < totalPages - 1 && Math.abs(i - currentPage) > 1) {
+          if (i === 3 || i === totalPages - 2) html += `<span style="color:#9ca3af;padding:0 4px;">...</span>`;
+          continue;
+        }
+        html += `<button style="${btnStyle(i===currentPage)}" ${i===currentPage?'disabled':''} onclick="${loadFn}(${i})">${i}</button>`;
+      }
+      html += `<button style="${btnStyle(false)}opacity:${currentPage===totalPages?'0.4':'1'}" ${currentPage===totalPages?'disabled':''} onclick="${loadFn}(${currentPage+1})">Next →</button>`;
+      html += `<span style="font-size:12px;color:#9ca3af;margin-left:8px;">${totalCount} template</span>`;
+      container.innerHTML = html;
+    }
+
+    const TMPL_PER_PAGE = 12;
+    let tmplPage = 1;
+
+    window.loadTemplates = async function(page) {
+      if (page !== undefined) tmplPage = page;
       const produk = document.getElementById('tmplFilterProduk').value;
-      const search = document.getElementById('tmplSearch').value.toLowerCase();
+      const search = document.getElementById('tmplSearch').value;
       const grid = document.getElementById('tmplGrid');
       grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#9ca3af;">Memuat...</div>';
 
-      let query = supabase.from('video_templates').select('*').order('created_at', { ascending: false });
+      const from = (tmplPage - 1) * TMPL_PER_PAGE;
+      const to = from + TMPL_PER_PAGE - 1;
+
+      let query = supabase.from('video_templates').select('*', { count: 'exact' })
+        .order('created_at', { ascending: false }).range(from, to);
       if (produk) query = query.eq('produk', produk);
-      const { data } = await query;
+      if (search) query = query.ilike('judul', `%${search}%`);
 
-      const filtered = data ? (search ? data.filter(t => t.judul.toLowerCase().includes(search)) : data) : [];
+      const { data, count } = await query;
 
-      if (filtered.length === 0) {
+      if (!data || data.length === 0) {
         grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#9ca3af;">🎬 Belum ada template.</div>';
+        document.getElementById('tmplPagination').innerHTML = '';
         return;
       }
 
       const isNew = (createdAt) => (Date.now() - new Date(createdAt).getTime()) < 2 * 24 * 60 * 60 * 1000;
-      grid.innerHTML = filtered.map((t, i) => {
+      grid.innerHTML = data.map(t => {
         const fileId = t.file_id || extractFileId(t.link_drive);
         const thumbSrc = t.thumbnail_url || `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
         return `
@@ -1675,6 +1703,8 @@
           </div>
         `;
       }).join('');
+
+      renderPagination('tmplPagination', tmplPage, count, TMPL_PER_PAGE, 'loadTemplates');
     };
 
     window.openTmplPreview = function(id, judul, produk, fileId, dlCount) {
@@ -1709,9 +1739,11 @@
       dlEl.textContent = `⬇ Didownload ${n}x`;
 
       const a = document.createElement('a');
-      a.href = `https://drive.google.com/uc?export=download&id=${fileId}`;
-      a.target = '_blank';
-      a.click();
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = `https://drive.google.com/uc?export=download&id=${fileId}`;
+      document.body.appendChild(iframe);
+      setTimeout(() => iframe.remove(), 10000);
       showToast('Download dimulai!', 'success');
     };
     // ── END TEMPLATE VIDEO ───────────────────────────────────

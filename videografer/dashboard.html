@@ -300,7 +300,7 @@
       <div class="page-header">
         <div>
           <div class="page-title">Upload Template</div>
-          <div class="page-subtitle">Tambah template video baru ke library.</div>
+          <div class="page-subtitle">Tambah footage video baru ke library.</div>
         </div>
       </div>
       <div class="form-card">
@@ -362,7 +362,7 @@
         <button class="btn-primary" onclick="showPage('upload', document.querySelector('.nav-item:nth-child(3))'))">+ Upload Baru</button>
       </div>
       <div class="template-toolbar">
-        <select class="filter-select" id="filterMilikProduk" onchange="loadMyTemplates()">
+        <select class="filter-select" id="filterMilikProduk" onchange="milikPage=1;loadMyTemplates()">
           <option value="">Semua Produk</option>
           <option>Primagold</option><option>Numata</option><option>Herbapil</option>
           <option>Youzhi Cream</option><option>Youzhi Tube</option><option>Onaire</option>
@@ -371,11 +371,12 @@
           <option>Oiri</option><option>Noradix</option><option>Bajakah</option>
           <option>Provitasi</option><option>Channabumax</option>
         </select>
-        <input class="search-input" type="text" id="searchMilik" placeholder="🔍 Cari judul..." oninput="loadMyTemplates()" />
+        <input class="search-input" type="text" id="searchMilik" placeholder="🔍 Cari judul..." oninput="milikPage=1;loadMyTemplates()" />
       </div>
       <div class="template-grid" id="milikGrid">
         <div class="empty-state"><div class="empty-icon">🎬</div><p>Memuat...</p></div>
       </div>
+      <div id="milikPagination" style="display:flex;justify-content:center;align-items:center;gap:8px;margin-top:24px;flex-wrap:wrap;"></div>
     </div>
 
     <!-- SEMUA TEMPLATE PAGE -->
@@ -383,11 +384,11 @@
       <div class="page-header">
         <div>
           <div class="page-title">Semua Template</div>
-          <div class="page-subtitle">Browse seluruh template video library.</div>
+          <div class="page-subtitle">Browse seluruh footage video library.</div>
         </div>
       </div>
       <div class="template-toolbar">
-        <select class="filter-select" id="filterSemuaProduk" onchange="loadAllTemplates()">
+        <select class="filter-select" id="filterSemuaProduk" onchange="semuaPage=1;loadAllTemplates()">
           <option value="">Semua Produk</option>
           <option>Primagold</option><option>Numata</option><option>Herbapil</option>
           <option>Youzhi Cream</option><option>Youzhi Tube</option><option>Onaire</option>
@@ -396,11 +397,12 @@
           <option>Oiri</option><option>Noradix</option><option>Bajakah</option>
           <option>Provitasi</option><option>Channabumax</option>
         </select>
-        <input class="search-input" type="text" id="searchSemua" placeholder="🔍 Cari judul..." oninput="loadAllTemplates()" />
+        <input class="search-input" type="text" id="searchSemua" placeholder="🔍 Cari judul..." oninput="semuaPage=1;loadAllTemplates()" />
       </div>
       <div class="template-grid" id="semuaGrid">
         <div class="empty-state"><div class="empty-icon">🎬</div><p>Memuat...</p></div>
       </div>
+      <div id="semuaPagination" style="display:flex;justify-content:center;align-items:center;gap:8px;margin-top:24px;flex-wrap:wrap;"></div>
     </div>
 
     <!-- PROFIL PAGE -->
@@ -425,7 +427,7 @@
   <div class="modal-overlay" id="editModal">
     <div class="modal-box">
       <div class="modal-title">Edit Template</div>
-      <div class="modal-sub">Ubah informasi template video.</div>
+      <div class="modal-sub">Ubah informasi footage video.</div>
       <input type="hidden" id="editId" />
       <div class="modal-form-field">
         <label>Judul Template</label>
@@ -586,32 +588,65 @@
       renderGrid('recentGrid', myTemplates.slice(0, 4), true);
     }
 
-    window.loadMyTemplates = async function() {
+    function renderPagination(containerId, currentPage, totalCount, perPage, loadFn) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      const totalPages = Math.ceil(totalCount / perPage);
+      if (totalPages <= 1) { container.innerHTML = ''; return; }
+      const btnStyle = (active) => `padding:7px 13px;border-radius:8px;border:1.5px solid ${active?'#4f46e5':'#e5e7eb'};background:${active?'#4f46e5':'#fff'};color:${active?'#fff':'#6b7280'};font-size:13px;font-weight:600;cursor:${active?'default':'pointer'};transition:all 0.2s;`;
+      let html = `<button style="${btnStyle(false)}opacity:${currentPage===1?'0.4':'1'}" ${currentPage===1?'disabled':''} onclick="${loadFn}(${currentPage-1})">← Prev</button>`;
+      for (let i = 1; i <= totalPages; i++) {
+        if (totalPages > 7 && i > 2 && i < totalPages - 1 && Math.abs(i - currentPage) > 1) {
+          if (i === 3 || i === totalPages - 2) html += `<span style="color:#9ca3af;padding:0 4px;">...</span>`;
+          continue;
+        }
+        html += `<button style="${btnStyle(i===currentPage)}" ${i===currentPage?'disabled':''} onclick="${loadFn}(${i})">${i}</button>`;
+      }
+      html += `<button style="${btnStyle(false)}opacity:${currentPage===totalPages?'0.4':'1'}" ${currentPage===totalPages?'disabled':''} onclick="${loadFn}(${currentPage+1})">Next →</button>`;
+      html += `<span style="font-size:12px;color:#9ca3af;margin-left:8px;">${totalCount} template</span>`;
+      container.innerHTML = html;
+    }
+
+    const VG_PER_PAGE = 12;
+    let milikPage = 1;
+    let semuaPage = 1;
+
+    window.loadMyTemplates = async function(page) {
+      if (page !== undefined) milikPage = page;
       const produkFilter = document.getElementById('filterMilikProduk').value;
-      const search = document.getElementById('searchMilik').value.toLowerCase();
+      const search = document.getElementById('searchMilik').value;
+      const from = (milikPage - 1) * VG_PER_PAGE;
+      const to = from + VG_PER_PAGE - 1;
 
-      let query = supabase.from('video_templates').select('*').eq('uploaded_by', currentVg.user_id).order('created_at', { ascending: false });
+      let query = supabase.from('video_templates').select('*', { count: 'exact' })
+        .eq('uploaded_by', currentVg.user_id).order('created_at', { ascending: false }).range(from, to);
       if (produkFilter) query = query.eq('produk', produkFilter);
+      if (search) query = query.ilike('judul', `%${search}%`);
 
-      const { data } = await query;
+      const { data, count } = await query;
       if (!data) { document.getElementById('milikGrid').innerHTML = '<div class="empty-state"><div class="empty-icon">😕</div><p>Gagal memuat.</p></div>'; return; }
 
-      const filtered = search ? data.filter(t => t.judul.toLowerCase().includes(search)) : data;
-      renderGrid('milikGrid', filtered, true);
+      renderGrid('milikGrid', data, true);
+      renderPagination('milikPagination', milikPage, count || 0, VG_PER_PAGE, 'loadMyTemplates');
     };
 
-    window.loadAllTemplates = async function() {
+    window.loadAllTemplates = async function(page) {
+      if (page !== undefined) semuaPage = page;
       const produkFilter = document.getElementById('filterSemuaProduk').value;
-      const search = document.getElementById('searchSemua').value.toLowerCase();
+      const search = document.getElementById('searchSemua').value;
+      const from = (semuaPage - 1) * VG_PER_PAGE;
+      const to = from + VG_PER_PAGE - 1;
 
-      let query = supabase.from('video_templates').select('*').order('created_at', { ascending: false });
+      let query = supabase.from('video_templates').select('*', { count: 'exact' })
+        .order('created_at', { ascending: false }).range(from, to);
       if (produkFilter) query = query.eq('produk', produkFilter);
+      if (search) query = query.ilike('judul', `%${search}%`);
 
-      const { data } = await query;
+      const { data, count } = await query;
       if (!data) { document.getElementById('semuaGrid').innerHTML = '<div class="empty-state"><div class="empty-icon">😕</div><p>Gagal memuat.</p></div>'; return; }
 
-      const filtered = search ? data.filter(t => t.judul.toLowerCase().includes(search)) : data;
-      renderGrid('semuaGrid', filtered, false);
+      renderGrid('semuaGrid', data, false);
+      renderPagination('semuaPagination', semuaPage, count || 0, VG_PER_PAGE, 'loadAllTemplates');
     };
 
     function renderGrid(gridId, templates, showOwnerActions) {
@@ -782,9 +817,11 @@
 
       // Trigger download
       const a = document.createElement('a');
-      a.href = `https://drive.google.com/uc?export=download&id=${fileId}`;
-      a.target = '_blank';
-      a.click();
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = `https://drive.google.com/uc?export=download&id=${fileId}`;
+      document.body.appendChild(iframe);
+      setTimeout(() => iframe.remove(), 10000);
 
       showToast('Download dimulai!', 'success');
     };

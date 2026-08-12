@@ -203,6 +203,7 @@
     </div>
     <div class="header-right">
       <span class="user-name" id="userName">—</span>
+      <button onclick="showAdvPage('template')" style="padding:9px 16px;background:#ede9fe;color:#4f46e5;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='#ddd6fe'" onmouseout="this.style.background='#ede9fe'">🎬 Template Video</button>
       <a href="../request.html" class="new-order-btn">+ Request Baru</a>
       <button class="logout-btn" onclick="doLogout()">Keluar</button>
     </div>
@@ -221,6 +222,56 @@
     </div>
   </div>
 
+  <!-- Template Video Page (hidden by default) -->
+  <div id="advTemplatePage" style="display:none;padding:28px;max-width:1200px;margin:0 auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+      <div>
+        <div style="font-size:20px;font-weight:700;color:#1e1e2e;">Template Video</div>
+        <div style="font-size:13px;color:#9ca3af;margin-top:2px;">Browse dan download template video untuk iklanmu.</div>
+      </div>
+      <button onclick="showAdvPage('orders')" style="padding:9px 16px;background:#f5f4fb;color:#6b7280;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">← Kembali ke Order</button>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap;">
+      <select id="advTmplProduk" onchange="loadAdvTemplates()" style="padding:9px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;color:#374151;background:#fff;outline:none;cursor:pointer;font-family:inherit;">
+        <option value="">Semua Produk</option>
+        <option>Primagold</option><option>Numata</option><option>Herbapil</option>
+        <option>Youzhi Cream</option><option>Youzhi Tube</option><option>Onaire</option>
+        <option>Jawara</option><option>Koikohi</option><option>Mr Prima</option>
+        <option>Vasco</option><option>Notelli</option><option>Maksir</option>
+        <option>Oiri</option><option>Noradix</option><option>Bajakah</option>
+        <option>Provitasi</option><option>Channabumax</option>
+      </select>
+      <input id="advTmplSearch" type="text" placeholder="🔍 Cari judul..." oninput="loadAdvTemplates()"
+        style="padding:9px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;color:#374151;background:#fff;outline:none;font-family:inherit;min-width:200px;" />
+    </div>
+    <div id="advTmplGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;">
+      <div style="grid-column:1/-1;text-align:center;padding:40px;color:#9ca3af;">Memuat template...</div>
+    </div>
+  </div>
+
+  <!-- Template Preview Modal (Advertiser) -->
+  <div id="advTmplPreviewModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center;" onclick="if(event.target===this)closeAdvTmplPreview()">
+    <div style="background:#fff;border-radius:20px;padding:28px;width:100%;max-width:640px;margin:20px;box-shadow:0 20px 60px rgba(0,0,0,0.25);max-height:90vh;overflow-y:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+        <div>
+          <div style="font-size:18px;font-weight:700;color:#1e1e2e;" id="advTmplTitle">—</div>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
+            <span id="advTmplProdukBadge" style="font-size:11px;font-weight:600;color:#4f46e5;background:#ede9fe;padding:2px 8px;border-radius:99px;">—</span>
+            <span id="advTmplDl" style="font-size:12px;color:#9ca3af;">—</span>
+          </div>
+        </div>
+        <button onclick="closeAdvTmplPreview()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#9ca3af;padding:4px;">✕</button>
+      </div>
+      <div style="width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000;margin-bottom:16px;">
+        <iframe id="advTmplIframe" src="" allowfullscreen style="width:100%;height:100%;border:none;"></iframe>
+      </div>
+      <button onclick="doAdvTmplDownload()" style="width:100%;padding:13px;background:#4f46e5;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;">
+        ⬇ Download Video
+      </button>
+    </div>
+  </div>
+
+  <div id="advOrderPage">
   <div class="container">
     <!-- Stats -->
     <div class="stats-row">
@@ -257,6 +308,7 @@
       <p class="loading">Memuat order...</p>
     </div>
   </div>
+  </div> <!-- end advOrderPage -->
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
@@ -482,6 +534,123 @@
       await supabase.auth.signOut();
       window.location.href = 'login.html';
     };
+
+    // ── TEMPLATE VIDEO ─────────────────────────────────────
+    let advCurrentUser = null;
+    let advCurrentPreview = null;
+
+    // Simpan user info saat init
+    const origInit = init;
+    async function initWithUser() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        advCurrentUser = { id: session.user.id, name: session.user.user_metadata?.name || session.user.email };
+      }
+      await origInit();
+    }
+
+    function extractFileId(url) {
+      const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      return match ? match[1] : null;
+    }
+
+    window.showAdvPage = function(page) {
+      document.getElementById('advOrderPage').style.display = page === 'orders' ? 'block' : 'none';
+      document.getElementById('advTemplatePage').style.display = page === 'template' ? 'block' : 'none';
+      if (page === 'template') loadAdvTemplates();
+    };
+
+    window.loadAdvTemplates = async function() {
+      const produk = document.getElementById('advTmplProduk').value;
+      const search = document.getElementById('advTmplSearch').value.toLowerCase();
+      const grid = document.getElementById('advTmplGrid');
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#9ca3af;">Memuat...</div>';
+
+      let query = supabase.from('video_templates').select('*').order('created_at', { ascending: false });
+      if (produk) query = query.eq('produk', produk);
+      const { data } = await query;
+
+      const filtered = data ? (search ? data.filter(t => t.judul.toLowerCase().includes(search)) : data) : [];
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#9ca3af;">🎬 Belum ada template.</div>';
+        return;
+      }
+
+      grid.innerHTML = filtered.map(t => {
+        const fileId = t.file_id || extractFileId(t.link_drive);
+        return `
+          <div style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(80,70,160,0.06);cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;"
+            onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(80,70,160,0.12)'"
+            onmouseout="this.style.transform='';this.style.boxShadow='0 2px 8px rgba(80,70,160,0.06)'">
+            <div style="width:100%;aspect-ratio:16/9;background:#f0eef8;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+              <img src="https://drive.google.com/thumbnail?id=${fileId}&sz=w400" alt="${t.judul}" style="width:100%;height:100%;object-fit:cover;"
+                loading="lazy" onerror="this.parentElement.innerHTML='<div style=\\'font-size:36px;\\'>🎬</div>'" />
+            </div>
+            <div style="padding:12px 14px;">
+              <div style="font-size:14px;font-weight:700;color:#1e1e2e;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${t.judul}">${t.judul}</div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <span style="font-size:11px;font-weight:600;color:#4f46e5;background:#ede9fe;padding:2px 8px;border-radius:99px;">${t.produk}</span>
+                <span style="font-size:11px;color:#9ca3af;">⬇ ${t.download_count || 0}x</span>
+              </div>
+              <button onclick="openAdvTmplPreview('${t.id}','${t.judul}','${t.produk}','${fileId}',${t.download_count||0})"
+                style="width:100%;padding:8px;background:#4f46e5;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">
+                ▶ Preview & Download
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    };
+
+    window.openAdvTmplPreview = function(id, judul, produk, fileId, dlCount) {
+      advCurrentPreview = { id, fileId };
+      document.getElementById('advTmplTitle').textContent = judul;
+      document.getElementById('advTmplProdukBadge').textContent = produk;
+      document.getElementById('advTmplDl').textContent = `⬇ Didownload ${dlCount}x`;
+      document.getElementById('advTmplIframe').src = `https://drive.google.com/file/d/${fileId}/preview`;
+      document.getElementById('advTmplPreviewModal').style.display = 'flex';
+    };
+
+    window.closeAdvTmplPreview = function() {
+      document.getElementById('advTmplPreviewModal').style.display = 'none';
+      document.getElementById('advTmplIframe').src = '';
+      advCurrentPreview = null;
+    };
+
+    window.doAdvTmplDownload = async function() {
+      if (!advCurrentPreview) return;
+      const { id, fileId } = advCurrentPreview;
+
+      if (advCurrentUser) {
+        await supabase.from('template_downloads').insert({
+          template_id: id,
+          user_id: advCurrentUser.id,
+          user_name: advCurrentUser.name,
+          role: 'advertiser'
+        });
+        await supabase.rpc('increment_download_count', { template_id: id });
+
+        const dlEl = document.getElementById('advTmplDl');
+        const n = parseInt(dlEl.textContent.match(/\d+/) || [0]) + 1;
+        dlEl.textContent = `⬇ Didownload ${n}x`;
+      }
+
+      const a = document.createElement('a');
+      a.href = `https://drive.google.com/uc?export=download&id=${fileId}`;
+      a.target = '_blank';
+      a.click();
+    };
+    // ── END TEMPLATE VIDEO ────────────────────────────────────
+
+    // Ambil user info saat halaman load
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        advCurrentUser = {
+          id: data.session.user.id,
+          name: data.session.user.user_metadata?.name || data.session.user.email
+        };
+      }
+    });
 
     init();
   </script>

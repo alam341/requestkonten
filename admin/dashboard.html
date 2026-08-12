@@ -278,19 +278,22 @@
 
     <!-- DASHBOARD PAGE -->
     <div class="page-section active" id="page-dashboard">
-      <div class="page-header">
-        <div class="page-title">Dashboard</div>
-        <div class="page-subtitle">Overview semua aktivitas order.</div>
+      <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+        <div>
+          <div class="page-title">Dashboard</div>
+          <div class="page-subtitle">Overview semua aktivitas order.</div>
+        </div>
+        <select class="month-select" id="dashMonthSelect" onchange="applyDashFilter()" style="min-width:140px"></select>
       </div>
       <div class="stats">
-        <div class="stat s1"><div class="val" id="sWaiting">—</div><div class="lbl">Menunggu</div></div>
-        <div class="stat s2"><div class="val" id="sAssigned">—</div><div class="lbl">Ditugaskan</div></div>
+        <div class="stat s1"><div class="val" id="sTotal">—</div><div class="lbl">Total Order</div></div>
         <div class="stat s3"><div class="val" id="sProgress">—</div><div class="lbl">Dikerjakan</div></div>
+        <div class="stat s2"><div class="val" id="sWaiting">—</div><div class="lbl">Belum Dikerjakan</div></div>
         <div class="stat s4"><div class="val" id="sDone">—</div><div class="lbl">Selesai</div></div>
       </div>
       <div class="table-wrap">
         <div class="table-header">
-          <h3>Order Terbaru</h3>
+          <h3 id="dashTableTitle">Order Terbaru</h3>
         </div>
         <table>
           <thead>
@@ -310,9 +313,12 @@
         <div class="page-subtitle">Kelola dan assign order ke creator.</div>
       </div>
       <div class="table-wrap">
-        <div class="table-header">
-          <h3>Daftar Order</h3>
-          <input class="search-input" placeholder="Cari brand / advertiser..." oninput="filterTable(this.value)" />
+        <div class="table-header" style="flex-wrap:wrap;gap:8px">
+          <h3 id="ordersTableTitle">Daftar Order</h3>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <select class="month-select" id="ordersMonthSelect" onchange="applyOrdersFilter()" style="min-width:130px"></select>
+            <input class="search-input" id="ordersSearch" placeholder="Cari brand / advertiser..." oninput="applyOrdersFilter()" />
+          </div>
         </div>
         <table>
           <thead>
@@ -325,6 +331,10 @@
             <tr class="loading-row"><td colspan="6">Memuat...</td></tr>
           </tbody>
         </table>
+        <div id="ordersPagination" style="display:flex;align-items:center;justify-content:space-between;padding:14px 4px 4px;gap:8px;flex-wrap:wrap">
+          <div id="ordersPageInfo" style="font-size:13px;color:var(--text2)"></div>
+          <div style="display:flex;gap:6px" id="ordersPageBtns"></div>
+        </div>
       </div>
     </div>
 
@@ -381,6 +391,8 @@
     let allOrders = [];
     let allCreators = [];
     let laporanData = [];
+    let ordersCurrentPage = 1;
+    const ORDERS_PER_PAGE = 15;
 
     async function init() {
       const { data: { session } } = await supabase.auth.getSession();
@@ -391,6 +403,8 @@
 
       await Promise.all([loadCreators(), loadOrders()]);
       initMonthSelect();
+      initDashMonthSelect();
+      initOrdersMonthSelect();
     }
 
     async function loadOrders() {
@@ -400,9 +414,8 @@
         .order('created_at', { ascending: false });
 
       allOrders = data || [];
-      updateStats(allOrders);
-      renderDashOrders(allOrders.slice(0, 10));
-      renderOrders(allOrders);
+      applyDashFilter();
+      applyOrdersFilter();
     }
 
     async function loadCreators() {
@@ -411,11 +424,133 @@
       renderCreators(allCreators);
     }
 
+    function filterByMonth(orders, monthVal) {
+      if (!monthVal || monthVal === 'all') return orders;
+      const [year, month] = monthVal.split('-').map(Number);
+      return orders.filter(o => {
+        const d = new Date(o.created_at);
+        return d.getFullYear() === year && d.getMonth() + 1 === month;
+      });
+    }
+
     function updateStats(orders) {
+      document.getElementById('sTotal').textContent = orders.length;
+      document.getElementById('sProgress').textContent = orders.filter(o => ['in_progress','revision','assigned'].includes(o.status)).length;
       document.getElementById('sWaiting').textContent = orders.filter(o => ['pending','waiting','queued'].includes(o.status)).length;
-      document.getElementById('sAssigned').textContent = orders.filter(o => o.status === 'assigned').length;
-      document.getElementById('sProgress').textContent = orders.filter(o => ['in_progress','revision'].includes(o.status)).length;
       document.getElementById('sDone').textContent = orders.filter(o => o.status === 'done').length;
+    }
+
+    function initDashMonthSelect() {
+      const select = document.getElementById('dashMonthSelect');
+      const now = new Date();
+      const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+      const allOpt = new Option('Semua Bulan', 'all');
+      allOpt.selected = true;
+      select.appendChild(allOpt);
+      for (let i = 0; i < 12; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+        const lbl = `${months[d.getMonth()]} ${d.getFullYear()}`;
+        select.appendChild(new Option(lbl, val));
+      }
+    }
+
+    function initOrdersMonthSelect() {
+      const select = document.getElementById('ordersMonthSelect');
+      const now = new Date();
+      const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+      const allOpt = new Option('Semua Bulan', 'all');
+      allOpt.selected = true;
+      select.appendChild(allOpt);
+      for (let i = 0; i < 12; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+        const lbl = `${months[d.getMonth()]} ${d.getFullYear()}`;
+        select.appendChild(new Option(lbl, val));
+      }
+    }
+
+    window.applyDashFilter = function() {
+      const val = document.getElementById('dashMonthSelect').value;
+      const filtered = filterByMonth(allOrders, val);
+      const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+      const label = val === 'all' ? 'Order Terbaru' : (() => {
+        const [y, m] = val.split('-').map(Number);
+        return `Order — ${months[m-1]} ${y}`;
+      })();
+      document.getElementById('dashTableTitle').textContent = label;
+      updateStats(filtered);
+      renderDashOrders(val === 'all' ? filtered.slice(0, 10) : filtered);
+    };
+
+    window.applyOrdersFilter = function() {
+      const monthVal = document.getElementById('ordersMonthSelect').value;
+      const query = document.getElementById('ordersSearch').value.toLowerCase();
+      const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+
+      let filtered = filterByMonth(allOrders, monthVal);
+      if (query) filtered = filtered.filter(o =>
+        o.brand.toLowerCase().includes(query) || o.advertiser_name.toLowerCase().includes(query)
+      );
+
+      const label = monthVal === 'all' ? 'Daftar Order' : (() => {
+        const [y, m] = monthVal.split('-').map(Number);
+        return `Daftar Order — ${months[m-1]} ${y}`;
+      })();
+      document.getElementById('ordersTableTitle').textContent = label;
+
+      ordersCurrentPage = 1;
+      renderOrdersPaginated(filtered);
+    };
+
+    function renderOrdersPaginated(orders) {
+      const total = orders.length;
+      const totalPages = Math.max(1, Math.ceil(total / ORDERS_PER_PAGE));
+      if (ordersCurrentPage > totalPages) ordersCurrentPage = totalPages;
+
+      const start = (ordersCurrentPage - 1) * ORDERS_PER_PAGE;
+      const pageData = orders.slice(start, start + ORDERS_PER_PAGE);
+
+      renderOrders(pageData);
+
+      // Info
+      document.getElementById('ordersPageInfo').textContent =
+        total ? `Menampilkan ${start + 1}–${Math.min(start + ORDERS_PER_PAGE, total)} dari ${total} order` : '';
+
+      // Tombol halaman
+      const btns = document.getElementById('ordersPageBtns');
+      btns.innerHTML = '';
+      if (totalPages <= 1) return;
+
+      const btnStyle = (active) =>
+        `style="padding:6px 12px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;background:${active ? '#4f46e5' : 'var(--card)'};color:${active ? '#fff' : 'var(--text2)'};"`;
+
+      if (ordersCurrentPage > 1) {
+        const prev = document.createElement('button');
+        prev.innerHTML = '‹ Prev'; prev.setAttribute('style', btnStyle(false).slice(7, -1));
+        prev.style.cssText = `padding:6px 12px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;background:var(--card);color:var(--text2)`;
+        prev.onclick = () => { ordersCurrentPage--; renderOrdersPaginated(orders); };
+        btns.appendChild(prev);
+      }
+
+      // Nomor halaman (maks 5)
+      const startPage = Math.max(1, ordersCurrentPage - 2);
+      const endPage = Math.min(totalPages, startPage + 4);
+      for (let p = startPage; p <= endPage; p++) {
+        const btn = document.createElement('button');
+        btn.textContent = p;
+        btn.style.cssText = `padding:6px 12px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;background:${p === ordersCurrentPage ? '#4f46e5' : 'var(--card)'};color:${p === ordersCurrentPage ? '#fff' : 'var(--text2)'}`;
+        btn.onclick = () => { ordersCurrentPage = p; renderOrdersPaginated(orders); };
+        btns.appendChild(btn);
+      }
+
+      if (ordersCurrentPage < totalPages) {
+        const next = document.createElement('button');
+        next.innerHTML = 'Next ›';
+        next.style.cssText = `padding:6px 12px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;background:var(--card);color:var(--text2)`;
+        next.onclick = () => { ordersCurrentPage++; renderOrdersPaginated(orders); };
+        btns.appendChild(next);
+      }
     }
 
     const statusLabel = { pending: 'Menunggu', waiting: 'Menunggu', queued: 'Antrian', assigned: 'Ditugaskan', in_progress: 'Dikerjakan', revision: 'Revisi', done: 'Selesai' };
@@ -507,10 +642,6 @@
       loadCreators();
     };
 
-    window.filterTable = function (query) {
-      const q = query.toLowerCase();
-      renderOrders(allOrders.filter(o => o.brand.toLowerCase().includes(q) || o.advertiser_name.toLowerCase().includes(q)));
-    };
 
     function initMonthSelect() {
       const select = document.getElementById('monthSelect');

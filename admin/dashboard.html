@@ -399,7 +399,7 @@
       </div>
 
       <!-- Podium Top 3 -->
-      <div id="podiumWrap" style="display:flex;align-items:flex-end;justify-content:center;gap:16px;margin-bottom:32px;flex-wrap:wrap"></div>
+      <div id="podiumWrap" style="display:flex;align-items:flex-end;justify-content:center;gap:12px;margin-bottom:36px;flex-wrap:wrap"></div>
 
       <!-- Cards semua creator -->
       <div id="performCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px"></div>
@@ -833,7 +833,8 @@
       const results = Object.values(statsMap).map(s => {
         const onTimeRate = s.onTimeDenom > 0 ? Math.round((s.onTimeCount / s.onTimeDenom) * 100) : null;
         const revisiRate = s.selesai > 0 ? Math.round((s.revisiCount / s.selesai) * 100) : 0;
-        const avgDays = s.selesai > 0 ? (s.totalDays / s.selesai).toFixed(1) : null;
+        const avgDaysRaw = s.selesai > 0 ? s.totalDays / s.selesai : null;
+        const avgDays = avgDaysRaw !== null && avgDaysRaw > 0 ? avgDaysRaw.toFixed(1) : null;
         const topContent = Object.entries(s.contentCount).sort((a,b) => b[1]-a[1])[0]?.[0] || null;
         const score = s.selesai * (onTimeRate !== null ? onTimeRate / 100 : 0.5);
         return { ...s, onTimeRate, revisiRate, avgDays, topContent, score };
@@ -854,28 +855,38 @@
 
     function renderPodium(results) {
       const wrap = document.getElementById('podiumWrap');
-      const medals = ['🥇','🥈','🥉'];
-      const rankClass = ['rank1','rank2','rank3'];
-      const order = [1, 0, 2]; // tampil: 2nd, 1st, 3rd
+      // order tampil: 2nd kiri, 1st tengah, 3rd kanan
+      const slots = [
+        { rank: 1, dataIdx: 1, medal: '🥈', platformH: 70,  avatarSize: 52, nameSize: 13, borderColor: '#9ca3af', glowColor: 'rgba(156,163,175,0.3)' },
+        { rank: 0, dataIdx: 0, medal: '🥇', platformH: 100, avatarSize: 64, nameSize: 15, borderColor: '#f59e0b', glowColor: 'rgba(245,158,11,0.3)' },
+        { rank: 2, dataIdx: 2, medal: '🥉', platformH: 50,  avatarSize: 48, nameSize: 13, borderColor: '#b45309', glowColor: 'rgba(180,83,9,0.25)' },
+      ];
 
-      wrap.innerHTML = order.map(i => {
-        const s = results[i];
+      wrap.innerHTML = slots.map(sl => {
+        const s = results[sl.dataIdx];
         const isEmpty = !s;
         const color = s ? creatorColor(s.creator.id) : '#9ca3af';
         const initial = s ? s.creator.name.charAt(0).toUpperCase() : '?';
-        const height = i === 0 ? '180px' : i === 1 ? '150px' : '140px';
+        const rankNum = sl.dataIdx + 1;
 
-        return `<div class="podium-card ${rankClass[i]} ${isEmpty ? 'podium-empty' : ''}" style="height:${height};justify-content:center">
-          <div class="podium-medal">${medals[i]}</div>
-          ${isEmpty
-            ? `<div style="font-size:13px;color:var(--text2);font-weight:600">Belum ada data</div>`
-            : `<div class="podium-avatar" style="background:${color}">${initial}</div>
-               <div class="podium-name">${s.creator.name}</div>
-               <div class="podium-done">${s.selesai} order</div>
-               <div class="podium-ontime" style="color:${s.onTimeRate >= 80 ? '#10b981' : s.onTimeRate >= 50 ? '#f59e0b' : '#ef4444'}">
-                 On-time ${s.onTimeRate !== null ? s.onTimeRate + '%' : '—'}
-               </div>`
-          }
+        const topSection = isEmpty
+          ? `<div style="display:flex;flex-direction:column;align-items:center;padding:16px 20px 12px;gap:6px;opacity:0.4">
+               <div style="width:${sl.avatarSize}px;height:${sl.avatarSize}px;border-radius:50%;background:#9ca3af;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff;font-weight:800">?</div>
+               <div style="font-size:12px;color:var(--text2);font-weight:600">Belum ada data</div>
+             </div>`
+          : `<div style="display:flex;flex-direction:column;align-items:center;padding:16px 20px 12px;gap:4px">
+               <div style="width:${sl.avatarSize}px;height:${sl.avatarSize}px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:${sl.avatarSize * 0.35}px;font-weight:800;color:#fff;box-shadow:0 4px 12px ${color}66">${initial}</div>
+               <div style="font-size:${sl.nameSize}px;font-weight:700;color:var(--text);margin-top:4px;text-align:center;max-width:120px;line-height:1.2">${s.creator.name}</div>
+               <div style="font-size:11px;color:var(--text2)">${s.selesai} order selesai</div>
+             </div>`;
+
+        const platform = `<div style="width:100%;height:${sl.platformH}px;background:${isEmpty ? 'var(--surface)' : `linear-gradient(180deg, ${sl.borderColor}22, ${sl.borderColor}44)`};border-top:2px solid ${sl.borderColor};border-radius:0 0 12px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px">
+          <div style="font-size:22px;line-height:1">${sl.medal}</div>
+          ${!isEmpty ? `<div style="font-size:11px;font-weight:700;color:${sl.borderColor}">RANK ${rankNum}</div>` : ''}
+        </div>`;
+
+        return `<div style="display:flex;flex-direction:column;align-items:center;border-radius:12px;border:1.5px solid ${isEmpty ? 'var(--border)' : sl.borderColor};background:var(--card);min-width:${sl.dataIdx === 0 ? 160 : 140}px;max-width:${sl.dataIdx === 0 ? 180 : 160}px;overflow:hidden;box-shadow:${isEmpty ? 'none' : `0 4px 20px ${sl.glowColor}`}">
+          ${topSection}${platform}
         </div>`;
       }).join('');
     }

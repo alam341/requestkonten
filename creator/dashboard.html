@@ -820,7 +820,7 @@
         <button onclick="closeTmplPreview()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#9ca3af;padding:4px;">✕</button>
       </div>
       <div style="width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000;margin-bottom:16px;">
-        <iframe id="tmplPreviewIframe" src="" allowfullscreen style="width:100%;height:100%;border:none;"></iframe>
+        <iframe id="tmplPreviewIframe" src="" allowfullscreen allow="autoplay" style="width:100%;height:100%;border:none;"></iframe>
       </div>
       <button onclick="doTmplDownload()" style="width:100%;padding:13px;background:#4f46e5;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;">
         ⬇ Download Video
@@ -1639,26 +1639,22 @@
         return;
       }
 
-      const gradients = [
-        'linear-gradient(135deg,#6366f1,#818cf8)',
-        'linear-gradient(135deg,#8b5cf6,#a78bfa)',
-        'linear-gradient(135deg,#4f46e5,#6366f1)',
-        'linear-gradient(135deg,#7c3aed,#8b5cf6)',
-        'linear-gradient(135deg,#5b21b6,#7c3aed)',
-      ];
       grid.innerHTML = filtered.map((t, i) => {
         const fileId = t.file_id || extractFileId(t.link_drive);
-        const grad = gradients[i % gradients.length];
         return `
           <div onclick="openTmplPreview('${t.id}','${t.judul}','${t.produk}','${fileId}',${t.download_count||0})"
             style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(80,70,160,0.06);cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;"
             onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(80,70,160,0.12)'"
             onmouseout="this.style.transform='';this.style.boxShadow='0 2px 8px rgba(80,70,160,0.06)'">
-            <div style="width:100%;aspect-ratio:16/9;background:${grad};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;position:relative;overflow:hidden;">
-              <div style="width:52px;height:52px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);border:2px solid rgba(255,255,255,0.4);">
-                <span style="font-size:20px;margin-left:3px;">▶</span>
+            <div style="width:100%;aspect-ratio:16/9;background:#f0eef8;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;">
+              <img src="https://drive.google.com/thumbnail?id=${fileId}&sz=w800" alt="${t.judul}" style="width:100%;height:100%;object-fit:cover;"
+                loading="lazy" onerror="this.parentElement.innerHTML='<div style=\\'font-size:36px;\\'>🎬</div>'" />
+              <div style="position:absolute;inset:0;background:rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;"
+                onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0'">
+                <div style="width:52px;height:52px;background:rgba(255,255,255,0.9);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                  <span style="font-size:20px;margin-left:4px;">▶</span>
+                </div>
               </div>
-              <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.8);letter-spacing:0.05em;">KLIK UNTUK PLAY</span>
             </div>
             <div style="padding:12px 14px;">
               <div style="font-size:14px;font-weight:700;color:#1e1e2e;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${t.judul}">${t.judul}</div>
@@ -1677,7 +1673,7 @@
       document.getElementById('tmplPreviewTitle').textContent = judul;
       document.getElementById('tmplPreviewProduk').textContent = produk;
       document.getElementById('tmplPreviewDl').textContent = `⬇ Didownload ${dlCount}x`;
-      document.getElementById('tmplPreviewIframe').src = `https://drive.google.com/file/d/${fileId}/preview`;
+      document.getElementById('tmplPreviewIframe').src = `https://drive.google.com/file/d/${fileId}/preview?autoplay=1`;
       document.getElementById('tmplPreviewModal').style.display = 'flex';
     };
 

@@ -1284,16 +1284,26 @@
       }).join('');
     }
 
+    let totalPendingCount = 0;
+
     async function loadPendingPool() {
-      const { data: orders } = await supabase
+      const { data: orders, count } = await supabase
         .from('orders')
-        .select('*')
+        .select('*', { count: 'exact' })
         .eq('status', 'pending')
-        .order('pending_since', { ascending: true });
+        .order('pending_since', { ascending: true })
+        .limit(15);
+
+      totalPendingCount = count || 0;
 
       poolMap = {};
       (orders || []).forEach(o => { poolMap[o.id] = o; });
       renderPool(orders || []);
+
+      // Refill check — kalau sisa ≤5, realtime sudah handle tapi kita force reload sekali lagi
+      if ((orders || []).length <= 5 && totalPendingCount > (orders || []).length) {
+        setTimeout(() => loadPendingPool(), 1500);
+      }
     }
 
     function renderPool(orders) {
@@ -1302,8 +1312,8 @@
       const badge = document.getElementById('poolBadge');
 
       // Update badge di sidebar
-      if (orders.length > 0) {
-        badge.textContent = orders.length;
+      if (totalPendingCount > 0) {
+        badge.textContent = totalPendingCount;
         badge.style.display = 'inline';
       } else {
         badge.style.display = 'none';
@@ -1317,10 +1327,29 @@
 
       const a = currentActiveCount;
       const q = currentQueuedCount;
-      counter.innerHTML = `Tugas aktif kamu: <strong>${a}/3</strong> · Antrian kamu: <strong>${q}/2</strong>`;
+      const sisaAntrian = totalPendingCount - orders.length;
+      counter.innerHTML = `Tugas aktif kamu: <strong>${a}/3</strong> · Antrian kamu: <strong>${q}/2</strong>
+        <span style="margin-left:12px;padding:3px 10px;background:#f0eef8;border-radius:99px;font-size:12px;color:#6b7280">
+          Menampilkan <strong>${orders.length}</strong> dari <strong>${totalPendingCount}</strong> order${sisaAntrian > 0 ? ` · <span style="color:#4f46e5">${sisaAntrian} menunggu di antrian</span>` : ''}
+        </span>`;
 
       grid.innerHTML = orders.map(o => {
         const sinceStr = o.pending_since ? fmtDate(o.pending_since.split('T')[0]) : '—';
+
+        // Hitung hari menunggu
+        const hariTunggu = o.pending_since
+          ? Math.floor((Date.now() - new Date(o.pending_since)) / 86400000)
+          : 0;
+
+        let urgencyBadge = '';
+        let cardBorder = '';
+        if (hariTunggu >= 5) {
+          urgencyBadge = `<span style="display:inline-flex;align-items:center;gap:4px;background:#fee2e2;color:#dc2626;font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px">🔴 ${hariTunggu} hari · Prioritas!</span>`;
+          cardBorder = 'border:1.5px solid #fca5a5;';
+        } else if (hariTunggu >= 2) {
+          urgencyBadge = `<span style="display:inline-flex;align-items:center;gap:4px;background:#fef9c3;color:#ca8a04;font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px">🟡 ${hariTunggu} hari</span>`;
+          cardBorder = 'border:1.5px solid #fde68a;';
+        }
 
         let btnHtml;
         if (a < 3) {
@@ -1331,11 +1360,12 @@
           btnHtml = `<button class="pool-btn" disabled>Penuh</button>`;
         }
 
-        return `<div class="pool-card">
+        return `<div class="pool-card" style="${cardBorder}">
           <div class="pool-card-top">
             <div class="pool-brand">${o.brand}</div>
             <div class="pool-type">${o.content_type}</div>
           </div>
+          ${urgencyBadge ? `<div style="margin-bottom:8px">${urgencyBadge}</div>` : ''}
           <div class="pool-meta">
             <span>👤 ${o.advertiser_name}</span>
             ${o.platform ? `<span>📱 ${o.platform}</span>` : ''}

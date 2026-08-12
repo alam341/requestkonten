@@ -790,23 +790,24 @@
       // Hitung stats per creator — pakai data dari orders langsung (creator via join)
       const statsMap = {};
       allCreators.forEach(c => {
-        statsMap[c.id] = { creator: c, selesai: 0, aktif: 0, onTimeCount: 0, onTimeDenom: 0, revisiCount: 0, totalDays: 0, contentCount: {} };
+        statsMap[c.id] = { creator: c, total: 0, selesai: 0, aktif: 0, onTimeCount: 0, onTimeDenom: 0, revisiCount: 0, totalDays: 0, contentCount: {} };
       });
 
       // Fallback: creator yang ada di orders tapi belum di allCreators
       [...doneOrders, ...activeOrders].forEach(o => {
         if (!o.creator_id || statsMap[o.creator_id]) return;
         const name = o.creators?.name || o.creator_name || 'Unknown';
-        statsMap[o.creator_id] = { creator: { id: o.creator_id, name }, selesai: 0, aktif: 0, onTimeCount: 0, onTimeDenom: 0, revisiCount: 0, totalDays: 0, contentCount: {} };
+        statsMap[o.creator_id] = { creator: { id: o.creator_id, name }, total: 0, selesai: 0, aktif: 0, onTimeCount: 0, onTimeDenom: 0, revisiCount: 0, totalDays: 0, contentCount: {} };
       });
 
       activeOrders.forEach(o => {
-        if (statsMap[o.creator_id]) statsMap[o.creator_id].aktif++;
+        if (statsMap[o.creator_id]) { statsMap[o.creator_id].aktif++; statsMap[o.creator_id].total++; }
       });
 
       doneOrders.forEach(o => {
         const s = statsMap[o.creator_id];
         if (!s) return;
+        s.total++;
         s.selesai++;
 
         // Revisi rate
@@ -913,6 +914,10 @@
           </div>
           <div class="perform-stats">
             <div class="perform-stat">
+              <div class="perform-stat-val">${s.total}</div>
+              <div class="perform-stat-lbl">Total Order</div>
+            </div>
+            <div class="perform-stat">
               <div class="perform-stat-val">${s.selesai}</div>
               <div class="perform-stat-lbl">Selesai</div>
             </div>
@@ -928,12 +933,8 @@
               <div class="perform-stat-val" style="color:${s.revisiRate > 30 ? '#ef4444' : '#10b981'}">${s.revisiRate}%</div>
               <div class="perform-stat-lbl">Revisi Rate</div>
             </div>
-            <div class="perform-stat">
-              <div class="perform-stat-val">${s.avgDays ?? '—'}</div>
-              <div class="perform-stat-lbl">Rata-rata Hari</div>
-            </div>
-            <div class="perform-stat" style="grid-column:span 1">
-              <div class="perform-stat-val" style="font-size:12px;color:var(--text)">${s.topContent ?? '—'}</div>
+            <div class="perform-stat" style="grid-column:span 2">
+              <div class="perform-stat-val" style="font-size:13px;color:var(--text)">${s.topContent ?? '—'}</div>
               <div class="perform-stat-lbl">Konten Terbanyak</div>
             </div>
           </div>

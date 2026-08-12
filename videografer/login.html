@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login Videografer — Maknarona by Adsy</title>
+  <link rel="icon" type="image/png" href="../assets/logo-maknarona.png">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #eae8f5;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: #fff; border-radius: 20px;
+      padding: 40px 36px; width: 100%; max-width: 420px;
+      box-shadow: 0 8px 40px rgba(79,70,229,0.12);
+    }
+    .logo-wrap {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 28px;
+    }
+    .logo-wrap img { height: 36px; }
+    .logo-text { font-size: 18px; font-weight: 800; color: #4f46e5; }
+    .logo-sub { font-size: 10px; color: #9ca3af; font-weight: 500; }
+    .role-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #ede9fe; color: #5b21b6;
+      font-size: 12px; font-weight: 700; padding: 4px 12px;
+      border-radius: 99px; margin-bottom: 20px;
+    }
+    h2 { font-size: 22px; font-weight: 800; color: #1e1e2e; margin-bottom: 6px; }
+    .sub { font-size: 13px; color: #9ca3af; margin-bottom: 28px; }
+
+    .tabs { display: flex; gap: 0; margin-bottom: 24px; border-bottom: 2px solid #f0eef8; }
+    .tab-btn {
+      flex: 1; padding: 10px; background: none; border: none;
+      font-size: 14px; font-weight: 600; color: #9ca3af; cursor: pointer;
+      border-bottom: 2px solid transparent; margin-bottom: -2px;
+      transition: all 0.2s;
+    }
+    .tab-btn.active { color: #4f46e5; border-bottom-color: #4f46e5; }
+
+    .tab-section { display: none; }
+    .tab-section.active { display: block; }
+
+    .field { margin-bottom: 16px; }
+    label { display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+    input {
+      width: 100%; padding: 12px 14px;
+      border: 1.5px solid #e5e7eb; border-radius: 10px;
+      font-size: 14px; color: #1e1e2e; background: #fafafa;
+      outline: none; transition: border 0.2s;
+      font-family: inherit;
+    }
+    input:focus { border-color: #4f46e5; background: #fff; }
+
+    .btn {
+      width: 100%; padding: 13px;
+      background: #4f46e5; color: #fff;
+      border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: background 0.2s;
+      margin-top: 4px;
+    }
+    .btn:hover { background: #4338ca; }
+    .btn:disabled { background: #a5b4fc; cursor: not-allowed; }
+
+    .err { display: none; color: #dc2626; font-size: 13px; margin-top: 10px; padding: 10px 12px; background: #fef2f2; border-radius: 8px; }
+    .suc { display: none; color: #16a34a; font-size: 13px; margin-top: 10px; padding: 10px 12px; background: #f0fdf4; border-radius: 8px; }
+
+    .back-link { display: block; text-align: center; margin-top: 20px; font-size: 13px; color: #9ca3af; text-decoration: none; }
+    .back-link:hover { color: #4f46e5; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo-wrap">
+      <img src="../assets/logo-maknarona.png" alt="Maknarona">
+      <div>
+        <div class="logo-text">Maknarona</div>
+        <div class="logo-sub">by Adsy</div>
+      </div>
+    </div>
+    <div class="role-badge">🎬 Videografer</div>
+    <h2>Selamat Datang</h2>
+    <p class="sub">Masuk atau daftar sebagai videografer template.</p>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('login')">Masuk</button>
+      <button class="tab-btn" onclick="switchTab('register')">Daftar</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="tab-section active" id="loginSection">
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="email@adsy.id" />
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" />
+      </div>
+      <button class="btn" id="loginBtn" onclick="doLogin()">Masuk</button>
+      <div class="err" id="loginError"></div>
+    </div>
+
+    <!-- REGISTER -->
+    <div class="tab-section" id="registerSection">
+      <div class="field">
+        <label>Nama Lengkap</label>
+        <input type="text" id="regName" placeholder="Nama kamu" />
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="regEmail" placeholder="email@adsy.id" />
+      </div>
+      <div class="field">
+        <label>No. WhatsApp</label>
+        <input type="text" id="regWa" placeholder="08xxxxxxxxxx" />
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="regPassword" placeholder="Min. 6 karakter" />
+      </div>
+      <button class="btn" id="registerBtn" onclick="doRegister()">Daftar sebagai Videografer</button>
+      <div class="err" id="registerError"></div>
+      <div class="suc" id="registerSuccess"></div>
+    </div>
+
+    <a href="../index.html" class="back-link">← Kembali ke beranda</a>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const SUPABASE_URL = 'https://woqznjubhmjraqapgyat.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvcXpuanViaG1qcmFxYXBneWF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MzUxNTgsImV4cCI6MjA5MjUxMTE1OH0.xBHG0aeKLutXyqTjlhpGVIYy7-wuI-ztI9e73wmRL04';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Cek kalau sudah login
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) checkAndRedirect(data.session.user.id);
+    });
+
+    async function checkAndRedirect(userId) {
+      const { data } = await supabase.from('videografers').select('id').eq('user_id', userId).single();
+      if (data) window.location.href = 'dashboard.html';
+    }
+
+    window.switchTab = function(tab) {
+      document.querySelectorAll('.tab-btn').forEach((b, i) => {
+        b.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register'));
+      });
+      document.getElementById('loginSection').classList.toggle('active', tab === 'login');
+      document.getElementById('registerSection').classList.toggle('active', tab === 'register');
+    };
+
+    window.doLogin = async function() {
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const btn = document.getElementById('loginBtn');
+      const err = document.getElementById('loginError');
+      if (!email || !password) { err.textContent = 'Email dan password wajib diisi.'; err.style.display = 'block'; return; }
+      btn.disabled = true; btn.textContent = 'Masuk...'; err.style.display = 'none';
+
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        err.textContent = 'Email atau password salah.'; err.style.display = 'block';
+        btn.disabled = false; btn.textContent = 'Masuk'; return;
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data: vg } = await supabase.from('videografers').select('id').eq('user_id', session.user.id).single();
+      if (!vg) {
+        await supabase.auth.signOut();
+        err.textContent = 'Akun ini bukan akun videografer.'; err.style.display = 'block';
+        btn.disabled = false; btn.textContent = 'Masuk'; return;
+      }
+      window.location.href = 'dashboard.html';
+    };
+
+    window.doRegister = async function() {
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const wa = document.getElementById('regWa').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const btn = document.getElementById('registerBtn');
+      const err = document.getElementById('registerError');
+      const suc = document.getElementById('registerSuccess');
+
+      if (!name || !email || !wa || !password) {
+        err.textContent = 'Semua field wajib diisi.'; err.style.display = 'block'; return;
+      }
+      btn.disabled = true; btn.textContent = 'Mendaftar...';
+      err.style.display = 'none'; suc.style.display = 'none';
+
+      const { data, error: authErr } = await supabase.auth.signUp({ email, password });
+      if (authErr) {
+        err.textContent = authErr.message || 'Gagal mendaftar.'; err.style.display = 'block';
+        btn.disabled = false; btn.textContent = 'Daftar sebagai Videografer'; return;
+      }
+
+      const { error: insertErr } = await supabase.from('videografers').insert({
+        user_id: data.user.id, name, email, wa_number: wa
+      });
+
+      btn.disabled = false; btn.textContent = 'Daftar sebagai Videografer';
+      if (insertErr) {
+        err.textContent = 'Akun dibuat tapi gagal simpan profil. Hubungi admin.'; err.style.display = 'block';
+      } else {
+        suc.textContent = 'Pendaftaran berhasil! Silakan login.'; suc.style.display = 'block';
+        setTimeout(() => window.switchTab('login'), 2000);
+      }
+    };
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const isLogin = document.getElementById('loginSection').classList.contains('active');
+        isLogin ? window.doLogin() : window.doRegister();
+      }
+    });
+  </script>
+</body>
+</html>

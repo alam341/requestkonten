@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Videografer — Maknarona by Adsy</title>
+  <link rel="icon" type="image/png" href="../assets/logo-maknarona.png">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0eef8; min-height: 100vh; display: flex; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 220px; min-height: 100vh;
+      background: #fff; display: flex; flex-direction: column;
+      padding: 24px 16px; position: fixed; top: 0; left: 0; bottom: 0;
+      box-shadow: 2px 0 12px rgba(80,70,160,0.07); z-index: 10;
+    }
+    .sidebar-logo {
+      font-size: 18px; font-weight: 800; color: #4f46e5;
+      padding: 0 8px; margin-bottom: 8px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .sidebar-logo img { height: 30px; }
+    .sidebar-role {
+      font-size: 11px; font-weight: 700; color: #a78bfa;
+      padding: 3px 10px; background: #ede9fe; border-radius: 99px;
+      margin: 0 8px 24px; display: inline-flex; align-items: center; gap: 4px; width: fit-content;
+    }
+    .nav-section { font-size: 10px; font-weight: 700; color: #c4c0f0; letter-spacing: 0.1em; text-transform: uppercase; padding: 0 8px; margin-bottom: 8px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 10px;
+      font-size: 14px; font-weight: 500; color: #6b7280;
+      cursor: pointer; transition: all 0.2s; margin-bottom: 2px;
+      border: none; background: none; width: 100%; text-align: left;
+    }
+    .nav-item:hover { background: #f5f4fb; color: #4f46e5; }
+    .nav-item.active { background: #ede9fe; color: #4f46e5; font-weight: 600; }
+    .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+    .sidebar-bottom { margin-top: auto; }
+    .logout-btn {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 10px;
+      font-size: 14px; font-weight: 500; color: #9ca3af;
+      cursor: pointer; border: none; background: none; width: 100%; transition: all 0.2s;
+    }
+    .logout-btn:hover { color: #dc2626; background: #fef2f2; }
+
+    /* Main */
+    .main { margin-left: 220px; flex: 1; padding: 28px 28px; min-height: 100vh; }
+
+    .page-section { display: none; }
+    .page-section.active { display: block; }
+
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .page-title { font-size: 20px; font-weight: 700; color: #1e1e2e; }
+    .page-subtitle { font-size: 13px; color: #9ca3af; margin-top: 2px; }
+
+    /* Stats */
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
+    .stat-card {
+      background: #fff; border-radius: 14px; padding: 18px 20px;
+      box-shadow: 0 2px 8px rgba(80,70,160,0.06);
+    }
+    .stat-card .val { font-size: 28px; font-weight: 800; color: #4f46e5; }
+    .stat-card .lbl { font-size: 12px; color: #9ca3af; font-weight: 500; margin-top: 4px; }
+
+    /* Upload Form */
+    .form-card {
+      background: #fff; border-radius: 16px; padding: 28px;
+      box-shadow: 0 2px 8px rgba(80,70,160,0.06); margin-bottom: 24px;
+    }
+    .form-card h3 { font-size: 16px; font-weight: 700; color: #1e1e2e; margin-bottom: 20px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-field { display: flex; flex-direction: column; gap: 6px; }
+    .form-field.full { grid-column: 1 / -1; }
+    .form-field label { font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
+    .form-field input, .form-field select {
+      padding: 11px 14px; border: 1.5px solid #e5e7eb; border-radius: 10px;
+      font-size: 14px; color: #1e1e2e; background: #fafafa; outline: none;
+      transition: border 0.2s; font-family: inherit;
+    }
+    .form-field input:focus, .form-field select:focus { border-color: #4f46e5; background: #fff; }
+    .form-actions { display: flex; gap: 10px; margin-top: 20px; }
+    .btn-primary {
+      padding: 11px 24px; background: #4f46e5; color: #fff;
+      border: none; border-radius: 10px; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn-primary:hover { background: #4338ca; }
+    .btn-primary:disabled { background: #a5b4fc; cursor: not-allowed; }
+    .btn-secondary {
+      padding: 11px 24px; background: #f5f4fb; color: #6b7280;
+      border: none; border-radius: 10px; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-secondary:hover { background: #ede9fe; color: #4f46e5; }
+    .form-msg { font-size: 13px; margin-top: 10px; }
+
+    /* Template Grid */
+    .template-toolbar {
+      display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .filter-select {
+      padding: 9px 14px; border: 1.5px solid #e5e7eb; border-radius: 10px;
+      font-size: 13px; color: #374151; background: #fff; outline: none; cursor: pointer;
+      font-family: inherit;
+    }
+    .filter-select:focus { border-color: #4f46e5; }
+    .search-input {
+      padding: 9px 14px; border: 1.5px solid #e5e7eb; border-radius: 10px;
+      font-size: 13px; color: #374151; background: #fff; outline: none;
+      font-family: inherit; min-width: 200px;
+    }
+    .search-input:focus { border-color: #4f46e5; }
+
+    .template-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .template-card {
+      background: #fff; border-radius: 14px; overflow: hidden;
+      box-shadow: 0 2px 8px rgba(80,70,160,0.06);
+      transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;
+    }
+    .template-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(80,70,160,0.12); }
+    .template-thumb {
+      width: 100%; aspect-ratio: 16/9; object-fit: cover;
+      background: #f0eef8; display: flex; align-items: center; justify-content: center;
+    }
+    .template-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .thumb-placeholder { font-size: 36px; }
+    .template-info { padding: 12px 14px; }
+    .template-title { font-size: 14px; font-weight: 700; color: #1e1e2e; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .template-meta { display: flex; justify-content: space-between; align-items: center; }
+    .template-produk {
+      font-size: 11px; font-weight: 600; color: #4f46e5;
+      background: #ede9fe; padding: 2px 8px; border-radius: 99px;
+    }
+    .template-dl { font-size: 11px; color: #9ca3af; }
+    .template-actions { display: flex; gap: 6px; margin-top: 10px; }
+    .btn-edit {
+      flex: 1; padding: 7px; background: #f5f4fb; color: #4f46e5;
+      border: none; border-radius: 8px; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-edit:hover { background: #ede9fe; }
+    .btn-delete {
+      padding: 7px 10px; background: #fef2f2; color: #dc2626;
+      border: none; border-radius: 8px; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-delete:hover { background: #dc2626; color: #fff; }
+    .btn-preview {
+      flex: 1; padding: 7px; background: #f0fdf4; color: #16a34a;
+      border: none; border-radius: 8px; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-preview:hover { background: #16a34a; color: #fff; }
+    .empty-state { text-align: center; padding: 60px 20px; color: #9ca3af; }
+    .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; }
+
+    /* Profil */
+    .profile-card {
+      background: #fff; border-radius: 16px; padding: 28px;
+      box-shadow: 0 2px 8px rgba(80,70,160,0.06); max-width: 480px;
+    }
+    .pf-field { margin-bottom: 16px; }
+    .pf-label { font-size: 11px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+    .pf-value { font-size: 15px; font-weight: 500; color: #1e1e2e; }
+
+    /* Modal Overlay */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6); z-index: 200;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-box {
+      background: #fff; border-radius: 20px;
+      padding: 28px; width: 100%; max-width: 560px; margin: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25); max-height: 90vh; overflow-y: auto;
+    }
+    .modal-title { font-size: 18px; font-weight: 700; color: #1e1e2e; margin-bottom: 4px; }
+    .modal-sub { font-size: 13px; color: #9ca3af; margin-bottom: 20px; }
+    .modal-form-field { margin-bottom: 14px; }
+    .modal-form-field label { display: block; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+    .modal-form-field input, .modal-form-field select {
+      width: 100%; padding: 11px 14px; border: 1.5px solid #e5e7eb; border-radius: 10px;
+      font-size: 14px; color: #1e1e2e; background: #fafafa; outline: none; font-family: inherit; transition: border 0.2s;
+    }
+    .modal-form-field input:focus, .modal-form-field select:focus { border-color: #4f46e5; background: #fff; }
+    .modal-actions { display: flex; gap: 8px; margin-top: 20px; }
+    .modal-actions button { flex: 1; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s; }
+    .modal-cancel { background: #f5f4fb; color: #6b7280; }
+    .modal-cancel:hover { background: #ede9fe; color: #4f46e5; }
+    .modal-submit { background: #4f46e5; color: #fff; }
+    .modal-submit:hover { background: #4338ca; }
+    .modal-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* Preview Modal */
+    .preview-iframe-wrap {
+      width: 100%; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden;
+      background: #000; margin-bottom: 16px;
+    }
+    .preview-iframe-wrap iframe { width: 100%; height: 100%; border: none; }
+    .preview-dl-btn {
+      width: 100%; padding: 13px; background: #4f46e5; color: #fff;
+      border: none; border-radius: 10px; font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .preview-dl-btn:hover { background: #4338ca; }
+
+    /* Toast */
+    .toast-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+    .toast {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px; border-radius: 12px; min-width: 260px;
+      background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.15); font-size: 13px; font-weight: 500;
+      animation: slideIn 0.3s ease;
+    }
+    .toast.success { border-left: 4px solid #10b981; }
+    .toast.error { border-left: 4px solid #ef4444; }
+    .toast.info { border-left: 4px solid #4f46e5; }
+    .toast-close { margin-left: auto; background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 16px; }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <img src="../assets/logo-maknarona.png" alt="Logo">
+      Maknarona
+    </div>
+    <div class="sidebar-role">🎬 Videografer</div>
+    <div class="nav-section">Menu</div>
+    <button class="nav-item active" onclick="showPage('dashboard', this)">
+      <span class="icon">⊞</span> Dashboard
+    </button>
+    <button class="nav-item" onclick="showPage('upload', this)">
+      <span class="icon">⬆</span> Upload Template
+    </button>
+    <button class="nav-item" onclick="showPage('milik', this)">
+      <span class="icon">🎬</span> Template Saya
+    </button>
+    <button class="nav-item" onclick="showPage('semua', this)">
+      <span class="icon">▦</span> Semua Template
+    </button>
+    <button class="nav-item" onclick="showPage('profil', this)">
+      <span class="icon">👤</span> Profil
+    </button>
+    <div class="sidebar-bottom">
+      <button class="logout-btn" onclick="doLogout()">
+        <span class="icon">⎋</span> Keluar
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+
+    <!-- DASHBOARD PAGE -->
+    <div class="page-section active" id="page-dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Dashboard</div>
+          <div class="page-subtitle" id="greetMsg">Selamat datang!</div>
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="val" id="statTotal">—</div>
+          <div class="lbl">Total Template</div>
+        </div>
+        <div class="stat-card">
+          <div class="val" id="statDownload">—</div>
+          <div class="lbl">Total Download</div>
+        </div>
+        <div class="stat-card">
+          <div class="val" id="statProduk">—</div>
+          <div class="lbl">Produk Dicakup</div>
+        </div>
+      </div>
+
+      <!-- Recent templates -->
+      <div class="form-card">
+        <h3>Template Terbaru Saya</h3>
+        <div class="template-grid" id="recentGrid">
+          <div class="empty-state"><div class="empty-icon">🎬</div><p>Belum ada template.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPLOAD PAGE -->
+    <div class="page-section" id="page-upload">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Upload Template</div>
+          <div class="page-subtitle">Tambah template video baru ke library.</div>
+        </div>
+      </div>
+      <div class="form-card">
+        <h3>Detail Template</h3>
+        <div class="form-grid">
+          <div class="form-field">
+            <label>Judul Template</label>
+            <input type="text" id="uploadJudul" placeholder="Contoh: Footage Minum Koikohi" />
+          </div>
+          <div class="form-field">
+            <label>Produk</label>
+            <select id="uploadProduk">
+              <option value="">— Pilih Produk —</option>
+              <option>Primagold</option>
+              <option>Numata</option>
+              <option>Herbapil</option>
+              <option>Youzhi Cream</option>
+              <option>Youzhi Tube</option>
+              <option>Onaire</option>
+              <option>Jawara</option>
+              <option>Koikohi</option>
+              <option>Mr Prima</option>
+              <option>Vasco</option>
+              <option>Notelli</option>
+              <option>Maksir</option>
+              <option>Oiri</option>
+              <option>Noradix</option>
+              <option>Bajakah</option>
+              <option>Provitasi</option>
+              <option>Channabumax</option>
+            </select>
+          </div>
+          <div class="form-field full">
+            <label>Link Google Drive</label>
+            <input type="url" id="uploadLink" placeholder="https://drive.google.com/file/d/..." />
+          </div>
+        </div>
+        <div style="margin-top:16px;padding:14px;background:#f0eef8;border-radius:10px;font-size:13px;color:#6b7280;line-height:1.6;">
+          <strong style="color:#4f46e5;">💡 Cara share link Drive:</strong><br>
+          1. Buka file video di Google Drive<br>
+          2. Klik kanan → <em>Share</em> → ubah ke <em>"Anyone with the link"</em><br>
+          3. Klik <em>Copy link</em> → paste di sini
+        </div>
+        <div class="form-actions">
+          <button class="btn-primary" id="uploadBtn" onclick="doUpload()">Upload Template</button>
+          <button class="btn-secondary" onclick="resetUploadForm()">Reset</button>
+        </div>
+        <p class="form-msg" id="uploadMsg"></p>
+      </div>
+    </div>
+
+    <!-- TEMPLATE SAYA PAGE -->
+    <div class="page-section" id="page-milik">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Template Saya</div>
+          <div class="page-subtitle">Kelola template yang kamu upload.</div>
+        </div>
+        <button class="btn-primary" onclick="showPage('upload', document.querySelector('.nav-item:nth-child(3))'))">+ Upload Baru</button>
+      </div>
+      <div class="template-toolbar">
+        <select class="filter-select" id="filterMilikProduk" onchange="loadMyTemplates()">
+          <option value="">Semua Produk</option>
+          <option>Primagold</option><option>Numata</option><option>Herbapil</option>
+          <option>Youzhi Cream</option><option>Youzhi Tube</option><option>Onaire</option>
+          <option>Jawara</option><option>Koikohi</option><option>Mr Prima</option>
+          <option>Vasco</option><option>Notelli</option><option>Maksir</option>
+          <option>Oiri</option><option>Noradix</option><option>Bajakah</option>
+          <option>Provitasi</option><option>Channabumax</option>
+        </select>
+        <input class="search-input" type="text" id="searchMilik" placeholder="🔍 Cari judul..." oninput="loadMyTemplates()" />
+      </div>
+      <div class="template-grid" id="milikGrid">
+        <div class="empty-state"><div class="empty-icon">🎬</div><p>Memuat...</p></div>
+      </div>
+    </div>
+
+    <!-- SEMUA TEMPLATE PAGE -->
+    <div class="page-section" id="page-semua">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Semua Template</div>
+          <div class="page-subtitle">Browse seluruh template video library.</div>
+        </div>
+      </div>
+      <div class="template-toolbar">
+        <select class="filter-select" id="filterSemuaProduk" onchange="loadAllTemplates()">
+          <option value="">Semua Produk</option>
+          <option>Primagold</option><option>Numata</option><option>Herbapil</option>
+          <option>Youzhi Cream</option><option>Youzhi Tube</option><option>Onaire</option>
+          <option>Jawara</option><option>Koikohi</option><option>Mr Prima</option>
+          <option>Vasco</option><option>Notelli</option><option>Maksir</option>
+          <option>Oiri</option><option>Noradix</option><option>Bajakah</option>
+          <option>Provitasi</option><option>Channabumax</option>
+        </select>
+        <input class="search-input" type="text" id="searchSemua" placeholder="🔍 Cari judul..." oninput="loadAllTemplates()" />
+      </div>
+      <div class="template-grid" id="semuaGrid">
+        <div class="empty-state"><div class="empty-icon">🎬</div><p>Memuat...</p></div>
+      </div>
+    </div>
+
+    <!-- PROFIL PAGE -->
+    <div class="page-section" id="page-profil">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Profil Saya</div>
+          <div class="page-subtitle">Informasi akunmu sebagai videografer.</div>
+        </div>
+      </div>
+      <div class="profile-card">
+        <div class="pf-field"><div class="pf-label">Nama</div><div class="pf-value" id="pfName">—</div></div>
+        <div class="pf-field"><div class="pf-label">Email</div><div class="pf-value" id="pfEmail">—</div></div>
+        <div class="pf-field"><div class="pf-label">No. WhatsApp</div><div class="pf-value" id="pfWa">—</div></div>
+        <div class="pf-field"><div class="pf-label">Bergabung Sejak</div><div class="pf-value" id="pfJoin">—</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal-box">
+      <div class="modal-title">Edit Template</div>
+      <div class="modal-sub">Ubah informasi template video.</div>
+      <input type="hidden" id="editId" />
+      <div class="modal-form-field">
+        <label>Judul Template</label>
+        <input type="text" id="editJudul" />
+      </div>
+      <div class="modal-form-field">
+        <label>Produk</label>
+        <select id="editProduk">
+          <option>Primagold</option><option>Numata</option><option>Herbapil</option>
+          <option>Youzhi Cream</option><option>Youzhi Tube</option><option>Onaire</option>
+          <option>Jawara</option><option>Koikohi</option><option>Mr Prima</option>
+          <option>Vasco</option><option>Notelli</option><option>Maksir</option>
+          <option>Oiri</option><option>Noradix</option><option>Bajakah</option>
+          <option>Provitasi</option><option>Channabumax</option>
+        </select>
+      </div>
+      <div class="modal-form-field">
+        <label>Link Google Drive</label>
+        <input type="url" id="editLink" />
+      </div>
+      <div class="modal-actions">
+        <button class="modal-cancel" onclick="closeModal('editModal')">Batal</button>
+        <button class="modal-submit" id="editSaveBtn" onclick="saveEdit()">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Preview Modal -->
+  <div class="modal-overlay" id="previewModal">
+    <div class="modal-box" style="max-width:640px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+        <div>
+          <div class="modal-title" id="previewTitle">—</div>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:6px">
+            <span class="template-produk" id="previewProduk">—</span>
+            <span style="font-size:12px;color:#9ca3af" id="previewDl">—</span>
+          </div>
+        </div>
+        <button onclick="closeModal('previewModal')" style="background:none;border:none;font-size:20px;cursor:pointer;color:#9ca3af;padding:4px">✕</button>
+      </div>
+      <div class="preview-iframe-wrap">
+        <iframe id="previewIframe" src="" allowfullscreen></iframe>
+      </div>
+      <button class="preview-dl-btn" id="previewDlBtn" onclick="doDownloadFromPreview()">
+        ⬇ Download Video
+      </button>
+    </div>
+  </div>
+
+  <!-- Delete Confirm Modal -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal-box" style="max-width:400px">
+      <div class="modal-title">Hapus Template?</div>
+      <div class="modal-sub" id="deleteMsg">Template ini akan dihapus permanen.</div>
+      <input type="hidden" id="deleteId" />
+      <div class="modal-actions">
+        <button class="modal-cancel" onclick="closeModal('deleteModal')">Batal</button>
+        <button style="flex:1;padding:12px;border-radius:10px;font-size:14px;font-weight:600;border:none;cursor:pointer;background:#dc2626;color:#fff;" onclick="confirmDelete()">Ya, Hapus</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const SUPABASE_URL = 'https://woqznjubhmjraqapgyat.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvcXpuanViaG1qcmFxYXBneWF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MzUxNTgsImV4cCI6MjA5MjUxMTE1OH0.xBHG0aeKLutXyqTjlhpGVIYy7-wuI-ztI9e73wmRL04';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentVg = null;
+    let currentPreviewFileId = null;
+
+    function extractFileId(url) {
+      const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      return match ? match[1] : null;
+    }
+
+    function thumbUrl(fileId) {
+      return `https://drive.google.com/thumbnail?id=${fileId}&sz=w400`;
+    }
+
+    function showToast(msg, type = 'info', duration = 4000) {
+      const wrap = document.getElementById('toastWrap');
+      const icons = { error: '⚠️', success: '✅', info: 'ℹ️' };
+      const id = 'toast-' + Date.now();
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.id = id;
+      el.innerHTML = `<span>${icons[type]}</span><span style="flex:1">${msg}</span><button class="toast-close" onclick="document.getElementById('${id}').remove()">✕</button>`;
+      wrap.appendChild(el);
+      if (duration) setTimeout(() => el?.remove(), duration);
+    }
+
+    function fmtDate(str) {
+      if (!str) return '—';
+      return new Date(str).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+    window.showPage = function(page, btn) {
+      document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      document.getElementById('page-' + page).classList.add('active');
+      if (btn) btn.classList.add('active');
+      if (page === 'milik') loadMyTemplates();
+      if (page === 'semua') loadAllTemplates();
+    };
+
+    window.doLogout = async function() {
+      await supabase.auth.signOut();
+      window.location.href = 'login.html';
+    };
+
+    window.closeModal = function(id) {
+      document.getElementById(id).classList.remove('show');
+      if (id === 'previewModal') {
+        document.getElementById('previewIframe').src = '';
+      }
+    };
+
+    async function init() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { window.location.href = 'login.html'; return; }
+
+      const { data: vg } = await supabase.from('videografers').select('*').eq('user_id', session.user.id).single();
+      if (!vg) { window.location.href = 'login.html'; return; }
+      currentVg = vg;
+
+      document.getElementById('greetMsg').textContent = `Halo, ${vg.name}! 👋`;
+      document.getElementById('pfName').textContent = vg.name;
+      document.getElementById('pfEmail').textContent = vg.email;
+      document.getElementById('pfWa').textContent = vg.wa_number || '—';
+      document.getElementById('pfJoin').textContent = fmtDate(vg.created_at);
+
+      await loadDashboardStats();
+    }
+
+    async function loadDashboardStats() {
+      const { data: myTemplates } = await supabase
+        .from('video_templates')
+        .select('*')
+        .eq('uploaded_by', currentVg.user_id)
+        .order('created_at', { ascending: false });
+
+      if (!myTemplates) return;
+
+      const totalDownload = myTemplates.reduce((sum, t) => sum + (t.download_count || 0), 0);
+      const uniqueProduk = new Set(myTemplates.map(t => t.produk)).size;
+
+      document.getElementById('statTotal').textContent = myTemplates.length;
+      document.getElementById('statDownload').textContent = totalDownload;
+      document.getElementById('statProduk').textContent = uniqueProduk;
+
+      renderGrid('recentGrid', myTemplates.slice(0, 4), true);
+    }
+
+    window.loadMyTemplates = async function() {
+      const produkFilter = document.getElementById('filterMilikProduk').value;
+      const search = document.getElementById('searchMilik').value.toLowerCase();
+
+      let query = supabase.from('video_templates').select('*').eq('uploaded_by', currentVg.user_id).order('created_at', { ascending: false });
+      if (produkFilter) query = query.eq('produk', produkFilter);
+
+      const { data } = await query;
+      if (!data) { document.getElementById('milikGrid').innerHTML = '<div class="empty-state"><div class="empty-icon">😕</div><p>Gagal memuat.</p></div>'; return; }
+
+      const filtered = search ? data.filter(t => t.judul.toLowerCase().includes(search)) : data;
+      renderGrid('milikGrid', filtered, true);
+    };
+
+    window.loadAllTemplates = async function() {
+      const produkFilter = document.getElementById('filterSemuaProduk').value;
+      const search = document.getElementById('searchSemua').value.toLowerCase();
+
+      let query = supabase.from('video_templates').select('*').order('created_at', { ascending: false });
+      if (produkFilter) query = query.eq('produk', produkFilter);
+
+      const { data } = await query;
+      if (!data) { document.getElementById('semuaGrid').innerHTML = '<div class="empty-state"><div class="empty-icon">😕</div><p>Gagal memuat.</p></div>'; return; }
+
+      const filtered = search ? data.filter(t => t.judul.toLowerCase().includes(search)) : data;
+      renderGrid('semuaGrid', filtered, false);
+    };
+
+    function renderGrid(gridId, templates, showOwnerActions) {
+      const grid = document.getElementById(gridId);
+      if (!templates || templates.length === 0) {
+        grid.innerHTML = '<div class="empty-state"><div class="empty-icon">🎬</div><p>Belum ada template.</p></div>';
+        return;
+      }
+      grid.innerHTML = templates.map(t => {
+        const fileId = t.file_id || extractFileId(t.link_drive);
+        const isOwner = showOwnerActions && t.uploaded_by === currentVg.user_id;
+        return `
+          <div class="template-card">
+            <div class="template-thumb">
+              <img src="${thumbUrl(fileId)}" alt="${t.judul}" loading="lazy"
+                onerror="this.parentElement.innerHTML='<div class=\\'thumb-placeholder\\'>🎬</div>'" />
+            </div>
+            <div class="template-info">
+              <div class="template-title" title="${t.judul}">${t.judul}</div>
+              <div class="template-meta">
+                <span class="template-produk">${t.produk}</span>
+                <span class="template-dl">⬇ ${t.download_count || 0}x</span>
+              </div>
+              <div class="template-actions">
+                <button class="btn-preview" onclick="openPreview('${t.id}','${t.judul}','${t.produk}','${fileId}',${t.download_count||0})">▶ Preview</button>
+                ${isOwner ? `
+                  <button class="btn-edit" onclick="openEdit('${t.id}','${t.judul}','${t.produk}','${t.link_drive}')">Edit</button>
+                  <button class="btn-delete" onclick="openDelete('${t.id}','${t.judul}')">🗑</button>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.doUpload = async function() {
+      const judul = document.getElementById('uploadJudul').value.trim();
+      const produk = document.getElementById('uploadProduk').value;
+      const link = document.getElementById('uploadLink').value.trim();
+      const btn = document.getElementById('uploadBtn');
+      const msg = document.getElementById('uploadMsg');
+
+      if (!judul || !produk || !link) {
+        msg.style.color = '#dc2626'; msg.textContent = 'Semua field wajib diisi.'; return;
+      }
+      const fileId = extractFileId(link);
+      if (!fileId) {
+        msg.style.color = '#dc2626'; msg.textContent = 'Link Google Drive tidak valid.'; return;
+      }
+
+      btn.disabled = true; btn.textContent = 'Mengupload...'; msg.textContent = '';
+
+      const { error } = await supabase.from('video_templates').insert({
+        judul, produk, link_drive: link, file_id: fileId,
+        uploaded_by: currentVg.user_id,
+        uploader_name: currentVg.name,
+        download_count: 0
+      });
+
+      btn.disabled = false; btn.textContent = 'Upload Template';
+
+      if (error) {
+        msg.style.color = '#dc2626'; msg.textContent = 'Gagal upload: ' + error.message;
+      } else {
+        msg.style.color = '#10b981'; msg.textContent = '✅ Template berhasil diupload!';
+        showToast('Template berhasil ditambahkan!', 'success');
+        resetUploadForm();
+        await loadDashboardStats();
+      }
+    };
+
+    window.resetUploadForm = function() {
+      document.getElementById('uploadJudul').value = '';
+      document.getElementById('uploadProduk').value = '';
+      document.getElementById('uploadLink').value = '';
+      document.getElementById('uploadMsg').textContent = '';
+    };
+
+    window.openEdit = function(id, judul, produk, link) {
+      document.getElementById('editId').value = id;
+      document.getElementById('editJudul').value = judul;
+      document.getElementById('editProduk').value = produk;
+      document.getElementById('editLink').value = link;
+      document.getElementById('editModal').classList.add('show');
+    };
+
+    window.saveEdit = async function() {
+      const id = document.getElementById('editId').value;
+      const judul = document.getElementById('editJudul').value.trim();
+      const produk = document.getElementById('editProduk').value;
+      const link = document.getElementById('editLink').value.trim();
+      const btn = document.getElementById('editSaveBtn');
+
+      if (!judul || !produk || !link) { showToast('Semua field wajib diisi.', 'error'); return; }
+      const fileId = extractFileId(link);
+      if (!fileId) { showToast('Link Google Drive tidak valid.', 'error'); return; }
+
+      btn.disabled = true; btn.textContent = 'Menyimpan...';
+      const { error } = await supabase.from('video_templates').update({ judul, produk, link_drive: link, file_id: fileId }).eq('id', id);
+      btn.disabled = false; btn.textContent = 'Simpan';
+
+      if (error) { showToast('Gagal menyimpan: ' + error.message, 'error'); return; }
+      showToast('Template berhasil diupdate!', 'success');
+      closeModal('editModal');
+      loadMyTemplates();
+      loadDashboardStats();
+    };
+
+    window.openDelete = function(id, judul) {
+      document.getElementById('deleteId').value = id;
+      document.getElementById('deleteMsg').textContent = `Hapus template "${judul}"? Aksi ini tidak bisa dibatalkan.`;
+      document.getElementById('deleteModal').classList.add('show');
+    };
+
+    window.confirmDelete = async function() {
+      const id = document.getElementById('deleteId').value;
+      const { error } = await supabase.from('video_templates').delete().eq('id', id);
+      if (error) { showToast('Gagal hapus: ' + error.message, 'error'); return; }
+      showToast('Template berhasil dihapus.', 'success');
+      closeModal('deleteModal');
+      loadMyTemplates();
+      loadDashboardStats();
+    };
+
+    window.openPreview = function(id, judul, produk, fileId, dlCount) {
+      currentPreviewFileId = { id, fileId };
+      document.getElementById('previewTitle').textContent = judul;
+      document.getElementById('previewProduk').textContent = produk;
+      document.getElementById('previewDl').textContent = `⬇ Didownload ${dlCount}x`;
+      document.getElementById('previewIframe').src = `https://drive.google.com/file/d/${fileId}/preview`;
+      document.getElementById('previewModal').classList.add('show');
+    };
+
+    window.doDownloadFromPreview = async function() {
+      if (!currentPreviewFileId) return;
+      const { id, fileId } = currentPreviewFileId;
+
+      // Catat download
+      await supabase.from('template_downloads').insert({
+        template_id: id,
+        user_id: currentVg.user_id,
+        user_name: currentVg.name,
+        role: 'videografer'
+      });
+      await supabase.rpc('increment_download_count', { template_id: id });
+
+      // Update tampilan download count di preview modal
+      const dlEl = document.getElementById('previewDl');
+      const current = parseInt(dlEl.textContent.match(/\d+/) || [0]) + 1;
+      dlEl.textContent = `⬇ Didownload ${current}x`;
+
+      // Trigger download
+      const a = document.createElement('a');
+      a.href = `https://drive.google.com/uc?export=download&id=${fileId}`;
+      a.target = '_blank';
+      a.click();
+
+      showToast('Download dimulai!', 'success');
+    };
+
+    // Close modal on backdrop click
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeModal(overlay.id);
+      });
+    });
+
+    init();
+  </script>
+</body>
+</html>

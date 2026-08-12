@@ -1038,7 +1038,7 @@
       renderHistory(done);
       renderMonthlyRecap(done);
       renderCalendar();
-      renderQueue(active.filter(o => o.status === 'assigned'));
+      renderQueue(queued);
       loadPendingPool();
     }
 

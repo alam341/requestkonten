@@ -771,16 +771,24 @@
     window.loadPerform = async function() {
       const val = document.getElementById('performMonthSelect').value;
       const [year, month] = val.split('-').map(Number);
-      const from = new Date(year, month - 1, 1).toISOString();
-      const to = new Date(year, month, 0, 23, 59, 59).toISOString();
+      const fromDate = new Date(year, month - 1, 1);
+      const toDate = new Date(year, month, 0, 23, 59, 59);
 
-      // Ambil semua order done bulan ini + order aktif semua creator
-      const [{ data: doneOrders }, { data: activeOrders }] = await Promise.all([
-        supabase.from('orders').select('creator_id, content_type, assigned_at, creator_deadline, revision_note, updated_at')
-          .eq('status', 'done').gte('updated_at', from).lte('updated_at', to),
+      // Ambil semua order done (filter client-side) + order aktif semua creator
+      const [{ data: allDone }, { data: activeOrders }] = await Promise.all([
+        supabase.from('orders').select('creator_id, content_type, assigned_at, creator_deadline, revision_note, updated_at, deadline')
+          .eq('status', 'done'),
         supabase.from('orders').select('creator_id')
           .in('status', ['assigned', 'in_progress', 'revision'])
       ]);
+
+      // Filter client-side pakai updated_at || deadline (sama seperti laporan bulanan)
+      const doneOrders = (allDone || []).filter(o => {
+        const ref = o.updated_at || o.deadline;
+        if (!ref) return false;
+        const d = new Date(ref);
+        return d >= fromDate && d <= toDate;
+      });
 
       // Hitung stats per creator
       const statsMap = {};

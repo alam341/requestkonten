@@ -137,7 +137,7 @@
       </div>
       <div class="field">
         <label>Jenis Konten *</label>
-        <select id="content_type" required>
+        <select id="content_type" required onchange="onContentTypeChange()">
           <option value="">-- Pilih jenis konten --</option>
           <option value="Desain Konten">Desain Konten</option>
           <option value="Foto Produk">Foto Produk</option>
@@ -147,6 +147,17 @@
           <option value="Desain Landingpage">Desain Landingpage</option>
           <option value="Script">Script</option>
         </select>
+      </div>
+      <div class="field" id="tipeVideoField" style="display:none">
+        <label>Tipe Video Iklan *</label>
+        <select id="tipe_video_select" onchange="onTipeVideoChange()">
+          <option value="">-- Pilih tipe --</option>
+          <option value="Full AI">Full AI</option>
+          <option value="Full Original">Full Original</option>
+          <option value="Kombinasi">Kombinasi</option>
+          <option value="Lainnya">Lainnya (ketik sendiri)</option>
+        </select>
+        <input type="text" id="tipe_video_custom" placeholder="Tulis tipe video..." style="display:none;margin-top:8px" />
       </div>
       <div class="field">
         <label>Platform</label>
@@ -191,6 +202,31 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvcXpuanViaG1qcmFxYXBneWF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MzUxNTgsImV4cCI6MjA5MjUxMTE1OH0.xBHG0aeKLutXyqTjlhpGVIYy7-wuI-ztI9e73wmRL04';
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    window.onContentTypeChange = function() {
+      const val = document.getElementById('content_type').value;
+      const field = document.getElementById('tipeVideoField');
+      if (val === 'Video Iklan') {
+        field.style.display = 'block';
+      } else {
+        field.style.display = 'none';
+        document.getElementById('tipe_video_select').value = '';
+        document.getElementById('tipe_video_custom').style.display = 'none';
+        document.getElementById('tipe_video_custom').value = '';
+      }
+    };
+
+    window.onTipeVideoChange = function() {
+      const sel = document.getElementById('tipe_video_select').value;
+      const customInput = document.getElementById('tipe_video_custom');
+      if (sel === 'Lainnya') {
+        customInput.style.display = 'block';
+        customInput.focus();
+      } else {
+        customInput.style.display = 'none';
+        customInput.value = '';
+      }
+    };
+
     supabase.auth.getSession().then(({ data }) => {
       // Kalau belum login, redirect ke landing page
       if (!data.session) {
@@ -227,6 +263,17 @@
       const { data: { session } } = await supabase.auth.getSession();
 
       const meta = session?.user?.user_metadata || {};
+      // Ambil nilai tipe_video
+      let tipeVideo = null;
+      if (document.getElementById('content_type').value === 'Video Iklan') {
+        const sel = document.getElementById('tipe_video_select').value;
+        if (sel === 'Lainnya') {
+          tipeVideo = document.getElementById('tipe_video_custom').value.trim() || null;
+        } else {
+          tipeVideo = sel || null;
+        }
+      }
+
       const payload = {
         advertiser_name: document.getElementById('advertiser_name').value.trim(),
         brand: document.getElementById('brand').value.trim(),
@@ -237,6 +284,7 @@
         referensi_konten: document.getElementById('referensi_konten').value.trim() || null,
         brief: document.getElementById('brief').value.trim(),
         deadline: document.getElementById('deadline').value || null,
+        tipe_video: tipeVideo,
         advertiser_id: session?.user?.id || null,
         team: meta.team || null,
         status: 'pending',

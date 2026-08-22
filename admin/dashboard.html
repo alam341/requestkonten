@@ -559,24 +559,24 @@
             <div class="mf-value" id="modalRevisiCount">—</div>
           </div>
         </div>
-        <div class="modal-brief" id="modalBriefWrap">
+        <div class="modal-brief">
           <div class="mf-label">Brief / Catatan</div>
-          <div class="mf-value" id="modalBrief">—</div>
+          <div class="mf-value" id="modalBrief" style="max-height:140px;overflow-y:auto;padding-right:4px">—</div>
         </div>
-        <div class="modal-brief" id="modalRevisiWrap" style="display:none">
-          <div class="mf-label">Catatan Revisi</div>
-          <div class="mf-value" style="color:#f87171" id="modalRevisiNote">—</div>
-        </div>
-        <div class="modal-field" id="modalDriveWrap" style="display:none">
-          <div class="mf-label">Link Hasil</div>
+        <div class="modal-brief" id="modalRefWrap" style="display:none">
+          <div class="mf-label">Referensi Konten</div>
           <div class="mf-value">
-            <a class="modal-link" id="modalDriveLink" href="#" target="_blank">Buka Drive Link ↗</a>
+            <a class="modal-link" id="modalRefLink" href="#" target="_blank">Lihat Referensi ↗</a>
           </div>
         </div>
-        <div class="modal-field" id="modalRefWrap" style="display:none">
-          <div class="mf-label">Referensi</div>
+        <div class="modal-brief" id="modalRevisiWrap" style="display:none;border-left:3px solid #f87171">
+          <div class="mf-label" style="color:#f87171">Catatan Revisi</div>
+          <div class="mf-value" style="color:#f87171" id="modalRevisiNote">—</div>
+        </div>
+        <div class="modal-brief" id="modalDriveWrap" style="display:none;border-left:3px solid #34d399">
+          <div class="mf-label" style="color:#34d399">Link Hasil</div>
           <div class="mf-value">
-            <a class="modal-link" id="modalRefLink" href="#" target="_blank" id="modalRef">Buka Referensi ↗</a>
+            <a class="modal-link" id="modalDriveLink" href="#" target="_blank">Buka Drive Link ↗</a>
           </div>
         </div>
       </div>
@@ -1218,7 +1218,26 @@
       document.getElementById('modalRevisiCount').textContent = o.revision_count || '0';
 
       // Brief
-      document.getElementById('modalBrief').textContent = o.brief || o.notes || o.description || '—';
+      document.getElementById('modalBrief').textContent = o.brief || '—';
+
+      // Referensi konten
+      if (o.referensi_konten) {
+        const refEl = document.getElementById('modalRefLink');
+        // Cek apakah link atau teks biasa
+        if (o.referensi_konten.startsWith('http')) {
+          refEl.href = o.referensi_konten;
+          refEl.textContent = 'Lihat Referensi ↗';
+        } else {
+          refEl.removeAttribute('href');
+          refEl.textContent = o.referensi_konten;
+          refEl.style.color = 'var(--text)';
+          refEl.style.textDecoration = 'none';
+          refEl.style.cursor = 'default';
+        }
+        document.getElementById('modalRefWrap').style.display = 'block';
+      } else {
+        document.getElementById('modalRefWrap').style.display = 'none';
+      }
 
       // Catatan revisi
       if (o.revision_note) {
@@ -1234,15 +1253,6 @@
         document.getElementById('modalDriveWrap').style.display = 'block';
       } else {
         document.getElementById('modalDriveWrap').style.display = 'none';
-      }
-
-      // Referensi
-      if (o.reference_link || o.reference) {
-        const refLink = o.reference_link || o.reference;
-        document.getElementById('modalRefLink').href = refLink;
-        document.getElementById('modalRefWrap').style.display = 'block';
-      } else {
-        document.getElementById('modalRefWrap').style.display = 'none';
       }
 
       document.getElementById('detailModal').classList.add('open');

@@ -487,6 +487,10 @@
             <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin-bottom:4px">Platform</div>
             <div style="font-size:13px;font-weight:600;color:#1e1e2e" id="detailPlatform">—</div>
           </div>
+          <div id="detailTipeVideoWrap" style="display:none;grid-column:1/-1;background:#ede9fe;border-radius:10px;padding:12px;border-left:3px solid #7c3aed">
+            <div style="font-size:11px;font-weight:700;color:#7c3aed;text-transform:uppercase;margin-bottom:4px">Tipe Video Iklan</div>
+            <div style="font-size:13px;font-weight:700;color:#5b21b6" id="detailTipeVideo">—</div>
+          </div>
           <div style="background:#f5f4fb;border-radius:10px;padding:12px">
             <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin-bottom:4px">Jumlah Konten</div>
             <div style="font-size:13px;font-weight:600;color:#1e1e2e" id="detailJumlah">—</div>
@@ -1369,6 +1373,7 @@
           <div class="pool-meta">
             <span>👤 ${o.advertiser_name}</span>
             ${o.platform ? `<span>📱 ${o.platform}</span>` : ''}
+            ${o.content_type === 'Video Iklan' && o.tipe_video ? `<span>🎬 Tipe: <strong style="color:#5b21b6">${o.tipe_video}</strong></span>` : ''}
             ${o.deadline ? `<span>📅 Deadline: ${fmtDate(o.deadline)}</span>` : ''}
             ${o.referensi_konten ? `<span>🔗 <a href="${o.referensi_konten}" target="_blank" rel="noopener" style="color:#4f46e5;text-decoration:underline;word-break:break-all">Lihat Referensi</a></span>` : ''}
             <span style="color:#c4c0f0;font-size:12px">Masuk: ${sinceStr}</span>
@@ -1603,6 +1608,15 @@
       document.getElementById('detailType').textContent = o.content_type || '—';
       document.getElementById('detailPlatform').textContent = o.platform || '—';
       document.getElementById('detailJumlah').textContent = o.jumlah_konten ? o.jumlah_konten + ' konten' : '—';
+
+      // Tipe video iklan
+      const tipeWrap = document.getElementById('detailTipeVideoWrap');
+      if (o.content_type === 'Video Iklan' && o.tipe_video) {
+        document.getElementById('detailTipeVideo').textContent = o.tipe_video;
+        tipeWrap.style.display = 'block';
+      } else {
+        tipeWrap.style.display = 'none';
+      }
       document.getElementById('detailDeadline').textContent = fmtDate(o.deadline);
       document.getElementById('detailBrief').textContent = o.brief || '—';
 

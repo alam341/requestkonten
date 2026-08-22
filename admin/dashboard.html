@@ -529,6 +529,12 @@
             <div class="mf-value" id="modalStatus">—</div>
           </div>
         </div>
+        <div class="modal-row" id="modalTipeVideoRow" style="display:none">
+          <div class="modal-field" style="background:#ede9fe;border-color:#a78bfa">
+            <div class="mf-label" style="color:#7c3aed">Tipe Video Iklan</div>
+            <div class="mf-value" style="color:#5b21b6;font-weight:700" id="modalTipeVideo">—</div>
+          </div>
+        </div>
         <div class="modal-row">
           <div class="modal-field">
             <div class="mf-label">Creator</div>
@@ -1210,6 +1216,14 @@
       document.getElementById('modalAdvertiser').textContent = o.advertiser_name || '—';
       document.getElementById('modalJenis').textContent = o.content_type || '—';
       document.getElementById('modalStatus').innerHTML = `<span class="badge ${o.status}">${statusLabel[o.status] || o.status}</span>`;
+
+      // Tipe video (hanya muncul kalau Video Iklan)
+      if (o.content_type === 'Video Iklan' && o.tipe_video) {
+        document.getElementById('modalTipeVideo').textContent = o.tipe_video;
+        document.getElementById('modalTipeVideoRow').style.display = 'flex';
+      } else {
+        document.getElementById('modalTipeVideoRow').style.display = 'none';
+      }
       document.getElementById('modalCreator').textContent = o.creators?.name || '—';
       document.getElementById('modalTeam').textContent = o.team || '—';
       document.getElementById('modalCreatedAt').textContent = fmtDate(o.created_at);

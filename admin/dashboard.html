@@ -434,11 +434,11 @@
           <thead>
             <tr>
               <th>Advertiser</th><th>Brand</th><th>Jenis</th>
-              <th>Status</th><th>Creator</th><th>Assign Manual</th><th></th>
+              <th>Jml</th><th>Status</th><th>Creator</th><th>Assign Manual</th><th></th>
             </tr>
           </thead>
           <tbody id="ordersBody">
-            <tr class="loading-row"><td colspan="7">Memuat...</td></tr>
+            <tr class="loading-row"><td colspan="8">Memuat...</td></tr>
           </tbody>
         </table>
         <div id="ordersPagination" style="display:flex;align-items:center;justify-content:space-between;padding:14px 4px 4px;gap:8px;flex-wrap:wrap">
@@ -824,12 +824,13 @@
 
     function renderOrders(orders) {
       const body = document.getElementById('ordersBody');
-      if (!orders.length) { body.innerHTML = '<tr class="empty-row"><td colspan="7">Belum ada order.</td></tr>'; return; }
+      if (!orders.length) { body.innerHTML = '<tr class="empty-row"><td colspan="8">Belum ada order.</td></tr>'; return; }
       body.innerHTML = orders.map(order => `
         <tr>
           <td>${order.advertiser_name}</td>
           <td><strong>${order.brand}</strong></td>
           <td>${order.content_type}</td>
+          <td style="text-align:center;font-weight:700;color:var(--accent)">${order.jumlah_konten || 1}</td>
           <td><span class="badge ${order.status}">${statusLabel[order.status] || order.status}</span></td>
           <td>${order.creators ? `<span style="color:var(--accent);font-weight:600">${order.creators.name}</span>` : '<span style="color:#4a4870">—</span>'}</td>
           <td>

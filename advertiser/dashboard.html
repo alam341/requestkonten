@@ -436,9 +436,13 @@
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { window.location.href = 'login.html'; return; }
 
-      const meta = session.user.user_metadata;
-      const displayName = meta?.team ? `${meta.name} · ${meta.team}` : (meta?.name || session.user.email);
-      document.getElementById('userName').textContent = displayName;
+      try {
+        const meta = session.user.user_metadata;
+        const displayName = meta?.team ? `${meta.name} · ${meta.team}` : (meta?.name || session.user.email || '—');
+        document.getElementById('userName').textContent = displayName;
+      } catch(e) {
+        document.getElementById('userName').textContent = session.user.email || '—';
+      }
 
       currentUserId = session.user.id;
       await loadOrders(currentUserId);
@@ -843,24 +847,25 @@
       const grid   = document.getElementById('advKolGrid');
       grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#9ca3af;">Memuat...</div>';
 
-      const from = (kolPage - 1) * KOL_PER_PAGE;
-      const to   = from + KOL_PER_PAGE - 1;
+      try {
+        const from = (kolPage - 1) * KOL_PER_PAGE;
+        const to   = from + KOL_PER_PAGE - 1;
 
-      let query = sbKol.from('kol_videos')
-        .select('*', { count: 'exact' })
-        .not('link_drive', 'is', null)
-        .order('created_at', { ascending: false })
-        .range(from, to);
-      if (produk) query = query.eq('produk', produk);
-      if (search) query = query.ilike('judul', `%${search}%`);
+        let query = sbKol.from('kol_videos')
+          .select('*', { count: 'exact' })
+          .not('link_drive', 'is', null)
+          .order('created_at', { ascending: false })
+          .range(from, to);
+        if (produk) query = query.eq('produk', produk);
+        if (search) query = query.ilike('judul', `%${search}%`);
 
-      const { data, count, error } = await query;
+        const { data, count, error } = await query;
 
-      if (error || !data || data.length === 0) {
-        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#9ca3af;">⭐ Belum ada konten KOL.</div>';
-        document.getElementById('advKolPagination').innerHTML = '';
-        return;
-      }
+        if (error || !data || data.length === 0) {
+          grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#9ca3af;"><div style="font-size:40px;margin-bottom:12px;">⭐</div><div style="font-size:15px;font-weight:600;margin-bottom:6px;">Belum ada konten KOL</div><div style="font-size:13px;">Konten akan muncul setelah KOL mengupload video ke Drive.</div></div>';
+          document.getElementById('advKolPagination').innerHTML = '';
+          return;
+        }
 
       grid.innerHTML = data.map(v => {
         const fileId   = extractDriveFileId(v.link_drive);
@@ -890,7 +895,11 @@
           </div>`;
       }).join('');
 
-      renderKolPagination(kolPage, count);
+        renderKolPagination(kolPage, count);
+      } catch(e) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#9ca3af;"><div style="font-size:40px;margin-bottom:12px;">⭐</div><div style="font-size:15px;font-weight:600;margin-bottom:6px;">Belum ada konten KOL</div><div style="font-size:13px;">Konten akan muncul setelah KOL mengupload video ke Drive.</div></div>';
+        document.getElementById('advKolPagination').innerHTML = '';
+      }
     };
 
     function renderKolPagination(currentPage, totalCount) {

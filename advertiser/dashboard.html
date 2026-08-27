@@ -853,7 +853,7 @@
         const to   = from + KOL_PER_PAGE - 1;
 
         let query = sbKol.from('kol_videos')
-          .select('*', { count: 'exact' })
+          .select('*, kols(name, tiktok)', { count: 'exact' })
           .not('link_drive', 'is', null)
           .order('created_at', { ascending: false })
           .range(from, to);
@@ -871,7 +871,8 @@
       grid.innerHTML = data.map(v => {
         const fileId   = extractDriveFileId(v.link_drive);
         const thumbSrc = `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
-        const judul    = v.judul || 'Tanpa Judul';
+        const kolUser  = v.kols?.tiktok ? `@${v.kols.tiktok}` : (v.kols?.name || '');
+        const judul    = v.judul || kolUser || 'Tanpa Judul';
         const produkV  = v.produk || '';
         return `
           <div onclick="openKolPreview('${v.id}','${judul.replace(/'/g,"\\'")}','${produkV}','${fileId}',${v.download_count||0})"

@@ -853,7 +853,7 @@
         const to   = from + KOL_PER_PAGE - 1;
 
         let query = sbKol.from('kol_videos')
-          .select('*, kols(name, tiktok)', { count: 'exact' })
+          .select('*', { count: 'exact' })
           .not('link_drive', 'is', null)
           .order('created_at', { ascending: false })
           .range(from, to);
@@ -868,10 +868,21 @@
           return;
         }
 
+        // Batch fetch kol names (separate query, no FK needed)
+        let kolsMap = {};
+        const kolIds = [...new Set(data.map(v => v.kol_id).filter(Boolean))];
+        if (kolIds.length > 0) {
+          const { data: kolsData } = await sbKol.from('kols')
+            .select('id, name, tiktok')
+            .in('id', kolIds);
+          if (kolsData) kolsData.forEach(k => { kolsMap[k.id] = k; });
+        }
+
       grid.innerHTML = data.map(v => {
         const fileId   = extractDriveFileId(v.link_drive);
         const thumbSrc = `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
-        const kolUser  = v.kols?.tiktok ? `@${v.kols.tiktok}` : (v.kols?.name || '');
+        const kol      = kolsMap[v.kol_id] || {};
+        const kolUser  = kol.tiktok ? `@${kol.tiktok}` : (kol.name || '');
         const judul    = v.judul || kolUser || 'Tanpa Judul';
         const produkV  = v.produk || '';
         return `

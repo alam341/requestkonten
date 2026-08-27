@@ -9,28 +9,71 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', sans-serif; background: #f4f6fb; min-height: 100vh; }
 
-    header {
-      background: #fff; padding: 16px 24px;
-      display: flex; justify-content: space-between; align-items: center;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    /* ── SIDEBAR LAYOUT ── */
+    .app-layout { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: 220px; flex-shrink: 0;
+      background: #fff;
+      border-right: 1px solid #e5e7eb;
+      display: flex; flex-direction: column;
+      padding: 24px 16px;
+      position: sticky; top: 0; height: 100vh;
+      overflow-y: auto;
     }
-    .logo { display: flex; align-items: center; }
-    .header-right { display: flex; align-items: center; gap: 14px; }
-    .user-name { font-size: 14px; color: #374151; font-weight: 500; }
+
+    .sidebar-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+    .sidebar-logo img { height: 32px; width: auto; }
+
+    .sidebar-user {
+      font-size: 12px; color: #9ca3af; font-weight: 500;
+      padding: 0 4px; margin-bottom: 20px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .nav-label {
+      font-size: 10px; font-weight: 700; color: #c4b5fd;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 0 8px; margin-bottom: 6px;
+    }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 10px;
+      font-size: 13px; font-weight: 500; color: #6b7280;
+      cursor: pointer; border: none; background: none;
+      width: 100%; text-align: left;
+      transition: all 0.15s; margin-bottom: 2px;
+      text-decoration: none;
+    }
+    .nav-item:hover { background: #f5f4fb; color: #4f46e5; }
+    .nav-item.active { background: #ede9fe; color: #4f46e5; font-weight: 700; }
+    .nav-item .nav-icon { font-size: 16px; flex-shrink: 0; }
+
+    .sidebar-spacer { flex: 1; }
+
+    .sidebar-bottom { padding-top: 16px; border-top: 1px solid #e5e7eb; display: flex; flex-direction: column; gap: 8px; }
+
     .new-order-btn {
-      padding: 8px 16px;
+      display: block; width: 100%;
+      padding: 11px 16px; text-align: center;
       background: #4f46e5; color: #fff;
-      border: none; border-radius: 7px;
-      font-size: 13px; font-weight: 600;
+      border: none; border-radius: 10px;
+      font-size: 13px; font-weight: 700;
       cursor: pointer; text-decoration: none;
       transition: background 0.2s;
     }
     .new-order-btn:hover { background: #4338ca; }
+
     .logout-btn {
-      font-size: 13px; color: #6b7280;
+      width: 100%; padding: 9px;
+      font-size: 13px; color: #9ca3af;
       background: none; border: none; cursor: pointer;
+      border-radius: 8px; transition: all 0.15s;
     }
-    .logout-btn:hover { color: #dc2626; }
+    .logout-btn:hover { background: #fef2f2; color: #dc2626; }
+
+    .main-content { flex: 1; overflow-y: auto; min-width: 0; }
 
     .container { max-width: 760px; margin: 32px auto; padding: 0 20px; }
 
@@ -193,22 +236,40 @@
   </style>
 </head>
 <body>
-  <header>
-    <div class="logo" style="display:flex;align-items:center;gap:10px;">
-      <img src="../assets/logo-maknarona.png" alt="Maknarona by Adsy" style="height:36px;width:auto;">
+<div class="app-layout">
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <img src="../assets/logo-maknarona.png" alt="Maknarona by Adsy">
       <div>
-        <div style="font-size:15px;font-weight:800;color:#4f46e5;line-height:1;">Maknarona</div>
+        <div style="font-size:14px;font-weight:800;color:#4f46e5;line-height:1;">Maknarona</div>
         <div style="font-size:10px;font-weight:500;color:#9ca3af;line-height:1.4;">by Adsy</div>
       </div>
     </div>
-    <div class="header-right">
-      <span class="user-name" id="userName">—</span>
-      <button onclick="showAdvPage('template')" style="padding:9px 16px;background:#ede9fe;color:#4f46e5;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='#ddd6fe'" onmouseout="this.style.background='#ede9fe'">🎬 Footage Video</button>
-      <button onclick="showAdvPage('kol')" style="padding:9px 16px;background:#ecfdf5;color:#059669;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='#d1fae5'" onmouseout="this.style.background='#ecfdf5'">⭐ Konten KOL</button>
+
+    <div class="sidebar-user" id="userName">—</div>
+
+    <div class="nav-label">Menu</div>
+    <button class="nav-item active" id="nav-orders" onclick="showAdvPage('orders')">
+      <span class="nav-icon">📋</span> My Orders
+    </button>
+    <button class="nav-item" id="nav-template" onclick="showAdvPage('template')">
+      <span class="nav-icon">🎬</span> Footage Video
+    </button>
+    <button class="nav-item" id="nav-kol" onclick="showAdvPage('kol')">
+      <span class="nav-icon">⭐</span> Konten KOL
+    </button>
+
+    <div class="sidebar-spacer"></div>
+
+    <div class="sidebar-bottom">
       <a href="../request.html" class="new-order-btn">+ Request Baru</a>
       <button class="logout-btn" onclick="doLogout()">Keluar</button>
     </div>
-  </header>
+  </aside>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <div class="main-content">
 
   <!-- Revision Modal -->
   <div class="modal-overlay" id="revisionModal">
@@ -225,12 +286,9 @@
 
   <!-- Footage Video Page (hidden by default) -->
   <div id="advTemplatePage" style="display:none;padding:28px;max-width:1200px;margin:0 auto;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
-      <div>
-        <div style="font-size:20px;font-weight:700;color:#1e1e2e;">Footage Video</div>
-        <div style="font-size:13px;color:#9ca3af;margin-top:2px;">Browse dan download footage video untuk iklanmu.</div>
-      </div>
-      <button onclick="showAdvPage('orders')" style="padding:9px 16px;background:#f5f4fb;color:#6b7280;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">← Kembali ke Order</button>
+    <div style="margin-bottom:24px;">
+      <div style="font-size:20px;font-weight:700;color:#1e1e2e;">Footage Video</div>
+      <div style="font-size:13px;color:#9ca3af;margin-top:2px;">Browse dan download footage video untuk iklanmu.</div>
     </div>
     <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap;">
       <select id="advTmplProduk" onchange="loadAdvTemplates()" style="padding:9px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;color:#374151;background:#fff;outline:none;cursor:pointer;font-family:inherit;">
@@ -277,12 +335,9 @@
 
   <!-- ===== KONTEN KOL PAGE ===== -->
   <div id="advKolPage" style="display:none;padding:28px;max-width:1200px;margin:0 auto;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
-      <div>
-        <div style="font-size:20px;font-weight:700;color:#1e1e2e;">⭐ Konten KOL</div>
-        <div style="font-size:13px;color:#9ca3af;margin-top:2px;">Preview konten yang sudah diupload oleh KOL.</div>
-      </div>
-      <button onclick="showAdvPage('orders')" style="padding:9px 16px;background:#f5f4fb;color:#6b7280;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">← Kembali ke Order</button>
+    <div style="margin-bottom:24px;">
+      <div style="font-size:20px;font-weight:700;color:#1e1e2e;">⭐ Konten KOL</div>
+      <div style="font-size:13px;color:#9ca3af;margin-top:2px;">Preview konten yang sudah diupload oleh KOL.</div>
     </div>
     <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap;">
       <select id="kolFilterProduk" onchange="loadKolVideos()" style="padding:9px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;color:#374151;background:#fff;outline:none;cursor:pointer;font-family:inherit;">
@@ -632,6 +687,12 @@
       document.getElementById('advOrderPage').style.display    = page === 'orders'   ? 'block' : 'none';
       document.getElementById('advTemplatePage').style.display = page === 'template' ? 'block' : 'none';
       document.getElementById('advKolPage').style.display      = page === 'kol'      ? 'block' : 'none';
+
+      ['orders','template','kol'].forEach(p => {
+        const el = document.getElementById('nav-' + p);
+        if (el) el.classList.toggle('active', p === page);
+      });
+
       if (page === 'template') { advTmplPage = 1; loadAdvTemplates(); }
       if (page === 'kol')      { kolPage = 1;     loadKolVideos(); }
     };
@@ -882,5 +943,7 @@
 
     init();
   </script>
+  </div><!-- /.main-content -->
+</div><!-- /.app-layout -->
 </body>
 </html>

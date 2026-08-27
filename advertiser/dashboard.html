@@ -686,6 +686,8 @@
 
     const ADV_PER_PAGE = 12;
     let advTmplPage = 1;
+    const KOL_PER_PAGE = 12;
+    let kolPage = 1;
 
     window.showAdvPage = function(page) {
       document.getElementById('advOrderPage').style.display    = page === 'orders'   ? 'block' : 'none';
@@ -824,12 +826,10 @@
 
     // ── KONTEN KOL ────────────────────────────────────────────
     const sbKol = window.supabase.createClient(
+
       'https://pdkkcpdjqpyljddeeott.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBka2tjcGRqcXB5bGpkZGVlb3R0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwOTAyNzQsImV4cCI6MjA5MjY2NjI3NH0.dgMfJdolmHuMyP_Zm9D912I81sSDQXsxhOI21WgFUa8'
     );
-
-    const KOL_PER_PAGE = 12;
-    let kolPage = 1;
 
     function extractDriveFileId(url) {
       if (!url) return null;

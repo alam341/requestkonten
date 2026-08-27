@@ -882,7 +882,7 @@
         const fileId   = extractDriveFileId(v.link_drive);
         const thumbSrc = `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
         const kol      = kolsMap[v.kol_id] || {};
-        const kolUser  = kol.tiktok ? `@${kol.tiktok}` : (kol.name || '');
+        const kolUser  = kol.tiktok || kol.name || '';
         const judul    = v.judul || kolUser || 'Tanpa Judul';
         const produkV  = v.produk || '';
         return `

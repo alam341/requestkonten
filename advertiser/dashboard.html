@@ -366,6 +366,7 @@
           <div style="font-size:18px;font-weight:700;color:#1e1e2e;" id="kolPreviewTitle">—</div>
           <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
             <span id="kolPreviewProduk" style="font-size:11px;font-weight:600;color:#059669;background:#ecfdf5;padding:2px 8px;border-radius:99px;">—</span>
+            <span id="kolDlCount" style="font-size:12px;color:#9ca3af;">⬇ 0x</span>
           </div>
         </div>
         <button onclick="closeKolPreview()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#9ca3af;padding:4px;">✕</button>
@@ -373,9 +374,10 @@
       <div style="width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000;margin-bottom:16px;">
         <iframe id="kolPreviewIframe" src="" allowfullscreen allow="autoplay" style="width:100%;height:100%;border:none;"></iframe>
       </div>
-      <a id="kolPreviewTiktok" href="#" target="_blank" style="display:block;width:100%;padding:13px;background:#010101;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;text-decoration:none;text-align:center;">
-        🎵 Lihat di TikTok
-      </a>
+      <button id="kolDlBtn" onclick="doKolDownload()" style="width:100%;padding:13px;background:#059669;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.2s;">
+        ⬇ Download Video
+      </button>
+      <div id="kolDlStatus" style="display:none;margin-top:10px;padding:10px 14px;background:#f0fdf4;border-radius:8px;font-size:13px;color:#16a34a;text-align:center;border:1px solid #bbf7d0;"></div>
     </div>
   </div>
 
@@ -871,9 +873,8 @@
         const thumbSrc = `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
         const judul    = v.judul || 'Tanpa Judul';
         const produkV  = v.produk || '';
-        const ttLink   = v.link_video || '#';
         return `
-          <div onclick="openKolPreview('${v.id}','${judul.replace(/'/g,"\\'")}','${produkV}','${fileId}','${ttLink.replace(/'/g,"\\'")}')"
+          <div onclick="openKolPreview('${v.id}','${judul.replace(/'/g,"\\'")}','${produkV}','${fileId}',${v.download_count||0})"
             style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(5,150,105,0.06);cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;"
             onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(5,150,105,0.14)'"
             onmouseout="this.style.transform='';this.style.boxShadow='0 2px 8px rgba(5,150,105,0.06)'">
@@ -889,7 +890,10 @@
             </div>
             <div style="padding:12px 14px;">
               <div style="font-size:14px;font-weight:700;color:#1e1e2e;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${judul}">${judul}</div>
-              ${produkV ? `<span style="font-size:11px;font-weight:600;color:#059669;background:#ecfdf5;padding:2px 8px;border-radius:99px;">${produkV}</span>` : ''}
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                ${produkV ? `<span style="font-size:11px;font-weight:600;color:#059669;background:#ecfdf5;padding:2px 8px;border-radius:99px;">${produkV}</span>` : '<span></span>'}
+                <span style="font-size:11px;color:#9ca3af;">⬇ ${v.download_count||0}x</span>
+              </div>
             </div>
           </div>`;
       }).join('');
@@ -919,18 +923,58 @@
       container.innerHTML = html;
     }
 
-    window.openKolPreview = function(id, judul, produk, fileId, ttLink) {
+    let kolCurrentFileId = null;
+    let kolCurrentVideoId = null;
+
+    window.openKolPreview = function(id, judul, produk, fileId, dlCount) {
+      kolCurrentFileId = fileId;
+      kolCurrentVideoId = id;
+      document.getElementById('kolDlCount').textContent = `⬇ Didownload ${dlCount}x`;
       document.getElementById('kolPreviewTitle').textContent = judul;
       document.getElementById('kolPreviewProduk').textContent = produk || '-';
       document.getElementById('kolPreviewIframe').src = `https://drive.google.com/file/d/${fileId}/preview?autoplay=1`;
-      const ttBtn = document.getElementById('kolPreviewTiktok');
-      if (ttLink && ttLink !== '#') {
-        ttBtn.href = ttLink;
-        ttBtn.style.display = 'block';
-      } else {
-        ttBtn.style.display = 'none';
-      }
+      const btn = document.getElementById('kolDlBtn');
+      btn.disabled = false;
+      btn.textContent = '⬇ Download Video';
+      btn.style.background = '#059669';
+      document.getElementById('kolDlStatus').style.display = 'none';
       document.getElementById('advKolPreviewModal').style.display = 'flex';
+    };
+
+    window.doKolDownload = async function() {
+      if (!kolCurrentFileId) return;
+      const btn    = document.getElementById('kolDlBtn');
+      const status = document.getElementById('kolDlStatus');
+
+      btn.disabled = true;
+      btn.textContent = '⏳ Menyiapkan download...';
+      btn.style.background = '#6b7280';
+
+      // Increment download count via RPC
+      if (kolCurrentVideoId) {
+        await sbKol.rpc('increment_kol_download', { video_id: kolCurrentVideoId });
+        const dlEl = document.getElementById('kolDlCount');
+        const n = parseInt(dlEl.textContent.match(/\d+/) || [0]) + 1;
+        dlEl.textContent = `⬇ Didownload ${n}x`;
+      }
+
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = `https://drive.google.com/uc?export=download&id=${kolCurrentFileId}`;
+      document.body.appendChild(iframe);
+      setTimeout(() => iframe.remove(), 10000);
+
+      status.style.display = 'block';
+      status.innerHTML = '✅ Download dimulai! Cek folder <strong>Downloads</strong> kamu.';
+      btn.textContent = '✓ Sedang Diunduh';
+      btn.style.background = '#10b981';
+
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = '⬇ Download Video';
+        btn.style.background = '#059669';
+        status.style.display = 'none';
+      }, 5000);
     };
 
     window.closeKolPreview = function() {

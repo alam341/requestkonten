@@ -204,6 +204,7 @@
     <div class="header-right">
       <span class="user-name" id="userName">—</span>
       <button onclick="showAdvPage('template')" style="padding:9px 16px;background:#ede9fe;color:#4f46e5;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='#ddd6fe'" onmouseout="this.style.background='#ede9fe'">🎬 Footage Video</button>
+      <button onclick="showAdvPage('kol')" style="padding:9px 16px;background:#ecfdf5;color:#059669;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='#d1fae5'" onmouseout="this.style.background='#ecfdf5'">⭐ Konten KOL</button>
       <a href="../request.html" class="new-order-btn">+ Request Baru</a>
       <button class="logout-btn" onclick="doLogout()">Keluar</button>
     </div>
@@ -271,6 +272,55 @@
         ⬇ Download Video
       </button>
       <div id="advDlStatus" style="display:none;margin-top:10px;padding:10px 14px;background:#f0fdf4;border-radius:8px;font-size:13px;color:#16a34a;text-align:center;border:1px solid #bbf7d0;"></div>
+    </div>
+  </div>
+
+  <!-- ===== KONTEN KOL PAGE ===== -->
+  <div id="advKolPage" style="display:none;padding:28px;max-width:1200px;margin:0 auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+      <div>
+        <div style="font-size:20px;font-weight:700;color:#1e1e2e;">⭐ Konten KOL</div>
+        <div style="font-size:13px;color:#9ca3af;margin-top:2px;">Preview konten yang sudah diupload oleh KOL.</div>
+      </div>
+      <button onclick="showAdvPage('orders')" style="padding:9px 16px;background:#f5f4fb;color:#6b7280;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">← Kembali ke Order</button>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap;">
+      <select id="kolFilterProduk" onchange="loadKolVideos()" style="padding:9px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;color:#374151;background:#fff;outline:none;cursor:pointer;font-family:inherit;">
+        <option value="">Semua Produk</option>
+        <option>Primagold</option><option>Numata</option><option>Herbapil</option>
+        <option>Youzhi Cream</option><option>Youzhi Tube</option><option>Onaire</option>
+        <option>Jawara</option><option>Koikohi</option><option>Mr Prima</option>
+        <option>Vasco</option><option>Notelli</option><option>Maksir</option>
+        <option>Oiri</option><option>Noradix</option><option>Bajakah</option>
+        <option>Provitasi</option><option>Channabumax</option>
+      </select>
+      <input id="kolSearch" type="text" placeholder="🔍 Cari judul..." oninput="loadKolVideos()"
+        style="padding:9px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;color:#374151;background:#fff;outline:none;font-family:inherit;min-width:200px;" />
+    </div>
+    <div id="advKolGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;">
+      <div style="grid-column:1/-1;text-align:center;padding:40px;color:#9ca3af;">Memuat konten KOL...</div>
+    </div>
+    <div id="advKolPagination" style="display:flex;justify-content:center;align-items:center;gap:8px;margin-top:24px;flex-wrap:wrap;"></div>
+  </div>
+
+  <!-- Konten KOL Preview Modal -->
+  <div id="advKolPreviewModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center;" onclick="if(event.target===this)closeKolPreview()">
+    <div style="background:#fff;border-radius:20px;padding:28px;width:100%;max-width:640px;margin:20px;box-shadow:0 20px 60px rgba(0,0,0,0.25);max-height:90vh;overflow-y:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+        <div>
+          <div style="font-size:18px;font-weight:700;color:#1e1e2e;" id="kolPreviewTitle">—</div>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
+            <span id="kolPreviewProduk" style="font-size:11px;font-weight:600;color:#059669;background:#ecfdf5;padding:2px 8px;border-radius:99px;">—</span>
+          </div>
+        </div>
+        <button onclick="closeKolPreview()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#9ca3af;padding:4px;">✕</button>
+      </div>
+      <div style="width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000;margin-bottom:16px;">
+        <iframe id="kolPreviewIframe" src="" allowfullscreen allow="autoplay" style="width:100%;height:100%;border:none;"></iframe>
+      </div>
+      <a id="kolPreviewTiktok" href="#" target="_blank" style="display:block;width:100%;padding:13px;background:#010101;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;text-decoration:none;text-align:center;">
+        🎵 Lihat di TikTok
+      </a>
     </div>
   </div>
 
@@ -579,9 +629,11 @@
     let advTmplPage = 1;
 
     window.showAdvPage = function(page) {
-      document.getElementById('advOrderPage').style.display = page === 'orders' ? 'block' : 'none';
+      document.getElementById('advOrderPage').style.display    = page === 'orders'   ? 'block' : 'none';
       document.getElementById('advTemplatePage').style.display = page === 'template' ? 'block' : 'none';
+      document.getElementById('advKolPage').style.display      = page === 'kol'      ? 'block' : 'none';
       if (page === 'template') { advTmplPage = 1; loadAdvTemplates(); }
+      if (page === 'kol')      { kolPage = 1;     loadKolVideos(); }
     };
 
     window.loadAdvTemplates = async function(page) {
@@ -704,6 +756,119 @@
       }, 5000);
     };
     // ── END TEMPLATE VIDEO ────────────────────────────────────
+
+    // ── KONTEN KOL ────────────────────────────────────────────
+    const sbKol = window.supabase.createClient(
+      'https://pdkkcpdjqpyljddeeott.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBka2tjcGRqcXB5bGpkZGVlb3R0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwOTAyNzQsImV4cCI6MjA5MjY2NjI3NH0.dgMfJdolmHuMyP_Zm9D912I81sSDQXsxhOI21WgFUa8'
+    );
+
+    const KOL_PER_PAGE = 12;
+    let kolPage = 1;
+
+    function extractDriveFileId(url) {
+      if (!url) return null;
+      const m1 = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (m1) return m1[1];
+      const m2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      if (m2) return m2[1];
+      return null;
+    }
+
+    window.loadKolVideos = async function(page) {
+      if (page !== undefined) kolPage = page;
+      const produk = document.getElementById('kolFilterProduk').value;
+      const search = document.getElementById('kolSearch').value.toLowerCase();
+      const grid   = document.getElementById('advKolGrid');
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#9ca3af;">Memuat...</div>';
+
+      const from = (kolPage - 1) * KOL_PER_PAGE;
+      const to   = from + KOL_PER_PAGE - 1;
+
+      let query = sbKol.from('kol_videos')
+        .select('*', { count: 'exact' })
+        .not('link_drive', 'is', null)
+        .order('created_at', { ascending: false })
+        .range(from, to);
+      if (produk) query = query.eq('produk', produk);
+      if (search) query = query.ilike('judul', `%${search}%`);
+
+      const { data, count, error } = await query;
+
+      if (error || !data || data.length === 0) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#9ca3af;">⭐ Belum ada konten KOL.</div>';
+        document.getElementById('advKolPagination').innerHTML = '';
+        return;
+      }
+
+      grid.innerHTML = data.map(v => {
+        const fileId   = extractDriveFileId(v.link_drive);
+        const thumbSrc = `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
+        const judul    = v.judul || 'Tanpa Judul';
+        const produkV  = v.produk || '';
+        const ttLink   = v.link_video || '#';
+        return `
+          <div onclick="openKolPreview('${v.id}','${judul.replace(/'/g,"\\'")}','${produkV}','${fileId}','${ttLink.replace(/'/g,"\\'")}')"
+            style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(5,150,105,0.06);cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;"
+            onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(5,150,105,0.14)'"
+            onmouseout="this.style.transform='';this.style.boxShadow='0 2px 8px rgba(5,150,105,0.06)'">
+            <div style="width:100%;aspect-ratio:16/9;background:#ecfdf5;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;">
+              <img src="${thumbSrc}" alt="${judul}" style="width:100%;height:100%;object-fit:cover;"
+                loading="lazy" onerror="this.parentElement.innerHTML='<div style=\\'font-size:36px;\\'>⭐</div>'" />
+              <div style="position:absolute;inset:0;background:rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;"
+                onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0'">
+                <div style="width:52px;height:52px;background:rgba(255,255,255,0.9);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                  <span style="font-size:20px;margin-left:4px;">▶</span>
+                </div>
+              </div>
+            </div>
+            <div style="padding:12px 14px;">
+              <div style="font-size:14px;font-weight:700;color:#1e1e2e;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${judul}">${judul}</div>
+              ${produkV ? `<span style="font-size:11px;font-weight:600;color:#059669;background:#ecfdf5;padding:2px 8px;border-radius:99px;">${produkV}</span>` : ''}
+            </div>
+          </div>`;
+      }).join('');
+
+      renderKolPagination(kolPage, count);
+    };
+
+    function renderKolPagination(currentPage, totalCount) {
+      const container  = document.getElementById('advKolPagination');
+      const totalPages = Math.ceil(totalCount / KOL_PER_PAGE);
+      if (totalPages <= 1) { container.innerHTML = ''; return; }
+      const btnStyle = (active) => `padding:7px 13px;border-radius:8px;border:1.5px solid ${active?'#059669':'#e5e7eb'};background:${active?'#059669':'#fff'};color:${active?'#fff':'#6b7280'};font-size:13px;font-weight:600;cursor:${active?'default':'pointer'};`;
+      let html = `<button style="${btnStyle(false)}opacity:${currentPage===1?'0.4':'1'}" ${currentPage===1?'disabled':''} onclick="loadKolVideos(${currentPage-1})">← Prev</button>`;
+      for (let i = 1; i <= totalPages; i++) {
+        if (totalPages > 7 && i > 2 && i < totalPages - 1 && Math.abs(i - currentPage) > 1) {
+          if (i === 3 || i === totalPages - 2) html += `<span style="color:#9ca3af;padding:0 4px;">...</span>`;
+          continue;
+        }
+        html += `<button style="${btnStyle(i===currentPage)}" ${i===currentPage?'disabled':''} onclick="loadKolVideos(${i})">${i}</button>`;
+      }
+      html += `<button style="${btnStyle(false)}opacity:${currentPage===totalPages?'0.4':'1'}" ${currentPage===totalPages?'disabled':''} onclick="loadKolVideos(${currentPage+1})">Next →</button>`;
+      html += `<span style="font-size:12px;color:#9ca3af;margin-left:8px;">${totalCount} konten</span>`;
+      container.innerHTML = html;
+    }
+
+    window.openKolPreview = function(id, judul, produk, fileId, ttLink) {
+      document.getElementById('kolPreviewTitle').textContent = judul;
+      document.getElementById('kolPreviewProduk').textContent = produk || '-';
+      document.getElementById('kolPreviewIframe').src = `https://drive.google.com/file/d/${fileId}/preview?autoplay=1`;
+      const ttBtn = document.getElementById('kolPreviewTiktok');
+      if (ttLink && ttLink !== '#') {
+        ttBtn.href = ttLink;
+        ttBtn.style.display = 'block';
+      } else {
+        ttBtn.style.display = 'none';
+      }
+      document.getElementById('advKolPreviewModal').style.display = 'flex';
+    };
+
+    window.closeKolPreview = function() {
+      document.getElementById('advKolPreviewModal').style.display = 'none';
+      document.getElementById('kolPreviewIframe').src = '';
+    };
+    // ── END KONTEN KOL ────────────────────────────────────────
 
     // Ambil user info saat halaman load
     supabase.auth.getSession().then(({ data }) => {

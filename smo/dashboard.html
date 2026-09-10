@@ -259,6 +259,9 @@
     </div>
   </div>
 
+  <!-- Hidden download iframe -->
+  <iframe id="dlFrame" style="display:none"></iframe>
+
   <!-- Modal Preview -->
   <div class="modal-overlay" id="previewModal" onclick="closeModal(event)">
     <div class="modal-box">
@@ -624,7 +627,12 @@
     };
 
     window.doDownload = async function(contentId, linkDrive) {
-      window.open(linkDrive, '_blank');
+      const fileId = extractFileId(linkDrive);
+      if (fileId) {
+        document.getElementById('dlFrame').src = `https://drive.google.com/uc?export=download&id=${fileId}`;
+      } else {
+        window.open(linkDrive, '_blank');
+      }
       const now = new Date().toISOString();
       const { error } = await supabase.from('tiktok_contents')
         .update({ status: 'downloaded', downloaded_at: now })

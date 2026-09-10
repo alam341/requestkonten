@@ -794,7 +794,6 @@
                 <label style="font-size:12px;font-weight:700;color:#6b7280;display:block;margin-bottom:6px">Produk *</label>
                 <select id="ttProduk" onchange="loadTiktokAkun()" style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;color:#374151;background:#fff;outline:none">
                   <option value="">-- Pilih Produk --</option>
-                  <option>Primagold</option><option>Numata</option><option>Herbapil</option>
                 </select>
               </div>
               <div>
@@ -1999,7 +1998,7 @@
       if (!data || !data.length) { select.innerHTML = '<option value="">Tidak ada akun tersedia</option>'; return; }
 
       select.innerHTML = '<option value="">-- Pilih Akun --</option>' + data.map(a =>
-        `<option value="${a.id}">[${a.tipe === 'utama' ? 'Utama' : 'Pemasaran'}] ${a.username}</option>`
+        `<option value="${a.id}">[${a.tipe === 'utama' ? 'Utama' : 'Pemasaran'}] ${a.username}${a.keterangan ? ' — ' + a.keterangan : ''}</option>`
       ).join('');
     };
 
@@ -2032,7 +2031,13 @@
       loadTiktokRiwayat();
     };
 
-    window.loadTiktokPage = function() {
+    window.loadTiktokPage = async function() {
+      // Load produk dari tiktok_accounts (distinct, dinamis)
+      const { data: akuns } = await supabase.from('tiktok_accounts').select('produk').order('produk');
+      const produkSet = [...new Set((akuns || []).map(a => a.produk).filter(Boolean))];
+      const sel = document.getElementById('ttProduk');
+      sel.innerHTML = '<option value="">-- Pilih Produk --</option>' +
+        produkSet.map(p => `<option>${p}</option>`).join('');
       loadTiktokRiwayat();
     };
 

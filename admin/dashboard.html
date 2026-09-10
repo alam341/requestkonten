@@ -665,7 +665,11 @@
           </select>
         </div>
         <div>
-          <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">Username TikTok</label>
+          <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">Nama Toko *</label>
+          <input id="addAkunToko" type="text" placeholder="Misal: Kapsul Numata Official" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);font-size:13px;outline:none">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">Username TikTok *</label>
           <input id="addAkunUsername" type="text" placeholder="Misal: kapsulnumata" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);font-size:13px;outline:none">
         </div>
         <div>
@@ -1445,8 +1449,8 @@
                   <!-- Header Toko (Akun Utama) -->
                   <div class="akun-card" style="background:var(--surface2);border-radius:0;border:none;border-bottom:1.5px solid var(--border)">
                     <div class="akun-card-info">
-                      <div class="akun-username">${toko.username}</div>
-                      ${toko.keterangan ? `<div class="akun-ket">${toko.keterangan}</div>` : ''}
+                      <div class="akun-username">${toko.toko || toko.username}</div>
+                      <div class="akun-ket">@${toko.username}${toko.keterangan ? ' · ' + toko.keterangan : ''}</div>
                     </div>
                     <span class="akun-badge utama">Utama</span>
                     <button onclick="deleteAkun('${toko.id}')" style="padding:6px 12px;border:1.5px solid #ef4444;background:transparent;color:#ef4444;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">Hapus</button>
@@ -1511,6 +1515,7 @@
     window.openAddAkunModal = function() {
       document.getElementById('addAkunModal').classList.add('open');
       document.getElementById('addAkunProduk').value = 'Primagold';
+      document.getElementById('addAkunToko').value = '';
       document.getElementById('addAkunUsername').value = '';
       document.getElementById('addAkunKet').value = '';
       document.getElementById('addAkunMsg').textContent = '';
@@ -1524,15 +1529,17 @@
 
     window.submitAddAkun = async function() {
       const produk = document.getElementById('addAkunProduk').value;
+      const toko = document.getElementById('addAkunToko').value.trim();
       const username = document.getElementById('addAkunUsername').value.trim();
       const keterangan = document.getElementById('addAkunKet').value.trim();
       const msg = document.getElementById('addAkunMsg');
       const btn = document.getElementById('addAkunBtn');
 
+      if (!toko) { msg.style.color = '#ef4444'; msg.textContent = 'Nama toko wajib diisi.'; return; }
       if (!username) { msg.style.color = '#ef4444'; msg.textContent = 'Username wajib diisi.'; return; }
 
       btn.disabled = true; btn.textContent = 'Menyimpan...';
-      const { error } = await supabase.from('tiktok_accounts').insert({ produk, tipe: 'utama', username, keterangan: keterangan || null });
+      const { error } = await supabase.from('tiktok_accounts').insert({ produk, tipe: 'utama', toko, username, keterangan: keterangan || null });
 
       if (error) { msg.style.color = '#ef4444'; msg.textContent = 'Gagal: ' + error.message; btn.disabled = false; btn.textContent = 'Simpan'; return; }
 

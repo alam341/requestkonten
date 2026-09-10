@@ -2046,23 +2046,39 @@
       loadTiktokRiwayat();
     };
 
-    window.loadTiktokRiwayat = async function() {
+    const TT_PAGE_SIZE = 15;
+    let ttPage = 1;
+    let ttTotal = 0;
+
+    window.loadTiktokRiwayat = async function(page = 1) {
+      ttPage = page;
       const body = document.getElementById('ttRiwayatBody');
-      const { data } = await supabase.from('tiktok_contents')
-        .select('*, tiktok_accounts(username, produk, tipe)')
+      body.innerHTML = '<div style="text-align:center;color:#c4c0f0;padding:16px;font-size:13px">Memuat...</div>';
+
+      const from = (ttPage - 1) * TT_PAGE_SIZE;
+      const to = from + TT_PAGE_SIZE - 1;
+
+      const { data, count } = await supabase.from('tiktok_contents')
+        .select('*, tiktok_accounts(username, produk, tipe)', { count: 'exact' })
         .eq('creator_id', currentCreator.user_id)
         .order('created_at', { ascending: false })
-        .limit(20);
+        .range(from, to);
 
-      if (!data || !data.length) { body.innerHTML = '<div style="text-align:center;color:#c4c0f0;padding:20px">Belum ada konten yang disubmit.</div>'; return; }
+      ttTotal = count || 0;
+      const totalPages = Math.ceil(ttTotal / TT_PAGE_SIZE);
+
+      if (!data || !data.length) {
+        body.innerHTML = '<div style="text-align:center;color:#c4c0f0;padding:20px">Belum ada konten yang disubmit.</div>';
+        return;
+      }
 
       const statusColors = {
-        pending: { bg: '#fef3c7', color: '#92400e', label: 'Menunggu' },
+        pending:    { bg: '#fef3c7', color: '#92400e', label: 'Menunggu' },
         downloaded: { bg: '#dbeafe', color: '#1d4ed8', label: 'Didownload' },
-        uploaded: { bg: '#d1fae5', color: '#065f46', label: 'Sudah Upload' }
+        uploaded:   { bg: '#d1fae5', color: '#065f46', label: 'Sudah Upload' }
       };
 
-      body.innerHTML = data.map(c => {
+      let html = data.map(c => {
         const akun = c.tiktok_accounts;
         const st = statusColors[c.status] || statusColors.pending;
         const tgl = new Date(c.created_at).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
@@ -2074,6 +2090,20 @@
           <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;background:${st.bg};color:${st.color}">${st.label}</span>
         </div>`;
       }).join('');
+
+      if (totalPages > 1) {
+        html += `<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;padding-top:12px;border-top:1.5px dashed #e5e3f5">
+          <button onclick="loadTiktokRiwayat(${ttPage - 1})" ${ttPage === 1 ? 'disabled' : ''}
+            style="padding:7px 14px;border-radius:8px;border:1.5px solid #e5e3f5;background:#fff;color:#4f46e5;font-size:12px;font-weight:700;cursor:pointer;${ttPage === 1 ? 'opacity:0.4;cursor:not-allowed' : ''}">← Prev</button>
+          <span style="font-size:12px;color:#9ca3af;font-weight:600">Hal ${ttPage} / ${totalPages} · ${ttTotal} konten</span>
+          <button onclick="loadTiktokRiwayat(${ttPage + 1})" ${ttPage === totalPages ? 'disabled' : ''}
+            style="padding:7px 14px;border-radius:8px;border:1.5px solid #e5e3f5;background:#fff;color:#4f46e5;font-size:12px;font-weight:700;cursor:pointer;${ttPage === totalPages ? 'opacity:0.4;cursor:not-allowed' : ''}">Next →</button>
+        </div>`;
+      } else {
+        html += `<div style="text-align:center;font-size:11px;color:#9ca3af;margin-top:10px">${ttTotal} konten</div>`;
+      }
+
+      body.innerHTML = html;
     };
     // ── END UPLOAD TIKTOK ────────────────────────────────────
 

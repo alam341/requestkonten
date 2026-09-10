@@ -36,112 +36,190 @@
     }
     .logout-btn:hover { background: #fef2f2; color: #dc2626; }
 
-    /* Main content */
-    .main { max-width: 600px; margin: 0 auto; padding: 16px 12px 32px; }
+    /* Main */
+    .main { max-width: 680px; margin: 0 auto; padding: 16px 12px 40px; }
 
-    /* Tab pills horizontal scroll */
-    .tabs-wrap {
-      overflow-x: auto; -webkit-overflow-scrolling: touch;
-      padding-bottom: 4px; margin-bottom: 16px;
-      scrollbar-width: none;
+    /* Dropdowns */
+    .dropdown-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+    .sel {
+      width: 100%; padding: 13px 14px;
+      border: 1.5px solid #e5e3f5; border-radius: 14px;
+      background: #fff; color: #1e1e2e;
+      font-size: 14px; font-weight: 600; outline: none; cursor: pointer;
+      appearance: none; -webkit-appearance: none;
+      background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%236b7280%22 stroke-width=%222%22><polyline points=%226 9 12 15 18 9%22/></svg>');
+      background-repeat: no-repeat; background-position: right 14px center;
+      box-shadow: 0 2px 8px rgba(80,70,160,0.06);
     }
-    .tabs-wrap::-webkit-scrollbar { display: none; }
-    .tabs-inner { display: flex; gap: 8px; width: max-content; padding: 2px 0; }
-    .tab-pill {
-      padding: 9px 18px; border-radius: 99px;
-      border: 1.5px solid #e5e3f5;
-      background: #fff; color: #6b7280;
-      font-size: 13px; font-weight: 600;
-      cursor: pointer; transition: all 0.2s; white-space: nowrap;
-      min-height: 40px; display: inline-flex; align-items: center;
+
+    /* Grid 3 kolom */
+    .konten-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
     }
-    .tab-pill:hover { border-color: #4f46e5; color: #4f46e5; }
-    .tab-pill.active { background: #4f46e5; color: #fff; border-color: #4f46e5; }
 
-    /* Content card */
-    .content-wrap { display: flex; flex-direction: column; gap: 14px; }
-
+    /* Card compact */
     .konten-card {
-      background: #fff; border-radius: 14px;
-      box-shadow: 0 2px 10px rgba(80,70,160,0.07);
-      overflow: hidden; transition: box-shadow 0.2s;
+      background: #fff; border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(80,70,160,0.07);
+      overflow: hidden; cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      position: relative;
     }
-    .konten-card.uploaded { opacity: 0.6; }
-    .konten-card:active { box-shadow: 0 4px 16px rgba(80,70,160,0.12); }
+    .konten-card:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(80,70,160,0.13); }
+    .konten-card.uploaded { opacity: 0.55; }
 
     .konten-thumb {
-      width: 100%; aspect-ratio: 16/9;
-      background: #f0eef8; object-fit: cover;
-      display: block;
+      width: 100%; aspect-ratio: 9/16;
+      background: #f0eef8; object-fit: cover; display: block;
     }
     .konten-thumb-fallback {
-      width: 100%; aspect-ratio: 16/9;
+      width: 100%; aspect-ratio: 9/16;
       background: linear-gradient(135deg, #ede9fe, #f0eef8);
       display: flex; align-items: center; justify-content: center;
-      font-size: 48px;
+      font-size: 32px;
     }
 
-    .konten-body { padding: 14px 16px; }
-    .konten-creator { font-size: 14px; font-weight: 700; color: #1e1e2e; }
-    .konten-meta { font-size: 12px; color: #9ca3af; margin-top: 3px; }
-    .konten-actions { display: flex; gap: 10px; margin-top: 14px; }
-
-    .btn-download {
-      flex: 1; padding: 12px;
-      background: #4f46e5; color: #fff;
-      border: none; border-radius: 10px;
-      font-size: 14px; font-weight: 700;
-      cursor: pointer; transition: background 0.2s;
-      min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 6px;
+    .konten-info {
+      padding: 8px 10px 10px;
     }
-    .btn-download:hover { background: #4338ca; }
-    .btn-download:active { background: #3730a3; }
-
-    .btn-upload {
-      flex: 1; padding: 12px;
-      background: #d1fae5; color: #065f46;
-      border: 1.5px solid #a7f3d0; border-radius: 10px;
-      font-size: 14px; font-weight: 700;
-      cursor: pointer; transition: all 0.2s;
-      min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 6px;
-    }
-    .btn-upload:hover { background: #a7f3d0; }
-    .btn-upload:active { background: #6ee7b7; }
+    .konten-creator { font-size: 12px; font-weight: 700; color: #1e1e2e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .konten-tgl { font-size: 10px; color: #9ca3af; margin-top: 2px; }
 
     .status-badge {
       display: inline-flex; align-items: center;
-      font-size: 11px; font-weight: 700;
-      padding: 4px 12px; border-radius: 99px;
+      font-size: 10px; font-weight: 700;
+      padding: 3px 8px; border-radius: 99px; margin-top: 6px;
     }
     .status-badge.pending { background: #f3f4f6; color: #6b7280; }
     .status-badge.downloaded { background: #dbeafe; color: #1d4ed8; }
     .status-badge.uploaded { background: #d1fae5; color: #065f46; }
 
-    /* Separator for uploaded section */
-    .section-sep {
-      font-size: 11px; font-weight: 700; color: #9ca3af;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      padding: 8px 0 4px; border-top: 1.5px dashed #e5e3f5;
-      margin-top: 8px;
+    /* Badge NEW */
+    .badge-new {
+      position: absolute; top: 8px; left: -22px;
+      background: #ef4444; color: #fff;
+      font-size: 9px; font-weight: 800; letter-spacing: 0.05em;
+      padding: 2px 24px;
+      transform: rotate(-45deg);
+      transform-origin: center;
+      pointer-events: none;
+      z-index: 2;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
     }
 
-    /* Empty state */
-    .empty-state {
-      text-align: center; padding: 48px 20px;
-      color: #c4c0f0;
+    /* Section separator */
+    .section-sep {
+      grid-column: 1 / -1;
+      font-size: 11px; font-weight: 700; color: #9ca3af;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 10px 0 4px; border-top: 1.5px dashed #e5e3f5;
+      margin-top: 4px;
     }
+
+    /* Pagination */
+    .pagination {
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px; margin-top: 20px;
+    }
+    .page-btn {
+      padding: 8px 16px; border-radius: 10px;
+      border: 1.5px solid #e5e3f5; background: #fff;
+      font-size: 13px; font-weight: 600; color: #4f46e5;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .page-btn:hover:not(:disabled) { background: #4f46e5; color: #fff; border-color: #4f46e5; }
+    .page-btn:disabled { color: #d1d5db; cursor: not-allowed; border-color: #f3f4f6; }
+    .page-info { font-size: 12px; color: #9ca3af; font-weight: 600; }
+
+    /* Empty / Loading */
+    .empty-state { text-align: center; padding: 48px 20px; color: #c4c0f0; }
     .empty-state .emoji { font-size: 48px; margin-bottom: 12px; }
     .empty-state p { font-size: 14px; font-weight: 600; }
     .empty-state small { font-size: 12px; color: #d1d5db; margin-top: 4px; display: block; }
+    .loading-state { text-align: center; padding: 40px 20px; color: #9ca3af; font-size: 14px; }
 
-    /* Loading */
-    .loading-state {
-      text-align: center; padding: 40px 20px; color: #9ca3af;
-      font-size: 14px;
+    /* ── MODAL PREVIEW ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+      align-items: flex-end; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: #fff; border-radius: 20px 20px 0 0;
+      width: 100%; max-width: 680px;
+      max-height: 92vh; overflow-y: auto;
+      padding: 20px 20px 32px;
+      animation: slideUp 0.25s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 14px;
+    }
+    .modal-title { font-size: 15px; font-weight: 800; color: #1e1e2e; }
+    .modal-close {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: #f5f4fb; border: none; font-size: 18px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      color: #6b7280;
+    }
+    .modal-iframe-wrap {
+      width: 100%; aspect-ratio: 9/16; max-height: 55vh;
+      background: #f0eef8; border-radius: 12px; overflow: hidden; margin-bottom: 14px;
+    }
+    .modal-iframe-wrap iframe { width: 100%; height: 100%; border: none; }
+    .modal-meta { font-size: 12px; color: #9ca3af; margin-bottom: 14px; }
+    .modal-meta strong { color: #1e1e2e; }
+    .modal-actions { display: flex; flex-direction: column; gap: 10px; }
+
+    .btn-download {
+      width: 100%; padding: 13px;
+      background: #4f46e5; color: #fff;
+      border: none; border-radius: 12px;
+      font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.2s;
+    }
+    .btn-download:hover { background: #4338ca; }
+    .btn-download.secondary { background: #6b7280; }
+    .btn-download.secondary:hover { background: #4b5563; }
+
+    .btn-upload {
+      width: 100%; padding: 13px;
+      background: #d1fae5; color: #065f46;
+      border: 1.5px solid #a7f3d0; border-radius: 12px;
+      font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-upload:hover { background: #a7f3d0; }
+
+    .boost-form { display: none; margin-top: 6px; }
+    .boost-input {
+      width: 100%; padding: 11px 14px;
+      border: 1.5px solid #e5e3f5; border-radius: 10px;
+      font-size: 13px; outline: none; margin-bottom: 8px; font-family: inherit;
+    }
+    .boost-btns { display: flex; gap: 8px; }
+    .boost-confirm {
+      flex: 1; padding: 11px;
+      background: #10b981; color: #fff;
+      border: none; border-radius: 10px;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+    }
+    .boost-cancel {
+      padding: 11px 14px;
+      border: 1.5px solid #e5e3f5; background: #fff; color: #6b7280;
+      border-radius: 10px; font-size: 13px; cursor: pointer;
+    }
+    .boost-display {
+      padding: 10px 14px; background: #f0fdf4;
+      border: 1px solid #bbf7d0; border-radius: 10px;
+      font-size: 12px; color: #16a34a; font-weight: 600;
     }
 
     @media (max-width: 480px) {
       .main { padding: 12px 8px 24px; }
+      .konten-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
     }
   </style>
 </head>
@@ -164,25 +242,36 @@
 
   <!-- Main -->
   <div class="main">
-
-    <!-- Dropdown 3 level: Produk → Toko → Akun -->
-    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
-      <select id="produkSelect" onchange="onProdukChange(this.value)" style="width:100%;padding:13px 14px;border:1.5px solid #e5e3f5;border-radius:14px;background:#fff;color:#1e1e2e;font-size:14px;font-weight:600;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%236b7280%22 stroke-width=%222%22><polyline points=%226 9 12 15 18 9%22/></svg>');background-repeat:no-repeat;background-position:right 14px center;box-shadow:0 2px 8px rgba(80,70,160,0.06)">
+    <div class="dropdown-group">
+      <select id="produkSelect" class="sel" onchange="onProdukChange(this.value)">
         <option value="">-- Pilih Produk --</option>
       </select>
-      <select id="tokoSelect" onchange="onTokoChange(this.value)" style="width:100%;padding:13px 14px;border:1.5px solid #e5e3f5;border-radius:14px;background:#fff;color:#1e1e2e;font-size:14px;font-weight:600;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%236b7280%22 stroke-width=%222%22><polyline points=%226 9 12 15 18 9%22/></svg>');background-repeat:no-repeat;background-position:right 14px center;box-shadow:0 2px 8px rgba(80,70,160,0.06);display:none">
+      <select id="tokoSelect" class="sel" onchange="onTokoChange(this.value)" style="display:none">
         <option value="">-- Pilih Toko --</option>
       </select>
-      <select id="akunSelect" onchange="selectAkun(this.value)" style="width:100%;padding:13px 14px;border:1.5px solid #e5e3f5;border-radius:14px;background:#fff;color:#1e1e2e;font-size:14px;font-weight:600;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%236b7280%22 stroke-width=%222%22><polyline points=%226 9 12 15 18 9%22/></svg>');background-repeat:no-repeat;background-position:right 14px center;box-shadow:0 2px 8px rgba(80,70,160,0.06);display:none">
+      <select id="akunSelect" class="sel" onchange="selectAkun(this.value)" style="display:none">
         <option value="">-- Pilih Akun --</option>
       </select>
     </div>
 
-    <!-- Konten list -->
-    <div class="content-wrap" id="kontenList">
-      <div class="loading-state">Memuat konten...</div>
+    <div id="kontenList">
+      <div class="loading-state">Pilih akun untuk melihat konten.</div>
     </div>
+  </div>
 
+  <!-- Modal Preview -->
+  <div class="modal-overlay" id="previewModal" onclick="closeModal(event)">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title" id="modalTitle">Preview Konten</div>
+        <button class="modal-close" onclick="closePreview()">✕</button>
+      </div>
+      <div class="modal-iframe-wrap" id="modalIframeWrap">
+        <iframe id="modalIframe" src="" allowfullscreen loading="lazy"></iframe>
+      </div>
+      <div class="modal-meta" id="modalMeta"></div>
+      <div class="modal-actions" id="modalActions"></div>
+    </div>
   </div>
 
   <script type="module">
@@ -192,43 +281,34 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvcXpuanViaG1qcmFxYXBneWF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MzUxNTgsImV4cCI6MjA5MjUxMTE1OH0.xBHG0aeKLutXyqTjlhpGVIYy7-wuI-ztI9e73wmRL04';
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // ── AUTH CHECK ───────────────────────────────────────────
+    // ── AUTH ─────────────────────────────────────────────────
     const raw = localStorage.getItem('smo_session');
     if (!raw) { window.location.href = 'login.html'; }
-
     let smoSession = null;
     try { smoSession = JSON.parse(raw); } catch(e) { window.location.href = 'login.html'; }
     if (!smoSession) { window.location.href = 'login.html'; }
-
     document.getElementById('smoName').textContent = smoSession.name;
 
     // ── STATE ────────────────────────────────────────────────
     let allAkun = [];
     let selectedAkunId = null;
+    let allKonten = [];
+    let smoPage = 1;
+    const PAGE_SIZE = 12;
+    let activeKonten = [];
+    let uploadedKonten = [];
 
     // ── INIT ─────────────────────────────────────────────────
     async function init() {
-      await loadAkun();
-    }
-
-    async function loadAkun() {
-      const { data } = await supabase
-        .from('tiktok_accounts')
-        .select('*')
-        .order('produk')
-        .order('tipe');
-
+      const { data } = await supabase.from('tiktok_accounts').select('*').order('produk').order('tipe');
       allAkun = data || [];
 
       const produkSelect = document.getElementById('produkSelect');
-
       if (!allAkun.length) {
         produkSelect.innerHTML = '<option value="">Belum ada akun TikTok</option>';
         document.getElementById('kontenList').innerHTML = '<div class="empty-state"><div class="emoji">📱</div><p>Belum ada akun TikTok</p><small>Minta admin untuk menambah akun.</small></div>';
         return;
       }
-
-      // Render dropdown produk (unik)
       const produkList = [...new Set(allAkun.map(a => a.produk))].sort();
       produkSelect.innerHTML = '<option value="">-- Pilih Produk --</option>' +
         produkList.map(p => `<option value="${p}">${p}</option>`).join('');
@@ -237,28 +317,18 @@
     window.onProdukChange = function(produk) {
       const tokoSelect = document.getElementById('tokoSelect');
       const akunSelect = document.getElementById('akunSelect');
-      const kontenList = document.getElementById('kontenList');
-
-      // Reset downstream
       akunSelect.style.display = 'none';
       akunSelect.innerHTML = '<option value="">-- Pilih Akun --</option>';
-      kontenList.innerHTML = '';
+      document.getElementById('kontenList').innerHTML = '';
       selectedAkunId = null;
 
-      if (!produk) {
-        tokoSelect.style.display = 'none';
-        tokoSelect.innerHTML = '<option value="">-- Pilih Toko --</option>';
-        return;
-      }
+      if (!produk) { tokoSelect.style.display = 'none'; tokoSelect.innerHTML = '<option value="">-- Pilih Toko --</option>'; return; }
 
-      // Tampilkan toko (akun utama) sesuai produk
       const tokoList = allAkun.filter(a => a.produk === produk && a.tipe === 'utama');
       if (!tokoList.length) {
         tokoSelect.innerHTML = '<option value="">Belum ada toko untuk produk ini</option>';
-        tokoSelect.style.display = 'block';
-        return;
+        tokoSelect.style.display = 'block'; return;
       }
-
       tokoSelect.innerHTML = '<option value="">-- Pilih Toko --</option>' +
         tokoList.map(t => `<option value="${t.id}">${t.toko || t.username} (@${t.username})</option>`).join('');
       tokoSelect.style.display = 'block';
@@ -267,16 +337,10 @@
 
     window.onTokoChange = function(tokoId) {
       const akunSelect = document.getElementById('akunSelect');
-      const kontenList = document.getElementById('kontenList');
-
-      kontenList.innerHTML = '';
+      document.getElementById('kontenList').innerHTML = '';
       selectedAkunId = null;
 
-      if (!tokoId) {
-        akunSelect.style.display = 'none';
-        akunSelect.innerHTML = '<option value="">-- Pilih Akun --</option>';
-        return;
-      }
+      if (!tokoId) { akunSelect.style.display = 'none'; akunSelect.innerHTML = '<option value="">-- Pilih Akun --</option>'; return; }
 
       const toko = allAkun.find(a => a.id === tokoId);
       const pemasaranList = allAkun.filter(a => a.utama_id === tokoId);
@@ -288,7 +352,6 @@
           pemasaranList.map(p => `<option value="${p.id}">@${p.username}${p.keterangan ? ' · ' + p.keterangan : ''}</option>`).join('') +
           '</optgroup>';
       }
-
       akunSelect.innerHTML = options;
       akunSelect.style.display = 'block';
       akunSelect.value = '';
@@ -310,137 +373,201 @@
         .eq('akun_id', akunId)
         .order('created_at', { ascending: false });
 
-      if (!data || !data.length) {
+      activeKonten = (data || []).filter(c => c.status !== 'uploaded');
+      uploadedKonten = (data || []).filter(c => c.status === 'uploaded');
+      allKonten = [...activeKonten, ...uploadedKonten];
+      smoPage = 1;
+      renderPage();
+    }
+
+    function renderPage() {
+      const list = document.getElementById('kontenList');
+      if (!allKonten.length) {
         list.innerHTML = '<div class="empty-state"><div class="emoji">📭</div><p>Belum ada konten</p><small>Tunggu CC submit konten ke akun ini.</small></div>';
         return;
       }
 
-      // Sort: pending & downloaded dulu, uploaded di bawah
-      const active = data.filter(c => c.status !== 'uploaded');
-      const uploaded = data.filter(c => c.status === 'uploaded');
+      const start = (smoPage - 1) * PAGE_SIZE;
+      const end = start + PAGE_SIZE;
+      const pageItems = allKonten.slice(start, end);
+      const totalPages = Math.ceil(allKonten.length / PAGE_SIZE);
 
-      let html = active.map(c => renderKontenCard(c)).join('');
+      // Index global pertama dari uploaded
+      const firstUploadedGlobal = activeKonten.length;
 
-      if (uploaded.length) {
-        html += `<div class="section-sep">Sudah Diupload (${uploaded.length})</div>`;
-        html += uploaded.map(c => renderKontenCard(c)).join('');
+      let gridHtml = '<div class="konten-grid">';
+      pageItems.forEach((c, i) => {
+        const globalIdx = start + i;
+        // Separator sebelum item uploaded pertama (kalau ada di halaman ini)
+        if (globalIdx === firstUploadedGlobal && firstUploadedGlobal > 0) {
+          gridHtml += `</div><div class="section-sep">Sudah Diupload (${uploadedKonten.length})</div><div class="konten-grid">`;
+        }
+        gridHtml += renderCard(c);
+      });
+      gridHtml += '</div>';
+
+      // Pagination
+      let pagHtml = '';
+      if (totalPages > 1) {
+        pagHtml = `
+          <div class="pagination">
+            <button class="page-btn" onclick="changePage(${smoPage - 1})" ${smoPage === 1 ? 'disabled' : ''}>← Prev</button>
+            <span class="page-info">Hal ${smoPage} / ${totalPages} &nbsp;·&nbsp; ${allKonten.length} konten</span>
+            <button class="page-btn" onclick="changePage(${smoPage + 1})" ${smoPage === totalPages ? 'disabled' : ''}>Next →</button>
+          </div>
+        `;
+      } else {
+        pagHtml = `<div class="page-info" style="text-align:center;margin-top:14px">${allKonten.length} konten</div>`;
       }
 
-      list.innerHTML = html || '<div class="empty-state"><div class="emoji">📭</div><p>Belum ada konten</p></div>';
+      list.innerHTML = gridHtml + pagHtml;
+    }
+
+    window.changePage = function(page) {
+      smoPage = page;
+      renderPage();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    function isNew(createdAt) {
+      return (Date.now() - new Date(createdAt).getTime()) < 2 * 24 * 60 * 60 * 1000;
     }
 
     function extractFileId(url) {
       if (!url) return null;
-      const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-      if (match) return match[1];
-      const match2 = url.match(/id=([a-zA-Z0-9_-]+)/);
-      return match2 ? match2[1] : null;
+      const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (m) return m[1];
+      const m2 = url.match(/id=([a-zA-Z0-9_-]+)/);
+      return m2 ? m2[1] : null;
     }
 
-    function renderKontenCard(c) {
+    function renderCard(c) {
       const fileId = extractFileId(c.link_drive);
       const thumbSrc = fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w400` : null;
+      const tgl = new Date(c.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
 
-      const tgl = new Date(c.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-      const creatorLabel = c.creator_name || 'Creator';
-
-      // Status badge
       const badgeMap = {
-        pending: `<span class="status-badge pending">Belum Download</span>`,
-        downloaded: `<span class="status-badge downloaded">Sudah Download</span>`,
-        uploaded: `<span class="status-badge uploaded">Sudah Upload</span>`,
+        pending: `<span class="status-badge pending">Belum DL</span>`,
+        downloaded: `<span class="status-badge downloaded">Downloaded</span>`,
+        uploaded: `<span class="status-badge uploaded">Uploaded</span>`,
       };
-      const badge = badgeMap[c.status] || badgeMap.pending;
 
-      // Actions
-      let actionsHtml = '';
-      if (c.status === 'pending') {
-        actionsHtml = `<button class="btn-download" onclick="doDownload('${c.id}', '${c.link_drive}')">⬇ Download</button>`;
-      } else if (c.status === 'downloaded') {
-        actionsHtml = `
-          <button class="btn-download" onclick="doDownload('${c.id}', '${c.link_drive}')" style="background:#6b7280">⬇ Download Ulang</button>
-          <button class="btn-upload" onclick="showBoostInput('${c.id}')">✅ Sudah Diupload</button>
-          <div id="boostForm-${c.id}" style="display:none;margin-top:10px;display:none">
-            <input id="boostInput-${c.id}" type="text" placeholder="Kode Boost (wajib diisi)" style="width:100%;padding:10px 12px;border:1.5px solid #e5e3f5;border-radius:10px;font-size:13px;outline:none;margin-bottom:8px;box-sizing:border-box">
-            <div style="display:flex;gap:8px">
-              <button onclick="markUploaded('${c.id}')" style="flex:1;padding:10px;background:#10b981;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px">Konfirmasi Upload</button>
-              <button onclick="hideBoostInput('${c.id}')" style="padding:10px 14px;border:1.5px solid #e5e3f5;background:#fff;color:#6b7280;border-radius:10px;font-size:13px;cursor:pointer;min-height:44px">Batal</button>
-            </div>
-          </div>
-        `;
-      } else {
-        // uploaded — tampilkan kode boost kalau ada
-        actionsHtml = c.kode_boost ? `<div style="margin-top:6px;padding:8px 12px;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;font-size:12px;color:#16a34a;font-weight:600">🚀 Kode Boost: ${c.kode_boost}</div>` : '';
-      }
-
-      // Thumb image or fallback
       const thumbHtml = thumbSrc
         ? `<img class="konten-thumb" src="${thumbSrc}" alt="thumb" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
           + `<div class="konten-thumb-fallback" style="display:none">🎬</div>`
         : `<div class="konten-thumb-fallback">🎬</div>`;
 
+      const newBadge = isNew(c.created_at) && c.status === 'pending'
+        ? `<div class="badge-new">NEW</div>` : '';
+
       return `
-        <div class="konten-card${c.status === 'uploaded' ? ' uploaded' : ''}" id="card-${c.id}">
+        <div class="konten-card${c.status === 'uploaded' ? ' uploaded' : ''}" onclick="openPreview('${c.id}')">
+          ${newBadge}
           ${thumbHtml}
-          <div class="konten-body">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-              <div>
-                <div class="konten-creator">${creatorLabel}</div>
-                <div class="konten-meta">${tgl}</div>
-              </div>
-              ${badge}
-            </div>
-            ${actionsHtml ? `<div class="konten-actions">${actionsHtml}</div>` : ''}
+          <div class="konten-info">
+            <div class="konten-creator">${c.creator_name || 'Creator'}</div>
+            <div class="konten-tgl">${tgl}</div>
+            ${badgeMap[c.status] || badgeMap.pending}
           </div>
         </div>
       `;
     }
 
-    window.doDownload = async function(contentId, linkDrive) {
-      // Buka link di tab baru
-      window.open(linkDrive, '_blank');
+    // ── MODAL PREVIEW ────────────────────────────────────────
+    let currentModalId = null;
 
-      // Update status ke downloaded
+    window.openPreview = function(contentId) {
+      const c = allKonten.find(x => x.id === contentId);
+      if (!c) return;
+      currentModalId = contentId;
+
+      const fileId = extractFileId(c.link_drive);
+      const iframeSrc = fileId ? `https://drive.google.com/file/d/${fileId}/preview` : '';
+
+      document.getElementById('modalIframe').src = iframeSrc;
+      document.getElementById('modalTitle').textContent = c.creator_name || 'Preview Konten';
+
+      const tgl = new Date(c.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+      const statusLabel = { pending: 'Belum Download', downloaded: 'Sudah Download', uploaded: 'Sudah Upload' }[c.status] || c.status;
+      document.getElementById('modalMeta').innerHTML = `<strong>${tgl}</strong> &nbsp;·&nbsp; ${statusLabel}`;
+
+      renderModalActions(c);
+      document.getElementById('previewModal').classList.add('open');
+    };
+
+    function renderModalActions(c) {
+      const actEl = document.getElementById('modalActions');
+      if (c.status === 'pending') {
+        actEl.innerHTML = `<button class="btn-download" onclick="doDownload('${c.id}', '${c.link_drive}')">⬇ Download</button>`;
+      } else if (c.status === 'downloaded') {
+        actEl.innerHTML = `
+          <button class="btn-download secondary" onclick="doDownload('${c.id}', '${c.link_drive}')">⬇ Download Ulang</button>
+          <button class="btn-upload" onclick="showModalBoost('${c.id}')">✅ Sudah Diupload</button>
+          <div class="boost-form" id="modalBoostForm">
+            <input class="boost-input" id="modalBoostInput" type="text" placeholder="Kode Boost (wajib diisi)">
+            <div class="boost-btns">
+              <button class="boost-confirm" onclick="markUploaded('${c.id}')">Konfirmasi Upload</button>
+              <button class="boost-cancel" onclick="hideModalBoost()">Batal</button>
+            </div>
+          </div>
+        `;
+      } else {
+        actEl.innerHTML = `<button class="btn-download secondary" onclick="doDownload('${c.id}', '${c.link_drive}')">⬇ Download Ulang</button>`
+          + (c.kode_boost ? `<div class="boost-display">🚀 Kode Boost: ${c.kode_boost}</div>` : '');
+      }
+    }
+
+    window.showModalBoost = function() {
+      document.getElementById('modalBoostForm').style.display = 'block';
+    };
+    window.hideModalBoost = function() {
+      document.getElementById('modalBoostForm').style.display = 'none';
+    };
+
+    window.closePreview = function() {
+      document.getElementById('previewModal').classList.remove('open');
+      document.getElementById('modalIframe').src = '';
+      currentModalId = null;
+    };
+
+    window.closeModal = function(e) {
+      if (e.target === document.getElementById('previewModal')) closePreview();
+    };
+
+    window.doDownload = async function(contentId, linkDrive) {
+      window.open(linkDrive, '_blank');
       const now = new Date().toISOString();
-      const { error } = await supabase
-        .from('tiktok_contents')
+      const { error } = await supabase.from('tiktok_contents')
         .update({ status: 'downloaded', downloaded_at: now })
         .eq('id', contentId);
-
       if (!error) {
-        // Reload konten untuk update UI
         await loadKonten(selectedAkunId);
+        // Refresh modal jika masih terbuka untuk konten ini
+        if (currentModalId === contentId) {
+          const c = allKonten.find(x => x.id === contentId);
+          if (c) renderModalActions(c);
+        }
       }
     };
 
-    window.showBoostInput = function(contentId) {
-      document.getElementById(`boostForm-${contentId}`).style.display = 'block';
-    };
-
-    window.hideBoostInput = function(contentId) {
-      document.getElementById(`boostForm-${contentId}`).style.display = 'none';
-    };
-
     window.markUploaded = async function(contentId) {
-      const inputEl = document.getElementById(`boostInput-${contentId}`);
+      const inputEl = document.getElementById('modalBoostInput');
       const kode_boost = inputEl ? inputEl.value.trim() : '';
-
       if (!kode_boost) {
         inputEl.style.borderColor = '#ef4444';
         inputEl.placeholder = 'Kode Boost wajib diisi!';
         inputEl.focus();
         return;
       }
-
       inputEl.style.borderColor = '#e5e3f5';
       const now = new Date().toISOString();
-
-      const { error } = await supabase
-        .from('tiktok_contents')
+      const { error } = await supabase.from('tiktok_contents')
         .update({ status: 'uploaded', uploaded_at: now, kode_boost })
         .eq('id', contentId);
-
-      if (!error) await loadKonten(selectedAkunId);
+      if (!error) {
+        closePreview();
+        await loadKonten(selectedAkunId);
+      }
     };
 
     window.doLogout = function() {

@@ -522,11 +522,16 @@
       </div>
 
       <!-- Filter Produk -->
-      <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
-        <button class="produk-tab active" onclick="filterTiktokProduk('', this)">Semua</button>
-        <button class="produk-tab" onclick="filterTiktokProduk('Primagold', this)">Primagold</button>
-        <button class="produk-tab" onclick="filterTiktokProduk('Numata', this)">Numata</button>
-        <button class="produk-tab" onclick="filterTiktokProduk('Herbapil', this)">Herbapil</button>
+      <div style="margin-bottom:20px">
+        <select id="tiktokProdukSelect" onchange="filterTiktokProdukSelect(this)" style="padding:10px 16px;border:1.5px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);font-size:13px;outline:none;cursor:pointer;min-width:200px">
+          <option value="">Semua Produk</option>
+          <option>Primagold</option><option>Numata</option><option>Herbapil</option>
+          <option>Youzhi Cream</option><option>Youzhi Tube</option><option>Onaire</option>
+          <option>Jawara</option><option>Koikohi</option><option>Mr Prima</option>
+          <option>Vasco</option><option>Notelli</option><option>Maksir</option>
+          <option>Oiri</option><option>Noradix</option><option>Bajakah</option>
+          <option>Provitasi</option><option>Channabumax</option>
+        </select>
       </div>
 
       <div id="tiktokAccountsList"></div>
@@ -649,6 +654,11 @@
           <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">Produk</label>
           <select id="addAkunProduk" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);font-size:13px;outline:none">
             <option>Primagold</option><option>Numata</option><option>Herbapil</option>
+            <option>Youzhi Cream</option><option>Youzhi Tube</option><option>Onaire</option>
+            <option>Jawara</option><option>Koikohi</option><option>Mr Prima</option>
+            <option>Vasco</option><option>Notelli</option><option>Maksir</option>
+            <option>Oiri</option><option>Noradix</option><option>Bajakah</option>
+            <option>Provitasi</option><option>Channabumax</option>
           </select>
         </div>
         <div>
@@ -1398,10 +1408,8 @@
     let tiktokProdukFilter = '';
     let allTiktokAccounts = [];
 
-    window.filterTiktokProduk = function(produk, btn) {
-      tiktokProdukFilter = produk;
-      document.querySelectorAll('.produk-tab').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+    window.filterTiktokProdukSelect = function(select) {
+      tiktokProdukFilter = select.value;
       renderTiktokAccounts();
     };
 

@@ -297,6 +297,35 @@
     const PAGE_SIZE = 12;
     let activeKonten = [];
     let uploadedKonten = [];
+    let realtimeChannel = null;
+
+    // ── FILTER PERSISTENCE ───────────────────────────────────
+    function saveFilter() {
+      localStorage.setItem('smo_filter', JSON.stringify({
+        produk: document.getElementById('produkSelect').value,
+        tokoId: document.getElementById('tokoSelect').value,
+        akunId: document.getElementById('akunSelect').value
+      }));
+    }
+
+    function buildTokoOptions(produk) {
+      const tokoList = allAkun.filter(a => a.produk === produk && a.tipe === 'utama');
+      return tokoList;
+    }
+
+    function buildAkunOptions(tokoId) {
+      const toko = allAkun.find(a => a.id === tokoId);
+      if (!toko) return null;
+      const pemasaranList = allAkun.filter(a => a.utama_id === tokoId);
+      let options = '<option value="">-- Pilih Akun --</option>';
+      options += `<optgroup label="Akun Utama"><option value="${toko.id}">${toko.toko || toko.username} (@${toko.username})</option></optgroup>`;
+      if (pemasaranList.length) {
+        options += '<optgroup label="Akun Pemasaran">' +
+          pemasaranList.map(p => `<option value="${p.id}">@${p.username}${p.keterangan ? ' · ' + p.keterangan : ''}</option>`).join('') +
+          '</optgroup>';
+      }
+      return options;
+    }
 
     // ── INIT ─────────────────────────────────────────────────
     async function init() {
@@ -304,14 +333,47 @@
       allAkun = data || [];
 
       const produkSelect = document.getElementById('produkSelect');
+      const tokoSelect  = document.getElementById('tokoSelect');
+      const akunSelect  = document.getElementById('akunSelect');
+
       if (!allAkun.length) {
         produkSelect.innerHTML = '<option value="">Belum ada akun TikTok</option>';
         document.getElementById('kontenList').innerHTML = '<div class="empty-state"><div class="emoji">📱</div><p>Belum ada akun TikTok</p><small>Minta admin untuk menambah akun.</small></div>';
         return;
       }
+
       const produkList = [...new Set(allAkun.map(a => a.produk))].sort();
       produkSelect.innerHTML = '<option value="">-- Pilih Produk --</option>' +
         produkList.map(p => `<option value="${p}">${p}</option>`).join('');
+
+      // ── Restore filter dari localStorage ──
+      const saved = JSON.parse(localStorage.getItem('smo_filter') || '{}');
+      if (saved.produk && produkList.includes(saved.produk)) {
+        produkSelect.value = saved.produk;
+
+        const tokoList = buildTokoOptions(saved.produk);
+        if (tokoList.length) {
+          tokoSelect.innerHTML = '<option value="">-- Pilih Toko --</option>' +
+            tokoList.map(t => `<option value="${t.id}">${t.toko || t.username} (@${t.username})</option>`).join('');
+          tokoSelect.style.display = 'block';
+
+          if (saved.tokoId && tokoList.find(t => t.id === saved.tokoId)) {
+            tokoSelect.value = saved.tokoId;
+
+            const akunOpts = buildAkunOptions(saved.tokoId);
+            if (akunOpts) {
+              akunSelect.innerHTML = akunOpts;
+              akunSelect.style.display = 'block';
+
+              if (saved.akunId) {
+                akunSelect.value = saved.akunId;
+                selectedAkunId = saved.akunId;
+                await loadKonten(saved.akunId);
+              }
+            }
+          }
+        }
+      }
     }
 
     window.onProdukChange = function(produk) {
@@ -321,47 +383,73 @@
       akunSelect.innerHTML = '<option value="">-- Pilih Akun --</option>';
       document.getElementById('kontenList').innerHTML = '';
       selectedAkunId = null;
+      if (realtimeChannel) { supabase.removeChannel(realtimeChannel); realtimeChannel = null; }
 
-      if (!produk) { tokoSelect.style.display = 'none'; tokoSelect.innerHTML = '<option value="">-- Pilih Toko --</option>'; return; }
+      if (!produk) { tokoSelect.style.display = 'none'; tokoSelect.innerHTML = '<option value="">-- Pilih Toko --</option>'; saveFilter(); return; }
 
-      const tokoList = allAkun.filter(a => a.produk === produk && a.tipe === 'utama');
+      const tokoList = buildTokoOptions(produk);
       if (!tokoList.length) {
         tokoSelect.innerHTML = '<option value="">Belum ada toko untuk produk ini</option>';
-        tokoSelect.style.display = 'block'; return;
+        tokoSelect.style.display = 'block'; saveFilter(); return;
       }
       tokoSelect.innerHTML = '<option value="">-- Pilih Toko --</option>' +
         tokoList.map(t => `<option value="${t.id}">${t.toko || t.username} (@${t.username})</option>`).join('');
       tokoSelect.style.display = 'block';
       tokoSelect.value = '';
+      saveFilter();
     };
 
     window.onTokoChange = function(tokoId) {
       const akunSelect = document.getElementById('akunSelect');
       document.getElementById('kontenList').innerHTML = '';
       selectedAkunId = null;
+      if (realtimeChannel) { supabase.removeChannel(realtimeChannel); realtimeChannel = null; }
 
-      if (!tokoId) { akunSelect.style.display = 'none'; akunSelect.innerHTML = '<option value="">-- Pilih Akun --</option>'; return; }
+      if (!tokoId) { akunSelect.style.display = 'none'; akunSelect.innerHTML = '<option value="">-- Pilih Akun --</option>'; saveFilter(); return; }
 
-      const toko = allAkun.find(a => a.id === tokoId);
-      const pemasaranList = allAkun.filter(a => a.utama_id === tokoId);
-
-      let options = '<option value="">-- Pilih Akun --</option>';
-      options += `<optgroup label="Akun Utama"><option value="${toko.id}">${toko.toko || toko.username} (@${toko.username})</option></optgroup>`;
-      if (pemasaranList.length) {
-        options += '<optgroup label="Akun Pemasaran">' +
-          pemasaranList.map(p => `<option value="${p.id}">@${p.username}${p.keterangan ? ' · ' + p.keterangan : ''}</option>`).join('') +
-          '</optgroup>';
-      }
-      akunSelect.innerHTML = options;
+      const akunOpts = buildAkunOptions(tokoId);
+      if (!akunOpts) { saveFilter(); return; }
+      akunSelect.innerHTML = akunOpts;
       akunSelect.style.display = 'block';
       akunSelect.value = '';
+      saveFilter();
     };
 
     window.selectAkun = function(akunId) {
-      if (!akunId) { document.getElementById('kontenList').innerHTML = ''; return; }
+      if (!akunId) { document.getElementById('kontenList').innerHTML = ''; saveFilter(); return; }
       selectedAkunId = akunId;
+      saveFilter();
       loadKonten(akunId);
     };
+
+    // ── REALTIME ─────────────────────────────────────────────
+    function setupRealtime(akunId) {
+      if (realtimeChannel) supabase.removeChannel(realtimeChannel);
+      realtimeChannel = supabase.channel(`smo-konten-${akunId}`)
+        .on('postgres_changes', {
+          event: '*', schema: 'public', table: 'tiktok_contents',
+          filter: `akun_id=eq.${akunId}`
+        }, async () => {
+          await refreshKonten(akunId);
+        })
+        .subscribe();
+    }
+
+    // Reload silent tanpa reset halaman
+    async function refreshKonten(akunId) {
+      const { data } = await supabase
+        .from('tiktok_contents')
+        .select('*')
+        .eq('akun_id', akunId)
+        .order('created_at', { ascending: false });
+
+      activeKonten = (data || []).filter(c => c.status !== 'uploaded');
+      uploadedKonten = (data || []).filter(c => c.status === 'uploaded');
+      allKonten = [...activeKonten, ...uploadedKonten];
+      const totalPages = Math.ceil(allKonten.length / PAGE_SIZE);
+      if (smoPage > totalPages) smoPage = Math.max(1, totalPages);
+      renderPage();
+    }
 
     async function loadKonten(akunId) {
       const list = document.getElementById('kontenList');
@@ -378,6 +466,7 @@
       allKonten = [...activeKonten, ...uploadedKonten];
       smoPage = 1;
       renderPage();
+      setupRealtime(akunId);
     }
 
     function renderPage() {
@@ -541,8 +630,7 @@
         .update({ status: 'downloaded', downloaded_at: now })
         .eq('id', contentId);
       if (!error) {
-        await loadKonten(selectedAkunId);
-        // Refresh modal jika masih terbuka untuk konten ini
+        await refreshKonten(selectedAkunId);
         if (currentModalId === contentId) {
           const c = allKonten.find(x => x.id === contentId);
           if (c) renderModalActions(c);
@@ -566,7 +654,7 @@
         .eq('id', contentId);
       if (!error) {
         closePreview();
-        await loadKonten(selectedAkunId);
+        await refreshKonten(selectedAkunId);
       }
     };
 

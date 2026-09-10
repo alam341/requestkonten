@@ -336,6 +336,30 @@
       .stats { grid-template-columns: repeat(2, 1fr); }
       .laporan-stats { grid-template-columns: repeat(2, 1fr); }
     }
+
+    .produk-tab {
+      padding: 8px 18px; border-radius: 99px; border: 1.5px solid var(--border);
+      background: var(--surface); color: var(--text2); font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .produk-tab:hover { border-color: var(--accent); color: var(--accent); }
+    .produk-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .akun-group { margin-bottom: 24px; }
+    .akun-group-title { font-size: 12px; font-weight: 700; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
+    .akun-card {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+      padding: 14px 18px; margin-bottom: 8px;
+    }
+    .akun-card-info { flex: 1; }
+    .akun-username { font-size: 14px; font-weight: 700; color: var(--text); }
+    .akun-ket { font-size: 12px; color: var(--text2); margin-top: 2px; }
+    .akun-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; margin-right: 8px; }
+    .akun-badge.utama { background: #fef3c7; color: #92400e; }
+    .akun-badge.pemasaran { background: #dbeafe; color: #1d4ed8; }
+    body:not(.light) .akun-badge.utama { background: #451a03; color: #fbbf24; }
+    body:not(.light) .akun-badge.pemasaran { background: #1e3a5f; color: #60a5fa; }
+    .akun-produk-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: var(--nav-active); color: var(--accent); }
   </style>
 </head>
 <body>
@@ -366,6 +390,9 @@
     </button>
     <button class="nav-item" onclick="showPage('laporan', this)">
       <span class="icon">📊</span> Laporan Bulanan
+    </button>
+    <button class="nav-item" onclick="showPage('tiktok', this)">
+      <span class="icon">📱</span> Akun TikTok
     </button>
 
     <div class="sidebar-bottom">
@@ -484,6 +511,27 @@
       </div>
     </div>
 
+    <!-- TIKTOK ACCOUNTS PAGE -->
+    <div class="page-section" id="page-tiktok">
+      <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+        <div>
+          <div class="page-title">Kelola Akun TikTok</div>
+          <div class="page-subtitle">Atur akun TikTok per produk untuk tim SMO.</div>
+        </div>
+        <button onclick="openAddAkunModal()" style="padding:10px 18px;background:#4f46e5;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">+ Tambah Akun</button>
+      </div>
+
+      <!-- Filter Produk -->
+      <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+        <button class="produk-tab active" onclick="filterTiktokProduk('', this)">Semua</button>
+        <button class="produk-tab" onclick="filterTiktokProduk('Primagold', this)">Primagold</button>
+        <button class="produk-tab" onclick="filterTiktokProduk('Numata', this)">Numata</button>
+        <button class="produk-tab" onclick="filterTiktokProduk('Herbapil', this)">Herbapil</button>
+      </div>
+
+      <div id="tiktokAccountsList"></div>
+    </div>
+
     <!-- LAPORAN PAGE -->
     <div class="page-section" id="page-laporan">
       <div class="page-header">
@@ -584,6 +632,44 @@
           <div class="mf-value">
             <a class="modal-link" id="modalDriveLink" href="#" target="_blank">Buka Drive Link ↗</a>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Tambah Akun TikTok -->
+  <div class="modal-overlay" id="addAkunModal" onclick="closeAddAkunModal(event)">
+    <div class="modal-box" style="max-width:400px">
+      <div class="modal-head">
+        <div class="modal-head-title">Tambah Akun TikTok</div>
+        <button class="modal-close" onclick="closeAddAkunModal()">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;padding:20px">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">Produk</label>
+          <select id="addAkunProduk" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);font-size:13px;outline:none">
+            <option>Primagold</option><option>Numata</option><option>Herbapil</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">Tipe Akun</label>
+          <select id="addAkunTipe" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);font-size:13px;outline:none">
+            <option value="utama">Akun Utama</option>
+            <option value="pemasaran">Akun Pemasaran</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">Username TikTok</label>
+          <input id="addAkunUsername" type="text" placeholder="@namaakun" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);font-size:13px;outline:none">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">Keterangan (opsional)</label>
+          <input id="addAkunKet" type="text" placeholder="Misal: Akun iklan harian" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);font-size:13px;outline:none">
+        </div>
+        <div id="addAkunMsg" style="font-size:13px;font-weight:500;min-height:18px"></div>
+        <div style="display:flex;gap:10px">
+          <button onclick="closeAddAkunModal()" style="flex:1;padding:11px;border:1.5px solid var(--border);border-radius:10px;background:transparent;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer">Batal</button>
+          <button id="addAkunBtn" onclick="submitAddAkun()" style="flex:1;padding:11px;background:#4f46e5;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">Simpan</button>
         </div>
       </div>
     </div>
@@ -1286,6 +1372,7 @@
       btn.classList.add('active');
       if (page === 'laporan') loadLaporan();
       if (page === 'perform') loadPerform();
+      if (page === 'tiktok') loadTiktokAccounts();
     };
 
     window.doLogout = async function () {
@@ -1306,6 +1393,114 @@
       document.getElementById('themeIcon').textContent = '🌙';
       document.getElementById('themeLabel').textContent = 'Tema Gelap';
     }
+
+    // ── TIKTOK ACCOUNTS ──────────────────────────────────────
+    let tiktokProdukFilter = '';
+    let allTiktokAccounts = [];
+
+    window.filterTiktokProduk = function(produk, btn) {
+      tiktokProdukFilter = produk;
+      document.querySelectorAll('.produk-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderTiktokAccounts();
+    };
+
+    window.loadTiktokAccounts = async function() {
+      const { data } = await supabase.from('tiktok_accounts').select('*').order('produk').order('tipe').order('created_at');
+      allTiktokAccounts = data || [];
+      renderTiktokAccounts();
+    };
+
+    function renderTiktokAccounts() {
+      const container = document.getElementById('tiktokAccountsList');
+      let data = allTiktokAccounts;
+      if (tiktokProdukFilter) data = data.filter(a => a.produk === tiktokProdukFilter);
+
+      if (!data.length) {
+        container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">Belum ada akun TikTok.</div>';
+        return;
+      }
+
+      // Group by produk
+      const byProduk = {};
+      data.forEach(a => {
+        if (!byProduk[a.produk]) byProduk[a.produk] = { utama: [], pemasaran: [] };
+        byProduk[a.produk][a.tipe].push(a);
+      });
+
+      container.innerHTML = Object.entries(byProduk).map(([produk, grup]) => `
+        <div class="table-wrap" style="margin-bottom:20px">
+          <div class="table-header">
+            <h3>${produk}</h3>
+          </div>
+          <div style="padding:16px">
+            <div class="akun-group-title">Akun Utama</div>
+            ${grup.utama.length ? grup.utama.map(a => renderAkunCard(a)).join('') : '<div style="color:var(--text3);font-size:13px;padding:8px 0;">Belum ada akun utama.</div>'}
+            <div class="akun-group-title" style="margin-top:16px">Akun Pemasaran</div>
+            ${grup.pemasaran.length ? grup.pemasaran.map(a => renderAkunCard(a)).join('') : '<div style="color:var(--text3);font-size:13px;padding:8px 0;">Belum ada akun pemasaran.</div>'}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderAkunCard(a) {
+      return `<div class="akun-card">
+        <div class="akun-card-info">
+          <div class="akun-username">${a.username}</div>
+          ${a.keterangan ? `<div class="akun-ket">${a.keterangan}</div>` : ''}
+        </div>
+        <span class="akun-badge ${a.tipe}">${a.tipe === 'utama' ? 'Utama' : 'Pemasaran'}</span>
+        <button onclick="deleteAkun('${a.id}')" style="padding:6px 12px;border:1.5px solid #ef4444;background:transparent;color:#ef4444;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">Hapus</button>
+      </div>`;
+    }
+
+    window.deleteAkun = async function(id) {
+      if (!confirm('Hapus akun ini?')) return;
+      await supabase.from('tiktok_accounts').delete().eq('id', id);
+      loadTiktokAccounts();
+    };
+
+    window.openAddAkunModal = function() {
+      document.getElementById('addAkunModal').classList.add('open');
+      document.getElementById('addAkunProduk').value = 'Primagold';
+      document.getElementById('addAkunTipe').value = 'utama';
+      document.getElementById('addAkunUsername').value = '';
+      document.getElementById('addAkunKet').value = '';
+      document.getElementById('addAkunMsg').textContent = '';
+    };
+
+    window.closeAddAkunModal = function(e) {
+      if (!e || e.target === document.getElementById('addAkunModal')) {
+        document.getElementById('addAkunModal').classList.remove('open');
+      }
+    };
+
+    window.submitAddAkun = async function() {
+      const produk = document.getElementById('addAkunProduk').value;
+      const tipe = document.getElementById('addAkunTipe').value;
+      const username = document.getElementById('addAkunUsername').value.trim();
+      const keterangan = document.getElementById('addAkunKet').value.trim();
+      const msg = document.getElementById('addAkunMsg');
+      const btn = document.getElementById('addAkunBtn');
+
+      if (!username) { msg.style.color = '#ef4444'; msg.textContent = 'Username wajib diisi.'; return; }
+
+      // Cek jika tipe utama, pastikan belum ada akun utama untuk produk ini
+      if (tipe === 'utama') {
+        const existing = allTiktokAccounts.find(a => a.produk === produk && a.tipe === 'utama');
+        if (existing) { msg.style.color = '#ef4444'; msg.textContent = `Produk ${produk} sudah punya akun utama (${existing.username}).`; return; }
+      }
+
+      btn.disabled = true; btn.textContent = 'Menyimpan...';
+      const { error } = await supabase.from('tiktok_accounts').insert({ produk, tipe, username, keterangan: keterangan || null });
+
+      if (error) { msg.style.color = '#ef4444'; msg.textContent = 'Gagal: ' + error.message; btn.disabled = false; btn.textContent = 'Simpan'; return; }
+
+      btn.disabled = false; btn.textContent = 'Simpan';
+      document.getElementById('addAkunModal').classList.remove('open');
+      loadTiktokAccounts();
+    };
+    // ── END TIKTOK ACCOUNTS ───────────────────────────────────
 
     init();
   </script>

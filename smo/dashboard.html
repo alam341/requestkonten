@@ -165,10 +165,16 @@
   <!-- Main -->
   <div class="main">
 
-    <!-- Dropdown pilih akun -->
-    <div style="margin-bottom:16px">
-      <select id="akunSelect" onchange="selectAkun(this.value)" style="width:100%;padding:13px 14px;border:1.5px solid #e5e3f5;border-radius:14px;background:#fff;color:#1e1e2e;font-size:14px;font-weight:600;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%236b7280%22 stroke-width=%222%22><polyline points=%226 9 12 15 18 9%22/></svg>');background-repeat:no-repeat;background-position:right 14px center;box-shadow:0 2px 8px rgba(80,70,160,0.06)">
-        <option value="">Memuat akun...</option>
+    <!-- Dropdown 3 level: Produk → Toko → Akun -->
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+      <select id="produkSelect" onchange="onProdukChange(this.value)" style="width:100%;padding:13px 14px;border:1.5px solid #e5e3f5;border-radius:14px;background:#fff;color:#1e1e2e;font-size:14px;font-weight:600;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%236b7280%22 stroke-width=%222%22><polyline points=%226 9 12 15 18 9%22/></svg>');background-repeat:no-repeat;background-position:right 14px center;box-shadow:0 2px 8px rgba(80,70,160,0.06)">
+        <option value="">-- Pilih Produk --</option>
+      </select>
+      <select id="tokoSelect" onchange="onTokoChange(this.value)" style="width:100%;padding:13px 14px;border:1.5px solid #e5e3f5;border-radius:14px;background:#fff;color:#1e1e2e;font-size:14px;font-weight:600;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%236b7280%22 stroke-width=%222%22><polyline points=%226 9 12 15 18 9%22/></svg>');background-repeat:no-repeat;background-position:right 14px center;box-shadow:0 2px 8px rgba(80,70,160,0.06);display:none">
+        <option value="">-- Pilih Toko --</option>
+      </select>
+      <select id="akunSelect" onchange="selectAkun(this.value)" style="width:100%;padding:13px 14px;border:1.5px solid #e5e3f5;border-radius:14px;background:#fff;color:#1e1e2e;font-size:14px;font-weight:600;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%236b7280%22 stroke-width=%222%22><polyline points=%226 9 12 15 18 9%22/></svg>');background-repeat:no-repeat;background-position:right 14px center;box-shadow:0 2px 8px rgba(80,70,160,0.06);display:none">
+        <option value="">-- Pilih Akun --</option>
       </select>
     </div>
 
@@ -214,39 +220,82 @@
 
       allAkun = data || [];
 
-      const selectEl = document.getElementById('akunSelect');
+      const produkSelect = document.getElementById('produkSelect');
 
       if (!allAkun.length) {
-        selectEl.innerHTML = '<option value="">Belum ada akun TikTok</option>';
+        produkSelect.innerHTML = '<option value="">Belum ada akun TikTok</option>';
         document.getElementById('kontenList').innerHTML = '<div class="empty-state"><div class="emoji">📱</div><p>Belum ada akun TikTok</p><small>Minta admin untuk menambah akun.</small></div>';
         return;
       }
 
-      // Group by produk untuk optgroup
-      const byProduk = {};
-      allAkun.forEach(a => {
-        if (!byProduk[a.produk]) byProduk[a.produk] = [];
-        byProduk[a.produk].push(a);
-      });
-
-      selectEl.innerHTML = Object.entries(byProduk).map(([produk, list]) =>
-        `<optgroup label="${produk}">` +
-        list.map(a => {
-          const label = a.tipe === 'utama'
-            ? `${a.toko || a.username} (Utama)`
-            : `@${a.username}`;
-          return `<option value="${a.id}">${label}</option>`;
-        }).join('') +
-        `</optgroup>`
-      ).join('');
-
-      // Pilih akun pertama
-      selectedAkunId = allAkun[0].id;
-      selectEl.value = selectedAkunId;
-      loadKonten(selectedAkunId);
+      // Render dropdown produk (unik)
+      const produkList = [...new Set(allAkun.map(a => a.produk))].sort();
+      produkSelect.innerHTML = '<option value="">-- Pilih Produk --</option>' +
+        produkList.map(p => `<option value="${p}">${p}</option>`).join('');
     }
 
+    window.onProdukChange = function(produk) {
+      const tokoSelect = document.getElementById('tokoSelect');
+      const akunSelect = document.getElementById('akunSelect');
+      const kontenList = document.getElementById('kontenList');
+
+      // Reset downstream
+      akunSelect.style.display = 'none';
+      akunSelect.innerHTML = '<option value="">-- Pilih Akun --</option>';
+      kontenList.innerHTML = '';
+      selectedAkunId = null;
+
+      if (!produk) {
+        tokoSelect.style.display = 'none';
+        tokoSelect.innerHTML = '<option value="">-- Pilih Toko --</option>';
+        return;
+      }
+
+      // Tampilkan toko (akun utama) sesuai produk
+      const tokoList = allAkun.filter(a => a.produk === produk && a.tipe === 'utama');
+      if (!tokoList.length) {
+        tokoSelect.innerHTML = '<option value="">Belum ada toko untuk produk ini</option>';
+        tokoSelect.style.display = 'block';
+        return;
+      }
+
+      tokoSelect.innerHTML = '<option value="">-- Pilih Toko --</option>' +
+        tokoList.map(t => `<option value="${t.id}">${t.toko || t.username} (@${t.username})</option>`).join('');
+      tokoSelect.style.display = 'block';
+      tokoSelect.value = '';
+    };
+
+    window.onTokoChange = function(tokoId) {
+      const akunSelect = document.getElementById('akunSelect');
+      const kontenList = document.getElementById('kontenList');
+
+      kontenList.innerHTML = '';
+      selectedAkunId = null;
+
+      if (!tokoId) {
+        akunSelect.style.display = 'none';
+        akunSelect.innerHTML = '<option value="">-- Pilih Akun --</option>';
+        return;
+      }
+
+      const toko = allAkun.find(a => a.id === tokoId);
+      const pemasaranList = allAkun.filter(a => a.utama_id === tokoId);
+
+      let options = '<option value="">-- Pilih Akun --</option>';
+      options += `<optgroup label="Akun Utama"><option value="${toko.id}">${toko.toko || toko.username} (@${toko.username})</option></optgroup>`;
+      if (pemasaranList.length) {
+        options += '<optgroup label="Akun Pemasaran">' +
+          pemasaranList.map(p => `<option value="${p.id}">@${p.username}${p.keterangan ? ' · ' + p.keterangan : ''}</option>`).join('') +
+          '</optgroup>';
+      }
+
+      akunSelect.innerHTML = options;
+      akunSelect.style.display = 'block';
+      akunSelect.value = '';
+    };
+
     window.selectAkun = function(akunId) {
+      if (!akunId) { document.getElementById('kontenList').innerHTML = ''; return; }
       selectedAkunId = akunId;
       loadKonten(akunId);
     };

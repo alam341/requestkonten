@@ -259,6 +259,9 @@
     <button class="nav-item" id="nav-kol" onclick="showAdvPage('kol')">
       <span class="nav-icon">⭐</span> Konten KOL
     </button>
+    <button class="nav-item" id="nav-tiktok" onclick="showAdvPage('tiktok')">
+      <span class="nav-icon">📱</span> Konten TikTok
+    </button>
 
     <div class="sidebar-spacer"></div>
 
@@ -356,6 +359,28 @@
       <div style="grid-column:1/-1;text-align:center;padding:40px;color:#9ca3af;">Memuat konten KOL...</div>
     </div>
     <div id="advKolPagination" style="display:flex;justify-content:center;align-items:center;gap:8px;margin-top:24px;flex-wrap:wrap;"></div>
+  </div>
+
+  <!-- ===== KONTEN TIKTOK PAGE ===== -->
+  <div id="advTiktokPage" style="display:none;padding:28px;max-width:1200px;margin:0 auto;">
+    <div style="margin-bottom:24px;">
+      <div style="font-size:20px;font-weight:700;color:#1e1e2e;">📱 Konten TikTok</div>
+      <div style="font-size:13px;color:#9ca3af;margin-top:2px;">Konten yang sudah diupload tim SMO beserta Kode Boost.</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap;">
+      <select id="ttFilterProduk" onchange="loadAdvTiktok()" style="padding:9px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;color:#374151;background:#fff;outline:none;cursor:pointer;font-family:inherit;">
+        <option value="">Semua Produk</option>
+        <option>Primagold</option><option>Numata</option><option>Herbapil</option>
+        <option>Youzhi Cream</option><option>Youzhi Tube</option><option>Onaire</option>
+        <option>Jawara</option><option>Koikohi</option><option>Mr Prima</option>
+        <option>Vasco</option><option>Notelli</option><option>Maksir</option>
+        <option>Oiri</option><option>Noradix</option><option>Bajakah</option>
+        <option>Provitasi</option><option>Channabumax</option>
+      </select>
+    </div>
+    <div id="advTiktokGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;">
+      <div style="grid-column:1/-1;text-align:center;padding:40px;color:#9ca3af;">Memuat...</div>
+    </div>
   </div>
 
   <!-- Konten KOL Preview Modal -->
@@ -695,14 +720,68 @@
       document.getElementById('advOrderPage').style.display    = page === 'orders'   ? 'block' : 'none';
       document.getElementById('advTemplatePage').style.display = page === 'template' ? 'block' : 'none';
       document.getElementById('advKolPage').style.display      = page === 'kol'      ? 'block' : 'none';
+      document.getElementById('advTiktokPage').style.display   = page === 'tiktok'   ? 'block' : 'none';
 
-      ['orders','template','kol'].forEach(p => {
+      ['orders','template','kol','tiktok'].forEach(p => {
         const el = document.getElementById('nav-' + p);
         if (el) el.classList.toggle('active', p === page);
       });
 
       if (page === 'template') { advTmplPage = 1; loadAdvTemplates(); }
       if (page === 'kol')      { kolPage = 1;     loadKolVideos(); }
+      if (page === 'tiktok')   { loadAdvTiktok(); }
+    };
+
+    window.loadAdvTiktok = async function() {
+      const grid = document.getElementById('advTiktokGrid');
+      const produk = document.getElementById('ttFilterProduk').value;
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#9ca3af;">Memuat...</div>';
+
+      let query = supabase
+        .from('tiktok_contents')
+        .select('*, tiktok_accounts(username, toko, produk)')
+        .eq('status', 'uploaded')
+        .order('uploaded_at', { ascending: false });
+
+      if (produk) query = query.eq('tiktok_accounts.produk', produk);
+
+      const { data } = await query;
+      const filtered = produk ? (data || []).filter(c => c.tiktok_accounts?.produk === produk) : (data || []);
+
+      if (!filtered.length) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#9ca3af;">Belum ada konten TikTok yang diupload.</div>';
+        return;
+      }
+
+      function extractFileId(url) {
+        const match = url?.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        return match ? match[1] : null;
+      }
+
+      grid.innerHTML = filtered.map(c => {
+        const akun = c.tiktok_accounts;
+        const fileId = extractFileId(c.link_drive);
+        const thumbSrc = fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w400` : null;
+        const tgl = c.uploaded_at ? new Date(c.uploaded_at).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' }) : '—';
+
+        return `
+          <div style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(80,70,160,0.07);">
+            ${thumbSrc
+              ? `<img src="${thumbSrc}" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+              : ''
+            }
+            <div style="width:100%;aspect-ratio:16/9;background:linear-gradient(135deg,#ede9fe,#f0eef8);display:${thumbSrc ? 'none' : 'flex'};align-items:center;justify-content:center;font-size:32px;">🎬</div>
+            <div style="padding:12px 14px">
+              <div style="font-size:13px;font-weight:700;color:#1e1e2e">@${akun?.username || '—'}</div>
+              <div style="font-size:11px;color:#9ca3af;margin-top:2px">${akun?.produk || ''} · ${tgl}</div>
+              ${c.kode_boost
+                ? `<div style="margin-top:10px;padding:8px 12px;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;font-size:12px;color:#16a34a;font-weight:700">🚀 Kode Boost: ${c.kode_boost}</div>`
+                : `<div style="margin-top:10px;padding:8px 12px;background:#f9fafb;border-radius:8px;font-size:12px;color:#9ca3af;">Tidak ada Kode Boost</div>`
+              }
+              <a href="${c.link_drive}" target="_blank" style="display:block;margin-top:10px;padding:8px;background:#4f46e5;color:#fff;border-radius:8px;font-size:12px;font-weight:600;text-align:center;text-decoration:none;">Lihat Konten ↗</a>
+            </div>
+          </div>`;
+      }).join('');
     };
 
     window.loadAdvTemplates = async function(page) {

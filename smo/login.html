@@ -22,7 +22,7 @@
       box-shadow: 0 8px 40px rgba(80,70,160,0.10);
     }
     .brand {
-      display: flex; flex-direction: column; align-items: center; margin-bottom: 28px;
+      display: flex; flex-direction: column; align-items: center; margin-bottom: 24px;
     }
     .brand-title { font-size: 16px; font-weight: 800; color: #4f46e5; line-height: 1; margin-top: 8px; }
     .brand-sub { font-size: 11px; font-weight: 500; color: #9ca3af; margin-top: 4px; letter-spacing: 0.05em; }
@@ -32,7 +32,23 @@
       font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
       padding: 4px 14px; border-radius: 99px;
     }
-    .field { margin-bottom: 18px; }
+
+    /* Tab Toggle */
+    .tab-wrap {
+      display: flex; background: #f5f4fb; border-radius: 12px;
+      padding: 4px; margin-bottom: 24px; gap: 4px;
+    }
+    .tab-btn {
+      flex: 1; padding: 9px; border: none; border-radius: 9px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      background: transparent; color: #9ca3af; transition: all 0.2s;
+    }
+    .tab-btn.active { background: #fff; color: #4f46e5; box-shadow: 0 2px 8px rgba(80,70,160,0.10); }
+
+    /* Form */
+    .form-section { display: none; }
+    .form-section.active { display: block; }
+    .field { margin-bottom: 16px; }
     label {
       display: block;
       font-size: 11px; font-weight: 700;
@@ -46,10 +62,7 @@
       background: #f5f4fb; outline: none;
       transition: box-shadow 0.2s, background 0.2s;
     }
-    input:focus {
-      background: #eeecfb;
-      box-shadow: 0 0 0 2px #c7c2f5;
-    }
+    input:focus { background: #eeecfb; box-shadow: 0 0 0 2px #c7c2f5; }
     input::placeholder { color: #b0adc8; }
     .btn {
       width: 100%; padding: 14px;
@@ -62,10 +75,12 @@
     .btn:hover { background: #4338ca; }
     .btn:active { transform: scale(0.99); }
     .btn:disabled { background: #c4c0f0; cursor: not-allowed; }
-    .error-msg {
-      color: #dc2626; font-size: 13px; margin-top: 12px;
+    .msg {
+      font-size: 13px; margin-top: 12px;
       text-align: center; display: none;
     }
+    .msg.error { color: #dc2626; }
+    .msg.success { color: #10b981; }
     .footer-text {
       text-align: center; font-size: 12px;
       color: #b0adc8; margin-top: 16px;
@@ -78,19 +93,51 @@
       <img src="../assets/logo-maknarona.png" alt="Maknarona by Adsy" style="height:64px;width:auto;">
       <div class="brand-title">Maknarona</div>
       <div class="brand-sub">by Adsy · Platform Content Creator</div>
-      <div class="role-badge">SMO Login</div>
+      <div class="role-badge">SMO Portal</div>
     </div>
 
-    <div class="field">
-      <label>Username</label>
-      <input type="text" id="inputUsername" placeholder="Username SMO kamu" />
+    <!-- Tab Toggle -->
+    <div class="tab-wrap">
+      <button class="tab-btn active" id="tabLogin" onclick="switchTab('login')">Masuk</button>
+      <button class="tab-btn" id="tabDaftar" onclick="switchTab('daftar')">Daftar</button>
     </div>
-    <div class="field">
-      <label>Password</label>
-      <input type="password" id="inputPassword" placeholder="Password" />
+
+    <!-- Form Login -->
+    <div class="form-section active" id="formLogin">
+      <div class="field">
+        <label>Username</label>
+        <input type="text" id="loginUsername" placeholder="Username SMO kamu" />
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="Password" />
+      </div>
+      <button class="btn" id="loginBtn" onclick="doLogin()">Masuk</button>
+      <p class="msg error" id="loginMsg"></p>
     </div>
-    <button class="btn" id="loginBtn" onclick="doLogin()">Masuk</button>
-    <p class="error-msg" id="errorMsg">Username atau password salah.</p>
+
+    <!-- Form Daftar -->
+    <div class="form-section" id="formDaftar">
+      <div class="field">
+        <label>Nama Lengkap</label>
+        <input type="text" id="daftarNama" placeholder="Nama kamu" />
+      </div>
+      <div class="field">
+        <label>Username</label>
+        <input type="text" id="daftarUsername" placeholder="Buat username unik" />
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="daftarPassword" placeholder="Buat password" />
+      </div>
+      <div class="field">
+        <label>Konfirmasi Password</label>
+        <input type="password" id="daftarKonfirmasi" placeholder="Ulangi password" />
+      </div>
+      <button class="btn" id="daftarBtn" onclick="doDaftar()">Buat Akun</button>
+      <p class="msg" id="daftarMsg"></p>
+    </div>
+
     <p class="footer-text">Portal khusus tim Social Media Officer.</p>
   </div>
 
@@ -102,19 +149,30 @@
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // Kalau sudah login, redirect langsung
-    const existing = localStorage.getItem('smo_session');
-    if (existing) window.location.href = 'dashboard.html';
+    if (localStorage.getItem('smo_session')) window.location.href = 'dashboard.html';
+
+    window.switchTab = function(tab) {
+      document.getElementById('formLogin').classList.toggle('active', tab === 'login');
+      document.getElementById('formDaftar').classList.toggle('active', tab === 'daftar');
+      document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
+      document.getElementById('tabDaftar').classList.toggle('active', tab === 'daftar');
+      document.getElementById('loginMsg').style.display = 'none';
+      document.getElementById('daftarMsg').style.display = 'none';
+    };
 
     window.doLogin = async function() {
-      const username = document.getElementById('inputUsername').value.trim();
-      const password = document.getElementById('inputPassword').value;
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value;
       const btn = document.getElementById('loginBtn');
-      const err = document.getElementById('errorMsg');
+      const msg = document.getElementById('loginMsg');
 
-      if (!username || !password) { err.style.display = 'block'; err.textContent = 'Isi username dan password.'; return; }
+      if (!username || !password) {
+        msg.className = 'msg error'; msg.style.display = 'block';
+        msg.textContent = 'Isi username dan password.'; return;
+      }
 
       btn.disabled = true; btn.textContent = 'Memeriksa...';
-      err.style.display = 'none';
+      msg.style.display = 'none';
 
       const { data, error } = await supabase
         .from('smos')
@@ -126,9 +184,49 @@
       btn.disabled = false; btn.textContent = 'Masuk';
 
       if (error || !data) {
-        err.textContent = 'Username atau password salah.';
-        err.style.display = 'block';
-        return;
+        msg.className = 'msg error'; msg.style.display = 'block';
+        msg.textContent = 'Username atau password salah.'; return;
+      }
+
+      localStorage.setItem('smo_session', JSON.stringify({ id: data.id, name: data.name, username: data.username }));
+      window.location.href = 'dashboard.html';
+    };
+
+    window.doDaftar = async function() {
+      const nama = document.getElementById('daftarNama').value.trim();
+      const username = document.getElementById('daftarUsername').value.trim().toLowerCase();
+      const password = document.getElementById('daftarPassword').value;
+      const konfirmasi = document.getElementById('daftarKonfirmasi').value;
+      const btn = document.getElementById('daftarBtn');
+      const msg = document.getElementById('daftarMsg');
+
+      const showErr = (text) => { msg.className = 'msg error'; msg.style.display = 'block'; msg.textContent = text; };
+
+      if (!nama || !username || !password) { showErr('Semua field wajib diisi.'); return; }
+      if (username.length < 3) { showErr('Username minimal 3 karakter.'); return; }
+      if (password.length < 6) { showErr('Password minimal 6 karakter.'); return; }
+      if (password !== konfirmasi) { showErr('Password dan konfirmasi tidak cocok.'); return; }
+
+      btn.disabled = true; btn.textContent = 'Mendaftar...';
+      msg.style.display = 'none';
+
+      // Cek username sudah ada atau belum
+      const { data: existing } = await supabase.from('smos').select('id').eq('username', username).single();
+      if (existing) {
+        showErr('Username sudah dipakai, coba yang lain.');
+        btn.disabled = false; btn.textContent = 'Buat Akun'; return;
+      }
+
+      const { data, error } = await supabase
+        .from('smos')
+        .insert({ name: nama, username, password })
+        .select('id, name, username')
+        .single();
+
+      btn.disabled = false; btn.textContent = 'Buat Akun';
+
+      if (error || !data) {
+        showErr('Gagal daftar: ' + (error?.message || 'Coba lagi.')); return;
       }
 
       localStorage.setItem('smo_session', JSON.stringify({ id: data.id, name: data.name, username: data.username }));
@@ -136,7 +234,10 @@
     };
 
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') window.doLogin();
+      if (e.key === 'Enter') {
+        const isLogin = document.getElementById('formLogin').classList.contains('active');
+        if (isLogin) window.doLogin(); else window.doDaftar();
+      }
     });
   </script>
 </body>

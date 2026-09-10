@@ -642,11 +642,14 @@
     </div>
   </div>
 
-  <!-- Modal Tambah Akun TikTok -->
+  <!-- Modal Tambah Akun Utama (Toko) TikTok -->
   <div class="modal-overlay" id="addAkunModal" onclick="closeAddAkunModal(event)">
     <div class="modal-box" style="max-width:400px">
       <div class="modal-head">
-        <div class="modal-head-title">Tambah Akun TikTok</div>
+        <div>
+          <div class="modal-head-title">Tambah Akun Utama</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px">Akun toko TikTok per produk</div>
+        </div>
         <button class="modal-close" onclick="closeAddAkunModal()">✕</button>
       </div>
       <div style="display:flex;flex-direction:column;gap:14px;padding:20px">
@@ -662,19 +665,12 @@
           </select>
         </div>
         <div>
-          <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">Tipe Akun</label>
-          <select id="addAkunTipe" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);font-size:13px;outline:none">
-            <option value="utama">Akun Utama</option>
-            <option value="pemasaran">Akun Pemasaran</option>
-          </select>
-        </div>
-        <div>
           <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">Username TikTok</label>
-          <input id="addAkunUsername" type="text" placeholder="@namaakun" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);font-size:13px;outline:none">
+          <input id="addAkunUsername" type="text" placeholder="Misal: kapsulnumata" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);font-size:13px;outline:none">
         </div>
         <div>
           <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">Keterangan (opsional)</label>
-          <input id="addAkunKet" type="text" placeholder="Misal: Akun iklan harian" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);font-size:13px;outline:none">
+          <input id="addAkunKet" type="text" placeholder="Misal: Akun Official TikTok Shop" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);font-size:13px;outline:none">
         </div>
         <div id="addAkunMsg" style="font-size:13px;font-weight:500;min-height:18px"></div>
         <div style="display:flex;gap:10px">
@@ -1421,49 +1417,93 @@
 
     function renderTiktokAccounts() {
       const container = document.getElementById('tiktokAccountsList');
-      let data = allTiktokAccounts;
-      if (tiktokProdukFilter) data = data.filter(a => a.produk === tiktokProdukFilter);
+      let utamaList = allTiktokAccounts.filter(a => a.tipe === 'utama');
+      if (tiktokProdukFilter) utamaList = utamaList.filter(a => a.produk === tiktokProdukFilter);
 
-      if (!data.length) {
-        container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">Belum ada akun TikTok.</div>';
+      if (!utamaList.length) {
+        container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">Belum ada akun TikTok. Klik "+ Tambah Akun" untuk mulai.</div>';
         return;
       }
 
-      // Group by produk
+      // Group utama by produk
       const byProduk = {};
-      data.forEach(a => {
-        if (!byProduk[a.produk]) byProduk[a.produk] = { utama: [], pemasaran: [] };
-        byProduk[a.produk][a.tipe].push(a);
+      utamaList.forEach(a => {
+        if (!byProduk[a.produk]) byProduk[a.produk] = [];
+        byProduk[a.produk].push(a);
       });
 
-      container.innerHTML = Object.entries(byProduk).map(([produk, grup]) => `
+      container.innerHTML = Object.entries(byProduk).map(([produk, tokoList]) => `
         <div class="table-wrap" style="margin-bottom:20px">
           <div class="table-header">
             <h3>${produk}</h3>
           </div>
-          <div style="padding:16px">
-            <div class="akun-group-title">Akun Utama</div>
-            ${grup.utama.length ? grup.utama.map(a => renderAkunCard(a)).join('') : '<div style="color:var(--text3);font-size:13px;padding:8px 0;">Belum ada akun utama.</div>'}
-            <div class="akun-group-title" style="margin-top:16px">Akun Pemasaran</div>
-            ${grup.pemasaran.length ? grup.pemasaran.map(a => renderAkunCard(a)).join('') : '<div style="color:var(--text3);font-size:13px;padding:8px 0;">Belum ada akun pemasaran.</div>'}
+          <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+            ${tokoList.map(toko => {
+              const pemasaranList = allTiktokAccounts.filter(a => a.utama_id === toko.id);
+              return `
+                <div style="border:1.5px solid var(--border);border-radius:14px;overflow:hidden">
+                  <!-- Header Toko (Akun Utama) -->
+                  <div class="akun-card" style="background:var(--surface2);border-radius:0;border:none;border-bottom:1.5px solid var(--border)">
+                    <div class="akun-card-info">
+                      <div class="akun-username">${toko.username}</div>
+                      ${toko.keterangan ? `<div class="akun-ket">${toko.keterangan}</div>` : ''}
+                    </div>
+                    <span class="akun-badge utama">Utama</span>
+                    <button onclick="deleteAkun('${toko.id}')" style="padding:6px 12px;border:1.5px solid #ef4444;background:transparent;color:#ef4444;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">Hapus</button>
+                  </div>
+                  <!-- Akun Pemasaran -->
+                  <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+                    <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:2px">Akun Pemasaran</div>
+                    ${pemasaranList.length ? pemasaranList.map(p => `
+                      <div class="akun-card" style="background:var(--surface);padding:10px 14px">
+                        <div class="akun-card-info">
+                          <div class="akun-username" style="font-size:13px">${p.username}</div>
+                          ${p.keterangan ? `<div class="akun-ket">${p.keterangan}</div>` : ''}
+                        </div>
+                        <button onclick="deleteAkun('${p.id}')" style="padding:5px 10px;border:1.5px solid #ef4444;background:transparent;color:#ef4444;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;">Hapus</button>
+                      </div>
+                    `).join('') : '<div style="font-size:12px;color:var(--text3);padding:4px 0">Belum ada akun pemasaran.</div>'}
+                    <!-- Inline form tambah pemasaran -->
+                    <div id="formPemasaran-${toko.id}" style="display:none;margin-top:4px;display:none">
+                      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                        <input id="inputPemasaranUsername-${toko.id}" type="text" placeholder="Username TikTok" style="flex:1;min-width:140px;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;background:var(--input-bg);color:var(--text);font-size:13px;outline:none">
+                        <input id="inputPemasaranKet-${toko.id}" type="text" placeholder="Keterangan (opsional)" style="flex:1;min-width:140px;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;background:var(--input-bg);color:var(--text);font-size:13px;outline:none">
+                        <button onclick="submitAddPemasaran('${toko.id}','${produk}')" style="padding:9px 16px;background:#4f46e5;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">Simpan</button>
+                        <button onclick="toggleFormPemasaran('${toko.id}', false)" style="padding:9px 12px;border:1.5px solid var(--border);background:transparent;color:var(--text2);border-radius:9px;font-size:13px;cursor:pointer">Batal</button>
+                      </div>
+                      <div id="msgPemasaran-${toko.id}" style="font-size:12px;margin-top:6px;min-height:16px"></div>
+                    </div>
+                    <button onclick="toggleFormPemasaran('${toko.id}', true)" id="btnAddPemasaran-${toko.id}" style="margin-top:2px;padding:8px 14px;border:1.5px dashed var(--border);background:transparent;color:var(--text2);border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;text-align:left;transition:all 0.2s" onmouseover="this.style.borderColor='#4f46e5';this.style.color='#4f46e5'" onmouseout="this.style.borderColor='';this.style.color=''">+ Tambah Pemasaran</button>
+                  </div>
+                </div>`;
+            }).join('')}
           </div>
         </div>
       `).join('');
     }
 
-    function renderAkunCard(a) {
-      return `<div class="akun-card">
-        <div class="akun-card-info">
-          <div class="akun-username">${a.username}</div>
-          ${a.keterangan ? `<div class="akun-ket">${a.keterangan}</div>` : ''}
-        </div>
-        <span class="akun-badge ${a.tipe}">${a.tipe === 'utama' ? 'Utama' : 'Pemasaran'}</span>
-        <button onclick="deleteAkun('${a.id}')" style="padding:6px 12px;border:1.5px solid #ef4444;background:transparent;color:#ef4444;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">Hapus</button>
-      </div>`;
-    }
+    window.toggleFormPemasaran = function(utamaId, show) {
+      document.getElementById(`formPemasaran-${utamaId}`).style.display = show ? 'block' : 'none';
+      document.getElementById(`btnAddPemasaran-${utamaId}`).style.display = show ? 'none' : 'block';
+      if (show) document.getElementById(`inputPemasaranUsername-${utamaId}`).focus();
+    };
+
+    window.submitAddPemasaran = async function(utamaId, produk) {
+      const username = document.getElementById(`inputPemasaranUsername-${utamaId}`).value.trim();
+      const keterangan = document.getElementById(`inputPemasaranKet-${utamaId}`).value.trim();
+      const msg = document.getElementById(`msgPemasaran-${utamaId}`);
+
+      if (!username) { msg.style.color = '#ef4444'; msg.textContent = 'Username wajib diisi.'; return; }
+
+      msg.style.color = 'var(--text2)'; msg.textContent = 'Menyimpan...';
+      const { error } = await supabase.from('tiktok_accounts').insert({ produk, tipe: 'pemasaran', username, keterangan: keterangan || null, utama_id: utamaId });
+
+      if (error) { msg.style.color = '#ef4444'; msg.textContent = 'Gagal: ' + error.message; return; }
+      loadTiktokAccounts();
+    };
 
     window.deleteAkun = async function(id) {
-      if (!confirm('Hapus akun ini?')) return;
+      if (!confirm('Hapus akun ini? Akun pemasaran di dalamnya juga akan ikut terhapus.')) return;
       await supabase.from('tiktok_accounts').delete().eq('id', id);
       loadTiktokAccounts();
     };
@@ -1471,7 +1511,6 @@
     window.openAddAkunModal = function() {
       document.getElementById('addAkunModal').classList.add('open');
       document.getElementById('addAkunProduk').value = 'Primagold';
-      document.getElementById('addAkunTipe').value = 'utama';
       document.getElementById('addAkunUsername').value = '';
       document.getElementById('addAkunKet').value = '';
       document.getElementById('addAkunMsg').textContent = '';
@@ -1485,7 +1524,6 @@
 
     window.submitAddAkun = async function() {
       const produk = document.getElementById('addAkunProduk').value;
-      const tipe = document.getElementById('addAkunTipe').value;
       const username = document.getElementById('addAkunUsername').value.trim();
       const keterangan = document.getElementById('addAkunKet').value.trim();
       const msg = document.getElementById('addAkunMsg');
@@ -1493,14 +1531,8 @@
 
       if (!username) { msg.style.color = '#ef4444'; msg.textContent = 'Username wajib diisi.'; return; }
 
-      // Cek jika tipe utama, pastikan belum ada akun utama untuk produk ini
-      if (tipe === 'utama') {
-        const existing = allTiktokAccounts.find(a => a.produk === produk && a.tipe === 'utama');
-        if (existing) { msg.style.color = '#ef4444'; msg.textContent = `Produk ${produk} sudah punya akun utama (${existing.username}).`; return; }
-      }
-
       btn.disabled = true; btn.textContent = 'Menyimpan...';
-      const { error } = await supabase.from('tiktok_accounts').insert({ produk, tipe, username, keterangan: keterangan || null });
+      const { error } = await supabase.from('tiktok_accounts').insert({ produk, tipe: 'utama', username, keterangan: keterangan || null });
 
       if (error) { msg.style.color = '#ef4444'; msg.textContent = 'Gagal: ' + error.message; btn.disabled = false; btn.textContent = 'Simpan'; return; }
 

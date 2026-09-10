@@ -803,8 +803,8 @@
                 </select>
               </div>
               <div>
-                <label style="font-size:12px;font-weight:700;color:#6b7280;display:block;margin-bottom:6px">Link Google Drive *</label>
-                <input id="ttLink" type="url" placeholder="https://drive.google.com/file/d/..." style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;color:#374151;background:#fff;outline:none">
+                <label style="font-size:12px;font-weight:700;color:#6b7280;display:block;margin-bottom:6px">Link Google Drive * <span style="font-weight:400;color:#9ca3af">(satu link per baris)</span></label>
+                <textarea id="ttLink" placeholder="https://drive.google.com/file/d/...&#10;https://drive.google.com/file/d/...&#10;https://drive.google.com/file/d/..." rows="4" style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;color:#374151;background:#fff;outline:none;resize:vertical;font-family:inherit;line-height:1.6"></textarea>
               </div>
               <div id="ttMsg" style="font-size:13px;font-weight:500;min-height:18px"></div>
               <button id="ttSubmitBtn" onclick="submitTiktokKonten()" style="padding:12px;background:#4f46e5;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;transition:background 0.2s">Submit Konten</button>
@@ -2004,26 +2004,31 @@
 
     window.submitTiktokKonten = async function() {
       const akun_id = document.getElementById('ttAkun').value;
-      const link_drive = document.getElementById('ttLink').value.trim();
+      const raw = document.getElementById('ttLink').value;
       const msg = document.getElementById('ttMsg');
       const btn = document.getElementById('ttSubmitBtn');
 
-      if (!akun_id) { msg.style.color = '#dc2626'; msg.textContent = 'Pilih akun TikTok.'; return; }
-      if (!link_drive || !link_drive.startsWith('http')) { msg.style.color = '#dc2626'; msg.textContent = 'Masukkan link Google Drive yang valid.'; return; }
+      const links = raw.split('\n').map(l => l.trim()).filter(l => l.startsWith('http'));
 
-      btn.disabled = true; btn.textContent = 'Menyimpan...';
-      const { error } = await supabase.from('tiktok_contents').insert({
+      if (!akun_id) { msg.style.color = '#dc2626'; msg.textContent = 'Pilih akun TikTok.'; return; }
+      if (!links.length) { msg.style.color = '#dc2626'; msg.textContent = 'Masukkan minimal satu link Google Drive yang valid.'; return; }
+
+      btn.disabled = true; btn.textContent = `Menyimpan ${links.length} konten...`;
+
+      const rows = links.map(link_drive => ({
         akun_id,
         link_drive,
         creator_id: currentCreator.user_id,
         creator_name: currentCreator.name,
         status: 'pending'
-      });
+      }));
+
+      const { error } = await supabase.from('tiktok_contents').insert(rows);
 
       if (error) { msg.style.color = '#dc2626'; msg.textContent = 'Gagal: ' + error.message; btn.disabled = false; btn.textContent = 'Submit Konten'; return; }
 
       btn.disabled = false; btn.textContent = 'Submit Konten';
-      msg.style.color = '#10b981'; msg.textContent = '✅ Konten berhasil disubmit!';
+      msg.style.color = '#10b981'; msg.textContent = `✅ ${links.length} konten berhasil disubmit!`;
       document.getElementById('ttProduk').value = '';
       document.getElementById('ttAkun').innerHTML = '<option value="">-- Pilih produk dulu --</option>';
       document.getElementById('ttLink').value = '';

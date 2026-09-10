@@ -165,11 +165,11 @@
   <!-- Main -->
   <div class="main">
 
-    <!-- Tab pills -->
-    <div class="tabs-wrap">
-      <div class="tabs-inner" id="akunTabs">
-        <div class="tab-pill active" style="color:#9ca3af">Memuat akun...</div>
-      </div>
+    <!-- Dropdown pilih akun -->
+    <div style="margin-bottom:16px">
+      <select id="akunSelect" onchange="selectAkun(this.value)" style="width:100%;padding:13px 14px;border:1.5px solid #e5e3f5;border-radius:14px;background:#fff;color:#1e1e2e;font-size:14px;font-weight:600;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%236b7280%22 stroke-width=%222%22><polyline points=%226 9 12 15 18 9%22/></svg>');background-repeat:no-repeat;background-position:right 14px center;box-shadow:0 2px 8px rgba(80,70,160,0.06)">
+        <option value="">Memuat akun...</option>
+      </select>
     </div>
 
     <!-- Konten list -->
@@ -214,29 +214,40 @@
 
       allAkun = data || [];
 
-      const tabsEl = document.getElementById('akunTabs');
+      const selectEl = document.getElementById('akunSelect');
 
       if (!allAkun.length) {
-        tabsEl.innerHTML = '<div style="font-size:13px;color:#9ca3af;padding:8px 0">Belum ada akun TikTok.</div>';
+        selectEl.innerHTML = '<option value="">Belum ada akun TikTok</option>';
         document.getElementById('kontenList').innerHTML = '<div class="empty-state"><div class="emoji">📱</div><p>Belum ada akun TikTok</p><small>Minta admin untuk menambah akun.</small></div>';
         return;
       }
 
-      // Render tabs: semua akun jadi tab
-      tabsEl.innerHTML = allAkun.map((a, i) => {
-        const label = `${a.produk} · ${a.tipe === 'utama' ? 'Utama' : 'Pemasaran'} · ${a.username}`;
-        return `<button class="tab-pill${i === 0 ? ' active' : ''}" onclick="selectAkun('${a.id}', this)">${label}</button>`;
-      }).join('');
+      // Group by produk untuk optgroup
+      const byProduk = {};
+      allAkun.forEach(a => {
+        if (!byProduk[a.produk]) byProduk[a.produk] = [];
+        byProduk[a.produk].push(a);
+      });
+
+      selectEl.innerHTML = Object.entries(byProduk).map(([produk, list]) =>
+        `<optgroup label="${produk}">` +
+        list.map(a => {
+          const label = a.tipe === 'utama'
+            ? `${a.toko || a.username} (Utama)`
+            : `@${a.username}`;
+          return `<option value="${a.id}">${label}</option>`;
+        }).join('') +
+        `</optgroup>`
+      ).join('');
 
       // Pilih akun pertama
       selectedAkunId = allAkun[0].id;
+      selectEl.value = selectedAkunId;
       loadKonten(selectedAkunId);
     }
 
-    window.selectAkun = function(akunId, btn) {
+    window.selectAkun = function(akunId) {
       selectedAkunId = akunId;
-      document.querySelectorAll('.tab-pill').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
       loadKonten(akunId);
     };
 

@@ -359,11 +359,18 @@
       } else if (c.status === 'downloaded') {
         actionsHtml = `
           <button class="btn-download" onclick="doDownload('${c.id}', '${c.link_drive}')" style="background:#6b7280">⬇ Download Ulang</button>
-          <button class="btn-upload" onclick="markUploaded('${c.id}')">✅ Sudah Diupload</button>
+          <button class="btn-upload" onclick="showBoostInput('${c.id}')">✅ Sudah Diupload</button>
+          <div id="boostForm-${c.id}" style="display:none;margin-top:10px;display:none">
+            <input id="boostInput-${c.id}" type="text" placeholder="Kode Boost (wajib diisi)" style="width:100%;padding:10px 12px;border:1.5px solid #e5e3f5;border-radius:10px;font-size:13px;outline:none;margin-bottom:8px;box-sizing:border-box">
+            <div style="display:flex;gap:8px">
+              <button onclick="markUploaded('${c.id}')" style="flex:1;padding:10px;background:#10b981;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px">Konfirmasi Upload</button>
+              <button onclick="hideBoostInput('${c.id}')" style="padding:10px 14px;border:1.5px solid #e5e3f5;background:#fff;color:#6b7280;border-radius:10px;font-size:13px;cursor:pointer;min-height:44px">Batal</button>
+            </div>
+          </div>
         `;
       } else {
-        // uploaded — hanya tampilkan badge
-        actionsHtml = '';
+        // uploaded — tampilkan kode boost kalau ada
+        actionsHtml = c.kode_boost ? `<div style="margin-top:6px;padding:8px 12px;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;font-size:12px;color:#16a34a;font-weight:600">🚀 Kode Boost: ${c.kode_boost}</div>` : '';
       }
 
       // Thumb image or fallback
@@ -406,16 +413,34 @@
       }
     };
 
+    window.showBoostInput = function(contentId) {
+      document.getElementById(`boostForm-${contentId}`).style.display = 'block';
+    };
+
+    window.hideBoostInput = function(contentId) {
+      document.getElementById(`boostForm-${contentId}`).style.display = 'none';
+    };
+
     window.markUploaded = async function(contentId) {
+      const inputEl = document.getElementById(`boostInput-${contentId}`);
+      const kode_boost = inputEl ? inputEl.value.trim() : '';
+
+      if (!kode_boost) {
+        inputEl.style.borderColor = '#ef4444';
+        inputEl.placeholder = 'Kode Boost wajib diisi!';
+        inputEl.focus();
+        return;
+      }
+
+      inputEl.style.borderColor = '#e5e3f5';
       const now = new Date().toISOString();
+
       const { error } = await supabase
         .from('tiktok_contents')
-        .update({ status: 'uploaded', uploaded_at: now })
+        .update({ status: 'uploaded', uploaded_at: now, kode_boost })
         .eq('id', contentId);
 
-      if (!error) {
-        await loadKonten(selectedAkunId);
-      }
+      if (!error) await loadKonten(selectedAkunId);
     };
 
     window.doLogout = function() {

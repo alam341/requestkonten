@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SMO Dashboard — Maknarona by Adsy</title>
+  <link rel="icon" type="image/png" href="../assets/logo-maknarona.png">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0eef8;
+      min-height: 100vh;
+      color: #1e1e2e;
+    }
+
+    /* Sticky Header */
+    .app-header {
+      position: sticky; top: 0; z-index: 50;
+      background: #fff;
+      padding: 14px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 2px 12px rgba(80,70,160,0.08);
+    }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .header-logo { height: 32px; width: auto; }
+    .header-title { font-size: 15px; font-weight: 800; color: #4f46e5; line-height: 1; }
+    .header-sub { font-size: 11px; color: #9ca3af; line-height: 1.3; }
+    .header-smo-name { font-size: 13px; font-weight: 700; color: #1e1e2e; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .logout-btn {
+      padding: 8px 14px; border-radius: 10px;
+      background: #f5f4fb; border: none; color: #6b7280;
+      font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+      min-height: 36px;
+    }
+    .logout-btn:hover { background: #fef2f2; color: #dc2626; }
+
+    /* Main content */
+    .main { max-width: 600px; margin: 0 auto; padding: 16px 12px 32px; }
+
+    /* Tab pills horizontal scroll */
+    .tabs-wrap {
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+      padding-bottom: 4px; margin-bottom: 16px;
+      scrollbar-width: none;
+    }
+    .tabs-wrap::-webkit-scrollbar { display: none; }
+    .tabs-inner { display: flex; gap: 8px; width: max-content; padding: 2px 0; }
+    .tab-pill {
+      padding: 9px 18px; border-radius: 99px;
+      border: 1.5px solid #e5e3f5;
+      background: #fff; color: #6b7280;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s; white-space: nowrap;
+      min-height: 40px; display: inline-flex; align-items: center;
+    }
+    .tab-pill:hover { border-color: #4f46e5; color: #4f46e5; }
+    .tab-pill.active { background: #4f46e5; color: #fff; border-color: #4f46e5; }
+
+    /* Content card */
+    .content-wrap { display: flex; flex-direction: column; gap: 14px; }
+
+    .konten-card {
+      background: #fff; border-radius: 14px;
+      box-shadow: 0 2px 10px rgba(80,70,160,0.07);
+      overflow: hidden; transition: box-shadow 0.2s;
+    }
+    .konten-card.uploaded { opacity: 0.6; }
+    .konten-card:active { box-shadow: 0 4px 16px rgba(80,70,160,0.12); }
+
+    .konten-thumb {
+      width: 100%; aspect-ratio: 16/9;
+      background: #f0eef8; object-fit: cover;
+      display: block;
+    }
+    .konten-thumb-fallback {
+      width: 100%; aspect-ratio: 16/9;
+      background: linear-gradient(135deg, #ede9fe, #f0eef8);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 48px;
+    }
+
+    .konten-body { padding: 14px 16px; }
+    .konten-creator { font-size: 14px; font-weight: 700; color: #1e1e2e; }
+    .konten-meta { font-size: 12px; color: #9ca3af; margin-top: 3px; }
+    .konten-actions { display: flex; gap: 10px; margin-top: 14px; }
+
+    .btn-download {
+      flex: 1; padding: 12px;
+      background: #4f46e5; color: #fff;
+      border: none; border-radius: 10px;
+      font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: background 0.2s;
+      min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn-download:hover { background: #4338ca; }
+    .btn-download:active { background: #3730a3; }
+
+    .btn-upload {
+      flex: 1; padding: 12px;
+      background: #d1fae5; color: #065f46;
+      border: 1.5px solid #a7f3d0; border-radius: 10px;
+      font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: all 0.2s;
+      min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn-upload:hover { background: #a7f3d0; }
+    .btn-upload:active { background: #6ee7b7; }
+
+    .status-badge {
+      display: inline-flex; align-items: center;
+      font-size: 11px; font-weight: 700;
+      padding: 4px 12px; border-radius: 99px;
+    }
+    .status-badge.pending { background: #f3f4f6; color: #6b7280; }
+    .status-badge.downloaded { background: #dbeafe; color: #1d4ed8; }
+    .status-badge.uploaded { background: #d1fae5; color: #065f46; }
+
+    /* Separator for uploaded section */
+    .section-sep {
+      font-size: 11px; font-weight: 700; color: #9ca3af;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 8px 0 4px; border-top: 1.5px dashed #e5e3f5;
+      margin-top: 8px;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center; padding: 48px 20px;
+      color: #c4c0f0;
+    }
+    .empty-state .emoji { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; font-weight: 600; }
+    .empty-state small { font-size: 12px; color: #d1d5db; margin-top: 4px; display: block; }
+
+    /* Loading */
+    .loading-state {
+      text-align: center; padding: 40px 20px; color: #9ca3af;
+      font-size: 14px;
+    }
+
+    @media (max-width: 480px) {
+      .main { padding: 12px 8px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sticky Header -->
+  <div class="app-header">
+    <div class="header-left">
+      <img src="../assets/logo-maknarona.png" alt="Maknarona" class="header-logo">
+      <div>
+        <div class="header-title">SMO</div>
+        <div class="header-sub">Maknarona by Adsy</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="header-smo-name" id="smoName">—</div>
+      <button class="logout-btn" onclick="doLogout()">Keluar</button>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Tab pills -->
+    <div class="tabs-wrap">
+      <div class="tabs-inner" id="akunTabs">
+        <div class="tab-pill active" style="color:#9ca3af">Memuat akun...</div>
+      </div>
+    </div>
+
+    <!-- Konten list -->
+    <div class="content-wrap" id="kontenList">
+      <div class="loading-state">Memuat konten...</div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const SUPABASE_URL = 'https://woqznjubhmjraqapgyat.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvcXpuanViaG1qcmFxYXBneWF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MzUxNTgsImV4cCI6MjA5MjUxMTE1OH0.xBHG0aeKLutXyqTjlhpGVIYy7-wuI-ztI9e73wmRL04';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ── AUTH CHECK ───────────────────────────────────────────
+    const raw = localStorage.getItem('smo_session');
+    if (!raw) { window.location.href = 'login.html'; }
+
+    let smoSession = null;
+    try { smoSession = JSON.parse(raw); } catch(e) { window.location.href = 'login.html'; }
+    if (!smoSession) { window.location.href = 'login.html'; }
+
+    document.getElementById('smoName').textContent = smoSession.name;
+
+    // ── STATE ────────────────────────────────────────────────
+    let allAkun = [];
+    let selectedAkunId = null;
+
+    // ── INIT ─────────────────────────────────────────────────
+    async function init() {
+      await loadAkun();
+    }
+
+    async function loadAkun() {
+      const { data } = await supabase
+        .from('tiktok_accounts')
+        .select('*')
+        .order('produk')
+        .order('tipe');
+
+      allAkun = data || [];
+
+      const tabsEl = document.getElementById('akunTabs');
+
+      if (!allAkun.length) {
+        tabsEl.innerHTML = '<div style="font-size:13px;color:#9ca3af;padding:8px 0">Belum ada akun TikTok.</div>';
+        document.getElementById('kontenList').innerHTML = '<div class="empty-state"><div class="emoji">📱</div><p>Belum ada akun TikTok</p><small>Minta admin untuk menambah akun.</small></div>';
+        return;
+      }
+
+      // Render tabs: semua akun jadi tab
+      tabsEl.innerHTML = allAkun.map((a, i) => {
+        const label = `${a.produk} · ${a.tipe === 'utama' ? 'Utama' : 'Pemasaran'} · ${a.username}`;
+        return `<button class="tab-pill${i === 0 ? ' active' : ''}" onclick="selectAkun('${a.id}', this)">${label}</button>`;
+      }).join('');
+
+      // Pilih akun pertama
+      selectedAkunId = allAkun[0].id;
+      loadKonten(selectedAkunId);
+    }
+
+    window.selectAkun = function(akunId, btn) {
+      selectedAkunId = akunId;
+      document.querySelectorAll('.tab-pill').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      loadKonten(akunId);
+    };
+
+    async function loadKonten(akunId) {
+      const list = document.getElementById('kontenList');
+      list.innerHTML = '<div class="loading-state">Memuat konten...</div>';
+
+      const { data } = await supabase
+        .from('tiktok_contents')
+        .select('*')
+        .eq('akun_id', akunId)
+        .order('created_at', { ascending: false });
+
+      if (!data || !data.length) {
+        list.innerHTML = '<div class="empty-state"><div class="emoji">📭</div><p>Belum ada konten</p><small>Tunggu CC submit konten ke akun ini.</small></div>';
+        return;
+      }
+
+      // Sort: pending & downloaded dulu, uploaded di bawah
+      const active = data.filter(c => c.status !== 'uploaded');
+      const uploaded = data.filter(c => c.status === 'uploaded');
+
+      let html = active.map(c => renderKontenCard(c)).join('');
+
+      if (uploaded.length) {
+        html += `<div class="section-sep">Sudah Diupload (${uploaded.length})</div>`;
+        html += uploaded.map(c => renderKontenCard(c)).join('');
+      }
+
+      list.innerHTML = html || '<div class="empty-state"><div class="emoji">📭</div><p>Belum ada konten</p></div>';
+    }
+
+    function extractFileId(url) {
+      if (!url) return null;
+      const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (match) return match[1];
+      const match2 = url.match(/id=([a-zA-Z0-9_-]+)/);
+      return match2 ? match2[1] : null;
+    }
+
+    function renderKontenCard(c) {
+      const fileId = extractFileId(c.link_drive);
+      const thumbSrc = fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w400` : null;
+
+      const tgl = new Date(c.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+      const creatorLabel = c.creator_name || 'Creator';
+
+      // Status badge
+      const badgeMap = {
+        pending: `<span class="status-badge pending">Belum Download</span>`,
+        downloaded: `<span class="status-badge downloaded">Sudah Download</span>`,
+        uploaded: `<span class="status-badge uploaded">Sudah Upload</span>`,
+      };
+      const badge = badgeMap[c.status] || badgeMap.pending;
+
+      // Actions
+      let actionsHtml = '';
+      if (c.status === 'pending') {
+        actionsHtml = `<button class="btn-download" onclick="doDownload('${c.id}', '${c.link_drive}')">⬇ Download</button>`;
+      } else if (c.status === 'downloaded') {
+        actionsHtml = `
+          <button class="btn-download" onclick="doDownload('${c.id}', '${c.link_drive}')" style="background:#6b7280">⬇ Download Ulang</button>
+          <button class="btn-upload" onclick="markUploaded('${c.id}')">✅ Sudah Diupload</button>
+        `;
+      } else {
+        // uploaded — hanya tampilkan badge
+        actionsHtml = '';
+      }
+
+      // Thumb image or fallback
+      const thumbHtml = thumbSrc
+        ? `<img class="konten-thumb" src="${thumbSrc}" alt="thumb" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+          + `<div class="konten-thumb-fallback" style="display:none">🎬</div>`
+        : `<div class="konten-thumb-fallback">🎬</div>`;
+
+      return `
+        <div class="konten-card${c.status === 'uploaded' ? ' uploaded' : ''}" id="card-${c.id}">
+          ${thumbHtml}
+          <div class="konten-body">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+              <div>
+                <div class="konten-creator">${creatorLabel}</div>
+                <div class="konten-meta">${tgl}</div>
+              </div>
+              ${badge}
+            </div>
+            ${actionsHtml ? `<div class="konten-actions">${actionsHtml}</div>` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    window.doDownload = async function(contentId, linkDrive) {
+      // Buka link di tab baru
+      window.open(linkDrive, '_blank');
+
+      // Update status ke downloaded
+      const now = new Date().toISOString();
+      const { error } = await supabase
+        .from('tiktok_contents')
+        .update({ status: 'downloaded', downloaded_at: now })
+        .eq('id', contentId);
+
+      if (!error) {
+        // Reload konten untuk update UI
+        await loadKonten(selectedAkunId);
+      }
+    };
+
+    window.markUploaded = async function(contentId) {
+      const now = new Date().toISOString();
+      const { error } = await supabase
+        .from('tiktok_contents')
+        .update({ status: 'uploaded', uploaded_at: now })
+        .eq('id', contentId);
+
+      if (!error) {
+        await loadKonten(selectedAkunId);
+      }
+    };
+
+    window.doLogout = function() {
+      localStorage.removeItem('smo_session');
+      window.location.href = 'login.html';
+    };
+
+    init();
+  </script>
+</body>
+</html>

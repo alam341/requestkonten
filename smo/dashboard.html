@@ -259,8 +259,7 @@
     </div>
   </div>
 
-  <!-- Hidden download iframe -->
-  <iframe id="dlFrame" style="display:none"></iframe>
+
 
   <!-- Modal Preview -->
   <div class="modal-overlay" id="previewModal" onclick="closeModal(event)">
@@ -628,11 +627,11 @@
 
     window.doDownload = async function(contentId, linkDrive) {
       const fileId = extractFileId(linkDrive);
-      if (fileId) {
-        document.getElementById('dlFrame').src = `https://drive.google.com/uc?export=download&id=${fileId}`;
-      } else {
-        window.open(linkDrive, '_blank');
-      }
+      // window.open lebih kompatibel di mobile dibanding hidden iframe
+      window.open(
+        fileId ? `https://drive.google.com/uc?export=download&id=${fileId}` : linkDrive,
+        '_blank'
+      );
       const now = new Date().toISOString();
       const { error } = await supabase.from('tiktok_contents')
         .update({ status: 'downloaded', downloaded_at: now })

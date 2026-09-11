@@ -340,8 +340,12 @@
           }).catch(() => {});
         }
 
-        // Blast WA ke semua creator
-        const { data: creators } = await supabase.from('creators').select('wa_number').not('wa_number', 'is', null);
+        // Blast WA ke semua creator yang aktif
+        const { data: creators } = await supabase
+          .from('creators')
+          .select('wa_number')
+          .eq('status', 'active')
+          .not('wa_number', 'is', null);
         if (creators && creators.length > 0) {
           creators.forEach(c => {
             fetch('/api/send-wa', {

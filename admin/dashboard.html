@@ -502,7 +502,7 @@
         <div class="table-header"><h3>Daftar Creator</h3></div>
         <table>
           <thead>
-            <tr><th>Nama</th><th>WhatsApp</th><th>Status</th><th>Tugas Aktif</th><th>Ubah Status</th></tr>
+            <tr><th>Nama</th><th>WhatsApp</th><th>Status</th><th>Tugas Aktif</th><th>Ubah Status</th><th></th></tr>
           </thead>
           <tbody id="creatorsBody">
             <tr class="loading-row"><td colspan="5">Memuat...</td></tr>
@@ -976,7 +976,7 @@
 
     function renderCreators(creators) {
       const body = document.getElementById('creatorsBody');
-      if (!creators.length) { body.innerHTML = '<tr class="empty-row"><td colspan="5">Belum ada creator.</td></tr>'; return; }
+      if (!creators.length) { body.innerHTML = '<tr class="empty-row"><td colspan="6">Belum ada creator.</td></tr>'; return; }
       body.innerHTML = creators.map(c => `
         <tr>
           <td>
@@ -994,9 +994,29 @@
               <option value="sibuk" ${c.status === 'sibuk' ? 'selected' : ''}>Sibuk</option>
             </select>
           </td>
+          <td>
+            <button onclick="deleteCreator('${c.id}', '${c.name.replace(/'/g, "\\'")}')" style="background:#ef4444;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;font-weight:600">Hapus</button>
+          </td>
         </tr>
       `).join('');
     }
+
+    window.deleteCreator = async function(creatorId, creatorName) {
+      if (!confirm(`Hapus creator "${creatorName}"?\n\nAkun creator akan dihapus permanen. Order yang sudah ada tidak ikut terhapus.`)) return;
+      const { data: activeOrders } = await supabase
+        .from('orders')
+        .select('id')
+        .eq('creator_id', creatorId)
+        .in('status', ['assigned', 'in_progress', 'queued']);
+      if (activeOrders && activeOrders.length > 0) {
+        alert(`Tidak bisa hapus. ${creatorName} masih punya ${activeOrders.length} order aktif.`);
+        return;
+      }
+      const { error } = await supabase.from('creators').delete().eq('id', creatorId);
+      if (error) { alert('Gagal hapus: ' + error.message); return; }
+      const { data } = await supabase.from('creators').select('*').order('name');
+      renderCreators(data || []);
+    };
 
     window.assignOrder = async function (orderId) {
       const select = document.getElementById(`sel-${orderId}`);

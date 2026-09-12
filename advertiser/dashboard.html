@@ -413,9 +413,17 @@
         <div style="font-size:15px;font-weight:700;color:#1e1e2e;">Preview Konten</div>
         <button onclick="closeKontenPreview()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#9ca3af;padding:4px;">✕</button>
       </div>
-      <div style="width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000;position:relative;">
-        <iframe id="kontenPreviewIframe" src="" allowfullscreen allow="autoplay" style="width:100%;height:100%;border:none;"></iframe>
-        <div style="position:absolute;top:0;right:0;width:52px;height:52px;background:#000;border-radius:0 0 0 8px;pointer-events:none;"></div>
+      <div style="width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#111;position:relative;cursor:pointer;" id="kontenPreviewWrap" onclick="loadKontenIframe()">
+        <!-- Thumbnail -->
+        <img id="kontenPreviewThumb" src="" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display='none'">
+        <!-- Play button overlay -->
+        <div id="kontenPlayOverlay" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.35);">
+          <div style="width:64px;height:64px;background:rgba(255,255,255,0.95);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,0.4);">
+            <div style="width:0;height:0;border-top:14px solid transparent;border-bottom:14px solid transparent;border-left:22px solid #4f46e5;margin-left:4px;"></div>
+          </div>
+        </div>
+        <!-- Iframe (hidden until play clicked) -->
+        <iframe id="kontenPreviewIframe" src="" allowfullscreen allow="autoplay" style="width:100%;height:100%;border:none;display:none;position:absolute;inset:0;"></iframe>
       </div>
     </div>
   </div>
@@ -746,11 +754,40 @@
       if (page === 'tiktok')   { loadAdvTiktok(); }
     };
 
+    let _kontenPreviewFileId = null;
+
     window.openKontenPreview = function(linkDrive) {
       const fileId = linkDrive.match(/[-\w]{25,}/)?.[0];
-      const src = fileId ? `https://drive.google.com/file/d/${fileId}/preview` : linkDrive;
-      document.getElementById('kontenPreviewIframe').src = src;
+      _kontenPreviewFileId = fileId || null;
+
+      // Reset ke thumbnail state
+      const iframe = document.getElementById('kontenPreviewIframe');
+      const thumb  = document.getElementById('kontenPreviewThumb');
+      const overlay = document.getElementById('kontenPlayOverlay');
+      iframe.src = '';
+      iframe.style.display = 'none';
+      overlay.style.display = 'flex';
+      document.getElementById('kontenPreviewWrap').style.cursor = 'pointer';
+
+      // Pasang thumbnail
+      thumb.src = fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w800` : '';
+      thumb.style.display = fileId ? 'block' : 'none';
+
       document.getElementById('kontenPreviewModal').style.display = 'flex';
+    };
+
+    window.loadKontenIframe = function() {
+      const overlay = document.getElementById('kontenPlayOverlay');
+      if (overlay.style.display === 'none') return; // sudah playing
+      const iframe = document.getElementById('kontenPreviewIframe');
+      const src = _kontenPreviewFileId
+        ? `https://drive.google.com/file/d/${_kontenPreviewFileId}/preview`
+        : '';
+      iframe.src = src;
+      iframe.style.display = 'block';
+      overlay.style.display = 'none';
+      document.getElementById('kontenPreviewThumb').style.display = 'none';
+      document.getElementById('kontenPreviewWrap').style.cursor = 'default';
     };
 
     window.closeKontenPreview = function() {

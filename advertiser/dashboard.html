@@ -329,9 +329,12 @@
         <iframe id="advTmplIframe" src="" allowfullscreen allow="autoplay" style="width:100%;height:100%;border:none;"></iframe>
         <div style="position:absolute;top:0;right:0;width:52px;height:52px;background:#000;border-radius:0 0 0 8px;pointer-events:none;"></div>
       </div>
-      <button id="advDlBtn" onclick="doAdvTmplDownload()" style="width:100%;padding:13px;background:#4f46e5;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.2s;">
-        ⬇ Download Video
-      </button>
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <button id="advDlBtn" onclick="doAdvTmplDownload()" style="flex:1;padding:13px;background:#4f46e5;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.2s;">
+          ⬇ Download Video
+        </button>
+        <a id="advTmplDriveLink" href="#" target="_blank" style="padding:13px 16px;background:#f3f4f6;color:#374151;border-radius:10px;font-size:13px;font-weight:600;text-decoration:none;display:flex;align-items:center;white-space:nowrap;">↗ Buka di Drive</a>
+      </div>
       <div id="advDlStatus" style="display:none;margin-top:10px;padding:10px 14px;background:#f0fdf4;border-radius:8px;font-size:13px;color:#16a34a;text-align:center;border:1px solid #bbf7d0;"></div>
     </div>
   </div>
@@ -415,7 +418,7 @@
       </div>
       <div style="width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#111;position:relative;cursor:pointer;" id="kontenPreviewWrap" onclick="loadKontenIframe()">
         <!-- Thumbnail -->
-        <img id="kontenPreviewThumb" src="" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display='none'">
+        <img id="kontenPreviewThumb" style="width:100%;height:100%;object-fit:cover;display:none;" onerror="this.style.display='none'">
         <!-- Play button overlay -->
         <div id="kontenPlayOverlay" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.35);">
           <div style="width:64px;height:64px;background:rgba(255,255,255,0.95);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,0.4);">
@@ -933,7 +936,8 @@
       document.getElementById('advTmplTitle').textContent = judul;
       document.getElementById('advTmplProdukBadge').textContent = produk;
       document.getElementById('advTmplDl').textContent = `⬇ Didownload ${dlCount}x`;
-      document.getElementById('advTmplIframe').src = `https://drive.google.com/file/d/${fileId}/preview?autoplay=1`;
+      document.getElementById('advTmplIframe').src = `https://drive.google.com/file/d/${fileId}/preview`;
+      document.getElementById('advTmplDriveLink').href = `https://drive.google.com/file/d/${fileId}/view`;
       document.getElementById('advTmplPreviewModal').style.display = 'flex';
     };
 
@@ -1108,7 +1112,7 @@
       document.getElementById('kolDlCount').textContent = `⬇ Didownload ${dlCount}x`;
       document.getElementById('kolPreviewTitle').textContent = judul;
       document.getElementById('kolPreviewProduk').textContent = produk || '-';
-      document.getElementById('kolPreviewIframe').src = `https://drive.google.com/file/d/${fileId}/preview?autoplay=1`;
+      document.getElementById('kolPreviewIframe').src = `https://drive.google.com/file/d/${fileId}/preview`;
       const btn = document.getElementById('kolDlBtn');
       btn.disabled = false;
       btn.textContent = '⬇ Download Video';

@@ -787,7 +787,10 @@
                 ? c.boost_used
                   ? `<div style="margin-top:10px;padding:8px 12px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;font-size:12px;color:#9ca3af;font-weight:600;text-decoration:line-through">🚀 ${c.kode_boost}</div>
                      <div style="margin-top:4px;font-size:11px;font-weight:700;color:#9ca3af;text-align:center">✓ Sudah Dipakai</div>`
-                  : `<div style="margin-top:10px;padding:8px 12px;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;font-size:12px;color:#16a34a;font-weight:700">🚀 Kode Boost: ${c.kode_boost}</div>
+                  : `<div style="margin-top:10px;padding:8px 12px;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;font-size:12px;color:#16a34a;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                       <span>🚀 ${c.kode_boost}</span>
+                       <button onclick="navigator.clipboard.writeText('${c.kode_boost}').then(()=>{this.textContent='✓';setTimeout(()=>this.textContent='Salin',1500)})" style="flex-shrink:0;padding:4px 10px;background:#16a34a;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">Salin</button>
+                     </div>
                      <button onclick="markBoostUsed('${c.id}')" style="display:block;width:100%;margin-top:6px;padding:8px;background:#fff;border:1.5px solid #e5e7eb;color:#6b7280;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='#4f46e5';this.style.color='#4f46e5'" onmouseout="this.style.borderColor='#e5e7eb';this.style.color='#6b7280'">Tandai Sudah Dipakai</button>`
                 : `<div style="margin-top:10px;padding:8px 12px;background:#f9fafb;border-radius:8px;font-size:12px;color:#9ca3af;">Tidak ada Kode Boost</div>`
               }
@@ -898,11 +901,8 @@
         dlEl.textContent = `⬇ Didownload ${n}x`;
       }
 
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = `https://drive.google.com/uc?export=download&id=${fileId}`;
-      document.body.appendChild(iframe);
-      setTimeout(() => iframe.remove(), 10000);
+      // Trigger download — window.open lebih kompatibel di mobile
+      window.open(`https://drive.google.com/uc?export=download&id=${fileId}`, '_blank');
 
       status.style.display = 'block';
       status.innerHTML = '✅ Download dimulai! Cek folder <strong>Downloads</strong> kamu.';
@@ -1068,11 +1068,8 @@
         dlEl.textContent = `⬇ Didownload ${n}x`;
       }
 
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = `https://drive.google.com/uc?export=download&id=${kolCurrentFileId}`;
-      document.body.appendChild(iframe);
-      setTimeout(() => iframe.remove(), 10000);
+      // Trigger download — window.open lebih kompatibel di mobile
+      window.open(`https://drive.google.com/uc?export=download&id=${kolCurrentFileId}`, '_blank');
 
       status.style.display = 'block';
       status.innerHTML = '✅ Download dimulai! Cek folder <strong>Downloads</strong> kamu.';

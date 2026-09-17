@@ -1130,9 +1130,14 @@
       btn.textContent = '⏳ Menyiapkan download...';
       btn.style.background = '#6b7280';
 
-      // Increment download count via RPC
+      // Increment download count via RPC + catat log
       if (kolCurrentVideoId) {
         await sbKol.rpc('increment_kol_download', { video_id: kolCurrentVideoId });
+        await sbKol.from('kol_downloads').insert({
+          video_id: kolCurrentVideoId,
+          user_name: advCurrentUser?.name || 'Advertiser',
+          role: 'advertiser'
+        });
         const dlEl = document.getElementById('kolDlCount');
         const n = parseInt(dlEl.textContent.match(/\d+/) || [0]) + 1;
         dlEl.textContent = `⬇ Didownload ${n}x`;

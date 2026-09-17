@@ -2053,8 +2053,7 @@
 
       // Query 1: fetch template_downloads (dengan filter role + nama)
       let q = supabase.from('template_downloads')
-        .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false });
+        .select('*', { count: 'exact' });
       if (role) q = q.eq('role', role);
       if (search) q = q.ilike('user_name', `%${search}%`);
 

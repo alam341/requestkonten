@@ -2162,7 +2162,7 @@
 
       // Fetch semua log (cache, hanya re-fetch jika belum ada)
       if (!_allLogCache) {
-        const { data, error } = await supabase.from('template_downloads').select('*');
+        const { data, error } = await supabase.from('template_downloads').select('*').order('downloaded_at', { ascending: false });
         if (error || !data) {
           tbody.innerHTML = `<tr class="empty-row"><td colspan="6" style="color:#ef4444">Gagal memuat log: ${error?.message || 'Unknown error'}</td></tr>`;
           return;
@@ -2230,7 +2230,7 @@
           <td><span class="footage-produk" style="font-size:11px">${r._tmpl?.produk || '—'}</span></td>
           <td style="font-weight:600">${r.user_name || '—'}</td>
           <td>${roleBadge(r.role)}</td>
-          <td style="font-size:12px;color:var(--text2);white-space:nowrap">${fmtDt(r.created_at)}</td>
+          <td style="font-size:12px;color:var(--text2);white-space:nowrap">${fmtDt(r.downloaded_at)}</td>
         </tr>
       `).join('');
 
@@ -2290,7 +2290,7 @@
         escape(r._tmpl?.produk || ''),
         escape(r.user_name || ''),
         escape(r.role || ''),
-        escape(fmtDt(r.created_at))
+        escape(fmtDt(r.downloaded_at))
       ].join(','));
 
       const csv = [header.join(','), ...csvRows].join('\n');

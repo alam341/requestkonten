@@ -679,6 +679,7 @@
             <option value="videografer">Videografer</option>
           </select>
           <input class="search-input" type="text" id="ftLogSearch" placeholder="🔍 Cari nama..." oninput="ftLogPage=1;loadDownloadLog()" />
+          <button onclick="exportLogCSV()" class="export-btn" id="exportLogBtn">⬇ Export CSV</button>
         </div>
         <div class="table-wrap">
           <table>
@@ -2120,6 +2121,72 @@
       `).join('');
 
       renderFtPagination('ftLogPagination', ftLogPage, total, LOG_PER_PAGE, 'loadDownloadLog');
+    };
+
+    window.exportLogCSV = async function() {
+      const produkFilter = document.getElementById('ftLogProduk').value;
+      const role = document.getElementById('ftLogRole').value;
+      const search = document.getElementById('ftLogSearch').value.trim();
+      const btn = document.getElementById('exportLogBtn');
+
+      btn.disabled = true; btn.textContent = '⏳ Menyiapkan...';
+
+      // Fetch semua data tanpa pagination
+      let q = supabase.from('template_downloads').select('*');
+      if (role) q = q.eq('role', role);
+      if (search) q = q.ilike('user_name', `%${search}%`);
+
+      const { data: allLogs, error } = await q;
+      btn.disabled = false; btn.textContent = '⬇ Export CSV';
+
+      if (error || !allLogs?.length) {
+        showAdminToast('Tidak ada data untuk diexport.', 'error'); return;
+      }
+
+      // Batch fetch template info
+      const ids = [...new Set(allLogs.map(l => l.template_id).filter(Boolean))];
+      let tmplMap = {};
+      if (ids.length) {
+        const { data: tmpls } = await supabase.from('video_templates').select('id, judul, produk').in('id', ids);
+        (tmpls || []).forEach(t => { tmplMap[t.id] = t; });
+      }
+
+      // Merge + filter produk
+      let rows = allLogs.map(l => ({ ...l, _tmpl: tmplMap[l.template_id] || null }));
+      if (produkFilter) rows = rows.filter(r => r._tmpl?.produk === produkFilter);
+
+      if (!rows.length) { showAdminToast('Tidak ada data untuk diexport.', 'error'); return; }
+
+      const fmtDt = (s) => {
+        if (!s) return '';
+        const d = new Date(s);
+        return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+          + ' ' + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      };
+
+      const escape = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+
+      const header = ['No', 'Footage', 'Produk', 'Downloader', 'Role', 'Waktu'];
+      const csvRows = rows.map((r, i) => [
+        i + 1,
+        escape(r._tmpl?.judul || ''),
+        escape(r._tmpl?.produk || ''),
+        escape(r.user_name || ''),
+        escape(r.role || ''),
+        escape(fmtDt(r.created_at))
+      ].join(','));
+
+      const csv = [header.join(','), ...csvRows].join('\n');
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const now = new Date();
+      const dateStr = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
+      a.href = url;
+      a.download = `log-download-footage-${dateStr}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showAdminToast(`${rows.length} baris berhasil diexport.`, 'success');
     };
 
     function showAdminToast(msg, type = 'info') {

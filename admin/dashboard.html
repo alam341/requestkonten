@@ -482,6 +482,9 @@
     <button class="nav-item" onclick="showPage('footage', this)">
       <span class="icon">🎬</span> Footage Video
     </button>
+    <button class="nav-item" onclick="showPage('kol', this)">
+      <span class="icon">⭐</span> Konten KOL
+    </button>
 
     <div class="sidebar-bottom">
       <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">
@@ -654,7 +657,7 @@
           <span id="ftLibCount" style="font-size:12px;color:var(--text2);margin-left:4px;"></span>
         </div>
         <div class="footage-grid" id="ftLibGrid">
-          <div class="empty-row" style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text3);">Memuat...</div>
+          <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text2);font-size:13px;">Memuat footage...</div>
         </div>
         <div class="footage-pagination" id="ftLibPagination"></div>
       </div>
@@ -678,7 +681,9 @@
             <option value="smo">SMO</option>
             <option value="videografer">Videografer</option>
           </select>
-          <input class="search-input" type="text" id="ftLogSearch" placeholder="🔍 Cari nama..." oninput="ftLogPage=1;loadDownloadLog()" />
+          <select class="footage-filter" id="ftLogDownloader" onchange="ftLogPage=1;loadDownloadLog()">
+            <option value="">Semua Downloader</option>
+          </select>
           <button onclick="exportLogCSV()" class="export-btn" id="exportLogBtn">⬇ Export CSV</button>
         </div>
         <div class="table-wrap">
@@ -699,6 +704,83 @@
           </table>
         </div>
         <div class="footage-pagination" id="ftLogPagination" style="margin-top:16px;"></div>
+      </div>
+    </div>
+
+    <!-- KOL PAGE -->
+    <div class="page-section" id="page-kol">
+      <div class="page-header">
+        <div class="page-title">Konten KOL</div>
+        <div class="page-subtitle">Library konten KOL & riwayat download.</div>
+      </div>
+
+      <div class="tab-pills">
+        <button class="tab-pill active" onclick="switchKolTab('library', this)">⭐ Library KOL</button>
+        <button class="tab-pill" onclick="switchKolTab('log', this)">📥 Log Download</button>
+      </div>
+
+      <!-- TAB: Library KOL -->
+      <div class="tab-content active" id="ktab-library">
+        <div class="footage-toolbar">
+          <select class="footage-filter" id="kolLibProduk" onchange="kolLibPage=1;loadAdminKol()">
+            <option value="">Semua Produk</option>
+            <option>Primagold</option><option>Numata</option><option>Herbapil</option>
+            <option>Youzhi Cream</option><option>Youzhi Tube</option><option>Onaire</option>
+            <option>Jawara</option><option>Koikohi</option><option>Mr Prima</option>
+            <option>Vasco</option><option>Notelli</option><option>Maksir</option>
+            <option>Oiri</option><option>Noradix</option><option>Bajakah</option>
+            <option>Provitasi</option><option>Channabumax</option>
+          </select>
+          <input class="search-input" type="text" id="kolLibSearch" placeholder="🔍 Cari judul / KOL..." oninput="kolLibPage=1;loadAdminKol()" />
+          <span id="kolLibCount" style="font-size:12px;color:var(--text2);margin-left:4px;"></span>
+        </div>
+        <div class="footage-grid" id="kolLibGrid">
+          <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text2);font-size:13px;">Memuat konten KOL...</div>
+        </div>
+        <div class="footage-pagination" id="kolLibPagination"></div>
+      </div>
+
+      <!-- TAB: Log Download KOL -->
+      <div class="tab-content" id="ktab-log">
+        <div class="log-toolbar">
+          <select class="footage-filter" id="kolLogProduk" onchange="kolLogPage=1;loadKolLog()">
+            <option value="">Semua Produk</option>
+            <option>Primagold</option><option>Numata</option><option>Herbapil</option>
+            <option>Youzhi Cream</option><option>Youzhi Tube</option><option>Onaire</option>
+            <option>Jawara</option><option>Koikohi</option><option>Mr Prima</option>
+            <option>Vasco</option><option>Notelli</option><option>Maksir</option>
+            <option>Oiri</option><option>Noradix</option><option>Bajakah</option>
+            <option>Provitasi</option><option>Channabumax</option>
+          </select>
+          <select class="footage-filter" id="kolLogRole" onchange="kolLogPage=1;loadKolLog()">
+            <option value="">Semua Role</option>
+            <option value="advertiser">Advertiser</option>
+            <option value="creator">Creator</option>
+            <option value="smo">SMO</option>
+          </select>
+          <select class="footage-filter" id="kolLogDownloader" onchange="kolLogPage=1;loadKolLog()">
+            <option value="">Semua Downloader</option>
+          </select>
+          <button onclick="exportKolLogCSV()" class="export-btn" id="exportKolLogBtn">⬇ Export CSV</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Konten KOL</th>
+                <th>Produk</th>
+                <th>Downloader</th>
+                <th>Role</th>
+                <th>Waktu</th>
+              </tr>
+            </thead>
+            <tbody id="kolLogBody">
+              <tr class="loading-row"><td colspan="6">Memuat...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="footage-pagination" id="kolLogPagination" style="margin-top:16px;"></div>
       </div>
     </div>
 
@@ -783,6 +865,29 @@
           <iframe id="fpIframe" src="" allowfullscreen style="width:100%;height:100%;border:none;"></iframe>
         </div>
         <a id="fpDriveLink" href="#" target="_blank" style="display:inline-flex;align-items:center;gap:6px;color:#60a5fa;font-size:13px;font-weight:600;text-decoration:none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">🔗 Buka di Drive</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- KOL Preview Modal (admin) -->
+  <div class="footage-modal-overlay" id="kolPreviewModalAdmin" onclick="closeKolPreviewAdmin(event)">
+    <div class="modal-box" style="max-width:640px">
+      <div class="modal-head">
+        <div>
+          <div class="modal-head-title" id="kpaTitle">—</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px">
+            <span style="font-size:11px;font-weight:600;color:#059669;background:#ecfdf5;padding:2px 8px;border-radius:99px" id="kpaProduk">—</span>
+            <span style="font-size:12px;color:var(--text2)" id="kpaDl">—</span>
+            <span style="font-size:12px;color:var(--text2)" id="kpaKol">—</span>
+          </div>
+        </div>
+        <button class="modal-close" onclick="document.getElementById('kolPreviewModalAdmin').classList.remove('open');document.getElementById('kpaIframe').src=''">✕</button>
+      </div>
+      <div class="modal-body" style="gap:12px">
+        <div style="width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000">
+          <iframe id="kpaIframe" src="" allowfullscreen style="width:100%;height:100%;border:none;"></iframe>
+        </div>
+        <a id="kpaDriveLink" href="#" target="_blank" style="display:inline-flex;align-items:center;gap:6px;color:#059669;font-size:13px;font-weight:600;text-decoration:none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">🔗 Buka di Drive</a>
       </div>
     </div>
   </div>
@@ -1660,7 +1765,8 @@
       if (page === 'laporan') loadLaporan();
       if (page === 'perform') loadPerform();
       if (page === 'tiktok') loadTiktokAccounts();
-      if (page === 'footage') loadAdminFootage();
+      if (page === 'footage') { _allLogCache = null; loadAdminFootage(); }
+      if (page === 'kol') { _kolLogCache = null; loadAdminKol(); }
     };
 
     window.doLogout = async function () {
@@ -1892,7 +1998,7 @@
       btn.classList.add('active');
       document.getElementById('ftab-' + tab).classList.add('active');
       if (tab === 'library') loadAdminFootage();
-      if (tab === 'log') loadDownloadLog();
+      if (tab === 'log') { _allLogCache = null; loadDownloadLog(); }
     };
 
     window.loadAdminFootage = async function(page) {
@@ -2042,56 +2148,64 @@
     };
 
     // ── LOG DOWNLOAD ──────────────────────────────────────────
+    let _allLogCache = null; // cache semua log supaya dropdown downloader tidak re-fetch
+
     window.loadDownloadLog = async function(page) {
       if (page !== undefined) ftLogPage = page;
       const produkFilter = document.getElementById('ftLogProduk').value;
-      const role = document.getElementById('ftLogRole').value;
-      const search = document.getElementById('ftLogSearch').value.trim();
+      const roleFilter = document.getElementById('ftLogRole').value;
+      const downloaderFilter = document.getElementById('ftLogDownloader').value;
       const tbody = document.getElementById('ftLogBody');
 
       tbody.innerHTML = `<tr class="loading-row"><td colspan="6">Memuat...</td></tr>`;
       document.getElementById('ftLogPagination').innerHTML = '';
 
-      // Query 1: fetch template_downloads (dengan filter role + nama)
-      let q = supabase.from('template_downloads')
-        .select('*', { count: 'exact' });
-      if (role) q = q.eq('role', role);
-      if (search) q = q.ilike('user_name', `%${search}%`);
+      // Fetch semua log (cache, hanya re-fetch jika belum ada)
+      if (!_allLogCache) {
+        const { data, error } = await supabase.from('template_downloads').select('*');
+        if (error || !data) {
+          tbody.innerHTML = `<tr class="empty-row"><td colspan="6" style="color:#ef4444">Gagal memuat log: ${error?.message || 'Unknown error'}</td></tr>`;
+          return;
+        }
+        _allLogCache = data;
 
-      const { data: allLogs, count: totalCount, error } = await q;
-
-      if (error || !allLogs) {
-        tbody.innerHTML = `<tr class="empty-row"><td colspan="6">Gagal memuat log: ${error?.message || 'Unknown error'}</td></tr>`;
-        return;
+        // Populate dropdown downloader (unik, sorted A-Z)
+        const names = [...new Set(data.map(l => l.user_name).filter(Boolean))].sort();
+        const sel = document.getElementById('ftLogDownloader');
+        const currentVal = sel.value;
+        sel.innerHTML = `<option value="">Semua Downloader</option>` +
+          names.map(n => `<option value="${n}" ${n === currentVal ? 'selected' : ''}>${n}</option>`).join('');
       }
 
-      if (!allLogs.length) {
-        tbody.innerHTML = `<tr class="empty-row"><td colspan="6">Belum ada riwayat download.</td></tr>`;
-        return;
-      }
-
-      // Query 2: fetch judul + produk untuk template_id yang unik di halaman ini
-      const allIds = [...new Set(allLogs.map(l => l.template_id).filter(Boolean))];
+      // Fetch template info untuk semua unique template_id
+      const allIds = [...new Set(_allLogCache.map(l => l.template_id).filter(Boolean))];
       let tmplMap = {};
       if (allIds.length) {
         const { data: tmpls } = await supabase.from('video_templates')
-          .select('id, judul, produk')
-          .in('id', allIds);
+          .select('id, judul, produk').in('id', allIds);
         (tmpls || []).forEach(t => { tmplMap[t.id] = t; });
       }
 
-      // Merge + filter produk client-side
-      let rows = allLogs.map(l => ({ ...l, _tmpl: tmplMap[l.template_id] || null }));
+      // Merge + filter semua client-side
+      let rows = _allLogCache.map(l => ({ ...l, _tmpl: tmplMap[l.template_id] || null }));
+      if (roleFilter) rows = rows.filter(r => r.role === roleFilter);
+      if (downloaderFilter) rows = rows.filter(r => r.user_name === downloaderFilter);
       if (produkFilter) rows = rows.filter(r => r._tmpl?.produk === produkFilter);
 
-      // Pagination manual (setelah filter)
+      if (!rows.length) {
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="6">Belum ada riwayat download.</td></tr>`;
+        document.getElementById('ftLogPagination').innerHTML = '';
+        return;
+      }
+
+      // Pagination
       const total = rows.length;
       const from = (ftLogPage - 1) * LOG_PER_PAGE;
       const pageRows = rows.slice(from, from + LOG_PER_PAGE);
 
       if (!pageRows.length) {
-        tbody.innerHTML = `<tr class="empty-row"><td colspan="6">Belum ada riwayat download.</td></tr>`;
-        return;
+        ftLogPage = 1;
+        return loadDownloadLog();
       }
 
       const roleBadge = (r) => {
@@ -2125,23 +2239,24 @@
 
     window.exportLogCSV = async function() {
       const produkFilter = document.getElementById('ftLogProduk').value;
-      const role = document.getElementById('ftLogRole').value;
-      const search = document.getElementById('ftLogSearch').value.trim();
+      const roleFilter = document.getElementById('ftLogRole').value;
+      const downloaderFilter = document.getElementById('ftLogDownloader').value;
       const btn = document.getElementById('exportLogBtn');
 
       btn.disabled = true; btn.textContent = '⏳ Menyiapkan...';
 
-      // Fetch semua data tanpa pagination
-      let q = supabase.from('template_downloads').select('*');
-      if (role) q = q.eq('role', role);
-      if (search) q = q.ilike('user_name', `%${search}%`);
-
-      const { data: allLogs, error } = await q;
-      btn.disabled = false; btn.textContent = '⬇ Export CSV';
-
-      if (error || !allLogs?.length) {
-        showAdminToast('Tidak ada data untuk diexport.', 'error'); return;
+      // Gunakan cache kalau ada, fetch kalau belum
+      let allLogs = _allLogCache;
+      if (!allLogs) {
+        const { data, error } = await supabase.from('template_downloads').select('*');
+        if (error || !data?.length) {
+          btn.disabled = false; btn.textContent = '⬇ Export CSV';
+          showAdminToast('Tidak ada data untuk diexport.', 'error'); return;
+        }
+        allLogs = data;
       }
+
+      btn.disabled = false; btn.textContent = '⬇ Export CSV';
 
       // Batch fetch template info
       const ids = [...new Set(allLogs.map(l => l.template_id).filter(Boolean))];
@@ -2151,8 +2266,10 @@
         (tmpls || []).forEach(t => { tmplMap[t.id] = t; });
       }
 
-      // Merge + filter produk
+      // Merge + filter sesuai filter aktif
       let rows = allLogs.map(l => ({ ...l, _tmpl: tmplMap[l.template_id] || null }));
+      if (roleFilter) rows = rows.filter(r => r.role === roleFilter);
+      if (downloaderFilter) rows = rows.filter(r => r.user_name === downloaderFilter);
       if (produkFilter) rows = rows.filter(r => r._tmpl?.produk === produkFilter);
 
       if (!rows.length) { showAdminToast('Tidak ada data untuk diexport.', 'error'); return; }
@@ -2202,6 +2319,256 @@
       setTimeout(() => el?.remove(), 4000);
     }
     // ── END FOOTAGE VIDEO ─────────────────────────────────────
+
+    // ── KONTEN KOL ────────────────────────────────────────────
+    const sbKolAdmin = createClient(
+      'https://pdkkcpdjqpyljddeeott.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBka2tjcGRqcXB5bGpkZGVlb3R0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwOTAyNzQsImV4cCI6MjA5MjY2NjI3NH0.dgMfJdolmHuMyP_Zm9D912I81sSDQXsxhOI21WgFUa8'
+    );
+
+    const KOL_LIB_PER_PAGE = 12;
+    const KOL_LOG_PER_PAGE = 20;
+    let kolLibPage = 1;
+    let kolLogPage = 1;
+    let _kolLogCache = null;
+
+    function extractKolFileId(url) {
+      if (!url) return null;
+      const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (m) return m[1];
+      const m2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      return m2 ? m2[1] : null;
+    }
+
+    window.switchKolTab = function(tab, btn) {
+      document.querySelectorAll('#page-kol .tab-pill').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('#page-kol .tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('ktab-' + tab).classList.add('active');
+      if (tab === 'library') loadAdminKol();
+      if (tab === 'log') { _kolLogCache = null; loadKolLog(); }
+    };
+
+    window.loadAdminKol = async function(page) {
+      if (page !== undefined) kolLibPage = page;
+      const produk = document.getElementById('kolLibProduk').value;
+      const search = document.getElementById('kolLibSearch').value.trim();
+      const from = (kolLibPage - 1) * KOL_LIB_PER_PAGE;
+      const to = from + KOL_LIB_PER_PAGE - 1;
+
+      const grid = document.getElementById('kolLibGrid');
+      const countEl = document.getElementById('kolLibCount');
+      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text2);font-size:13px;">Memuat konten KOL...</div>`;
+      countEl.textContent = '';
+
+      let q = sbKolAdmin.from('kol_videos')
+        .select('*', { count: 'exact' })
+        .not('link_drive', 'is', null)
+        .order('created_at', { ascending: false })
+        .range(from, to);
+      if (produk) q = q.eq('produk', produk);
+      if (search) q = q.ilike('judul', `%${search}%`);
+
+      const { data, count, error } = await q;
+
+      if (error || !data || !data.length) {
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text2);font-size:13px;">${error ? 'Gagal memuat: ' + error.message : 'Belum ada konten KOL.'}</div>`;
+        document.getElementById('kolLibPagination').innerHTML = '';
+        return;
+      }
+
+      // Batch fetch KOL names
+      const kolIds = [...new Set(data.map(v => v.kol_id).filter(Boolean))];
+      let kolsMap = {};
+      if (kolIds.length) {
+        const { data: kolsData } = await sbKolAdmin.from('kols').select('id, name, tiktok').in('id', kolIds);
+        (kolsData || []).forEach(k => { kolsMap[k.id] = k; });
+      }
+
+      countEl.textContent = `${count} konten`;
+      const isNew = (d) => (Date.now() - new Date(d).getTime()) < 2 * 24 * 60 * 60 * 1000;
+
+      grid.innerHTML = data.map(v => {
+        const fid = extractKolFileId(v.link_drive);
+        const thumb = fid ? `https://drive.google.com/thumbnail?id=${fid}&sz=w800` : '';
+        const kol = kolsMap[v.kol_id] || {};
+        const kolLabel = kol.tiktok || kol.name || '';
+        const judul = v.judul || kolLabel || 'Tanpa Judul';
+        return `
+          <div class="footage-card">
+            <div class="footage-thumb" onclick="openKolPreviewAdmin('${v.id}','${judul.replace(/'/g,"\\'")}','${v.produk||''}','${fid||''}',${v.download_count||0},'${kolLabel.replace(/'/g,"\\'")}')">
+              ${thumb ? `<img src="${thumb}" alt="${judul}" loading="lazy" onerror="this.style.display='none'">` : ''}
+              <div class="footage-thumb-play"><div style="margin-left:3px">▶</div></div>
+              ${isNew(v.created_at) ? `<div style="position:absolute;top:12px;left:-16px;width:68px;text-align:center;background:#ef4444;color:#fff;font-size:9px;font-weight:800;padding:3px 0;transform:rotate(-45deg);letter-spacing:0.07em;">NEW</div>` : ''}
+            </div>
+            <div class="footage-info">
+              <div class="footage-title" title="${judul}">${judul}</div>
+              <div class="footage-meta">
+                <span style="font-size:11px;font-weight:600;color:#059669;background:#ecfdf5;padding:2px 8px;border-radius:99px">${v.produk || '—'}</span>
+                <span class="footage-dl">⬇ ${v.download_count||0}x</span>
+              </div>
+              ${kolLabel ? `<div style="font-size:11px;color:var(--text2);margin-top:4px;margin-bottom:4px">${kolLabel}</div>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      renderFtPagination('kolLibPagination', kolLibPage, count, KOL_LIB_PER_PAGE, 'loadAdminKol');
+    };
+
+    window.openKolPreviewAdmin = function(id, judul, produk, fid, dlCount, kolLabel) {
+      document.getElementById('kpaTitle').textContent = judul;
+      document.getElementById('kpaProduk').textContent = produk || '—';
+      document.getElementById('kpaDl').textContent = `⬇ ${dlCount}x download`;
+      document.getElementById('kpaKol').textContent = kolLabel ? kolLabel : '';
+      document.getElementById('kpaIframe').src = fid ? `https://drive.google.com/file/d/${fid}/preview` : '';
+      document.getElementById('kpaDriveLink').href = fid ? `https://drive.google.com/file/d/${fid}/view` : '#';
+      document.getElementById('kolPreviewModalAdmin').classList.add('open');
+    };
+
+    window.closeKolPreviewAdmin = function(e) {
+      if (e.target === document.getElementById('kolPreviewModalAdmin')) {
+        document.getElementById('kolPreviewModalAdmin').classList.remove('open');
+        document.getElementById('kpaIframe').src = '';
+      }
+    };
+
+    // ── LOG DOWNLOAD KOL ──────────────────────────────────────
+    window.loadKolLog = async function(page) {
+      if (page !== undefined) kolLogPage = page;
+      const produkFilter = document.getElementById('kolLogProduk').value;
+      const roleFilter = document.getElementById('kolLogRole').value;
+      const downloaderFilter = document.getElementById('kolLogDownloader').value;
+      const tbody = document.getElementById('kolLogBody');
+
+      tbody.innerHTML = `<tr class="loading-row"><td colspan="6">Memuat...</td></tr>`;
+      document.getElementById('kolLogPagination').innerHTML = '';
+
+      if (!_kolLogCache) {
+        const { data, error } = await sbKolAdmin.from('kol_downloads').select('*').order('created_at', { ascending: false });
+        if (error || !data) {
+          tbody.innerHTML = `<tr class="empty-row"><td colspan="6" style="color:#ef4444">Gagal memuat log: ${error?.message || 'Unknown error'}</td></tr>`;
+          return;
+        }
+        _kolLogCache = data;
+
+        // Populate dropdown downloader
+        const names = [...new Set(data.map(l => l.user_name).filter(Boolean))].sort();
+        const sel = document.getElementById('kolLogDownloader');
+        const curVal = sel.value;
+        sel.innerHTML = `<option value="">Semua Downloader</option>` +
+          names.map(n => `<option value="${n}" ${n === curVal ? 'selected' : ''}>${n}</option>`).join('');
+      }
+
+      // Fetch video info untuk semua unique video_id
+      const allIds = [...new Set(_kolLogCache.map(l => l.video_id).filter(Boolean))];
+      let videoMap = {};
+      if (allIds.length) {
+        const { data: videos } = await sbKolAdmin.from('kol_videos').select('id, judul, produk, kol_id').in('id', allIds);
+        (videos || []).forEach(v => { videoMap[v.id] = v; });
+      }
+
+      // Merge + filter
+      let rows = _kolLogCache.map(l => ({ ...l, _video: videoMap[l.video_id] || null }));
+      if (roleFilter) rows = rows.filter(r => r.role === roleFilter);
+      if (downloaderFilter) rows = rows.filter(r => r.user_name === downloaderFilter);
+      if (produkFilter) rows = rows.filter(r => r._video?.produk === produkFilter);
+
+      if (!rows.length) {
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="6">Belum ada riwayat download KOL.</td></tr>`;
+        return;
+      }
+
+      const roleBadge = (r) => {
+        if (r === 'advertiser') return `<span class="role-badge-adv">Advertiser</span>`;
+        if (r === 'creator') return `<span class="role-badge-creator">Creator</span>`;
+        if (r === 'smo') return `<span class="role-badge-smo">SMO</span>`;
+        return `<span style="font-size:11px;color:var(--text2)">${r || '—'}</span>`;
+      };
+
+      const fmtDt = (s) => {
+        if (!s) return '—';
+        const d = new Date(s);
+        return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+          + ' ' + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      };
+
+      const total = rows.length;
+      const from = (kolLogPage - 1) * KOL_LOG_PER_PAGE;
+      const pageRows = rows.slice(from, from + KOL_LOG_PER_PAGE);
+
+      tbody.innerHTML = pageRows.map((r, i) => `
+        <tr>
+          <td style="color:var(--text2);font-size:12px">${from + i + 1}</td>
+          <td style="font-weight:600;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${r._video?.judul || '—'}">${r._video?.judul || '—'}</td>
+          <td><span style="font-size:11px;font-weight:600;color:#059669;background:#ecfdf5;padding:2px 8px;border-radius:99px">${r._video?.produk || '—'}</span></td>
+          <td style="font-weight:600">${r.user_name || '—'}</td>
+          <td>${roleBadge(r.role)}</td>
+          <td style="font-size:12px;color:var(--text2);white-space:nowrap">${fmtDt(r.created_at)}</td>
+        </tr>
+      `).join('');
+
+      renderFtPagination('kolLogPagination', kolLogPage, total, KOL_LOG_PER_PAGE, 'loadKolLog');
+    };
+
+    window.exportKolLogCSV = async function() {
+      const produkFilter = document.getElementById('kolLogProduk').value;
+      const roleFilter = document.getElementById('kolLogRole').value;
+      const downloaderFilter = document.getElementById('kolLogDownloader').value;
+      const btn = document.getElementById('exportKolLogBtn');
+
+      btn.disabled = true; btn.textContent = '⏳ Menyiapkan...';
+
+      let allLogs = _kolLogCache;
+      if (!allLogs) {
+        const { data, error } = await sbKolAdmin.from('kol_downloads').select('*').order('created_at', { ascending: false });
+        if (error || !data?.length) {
+          btn.disabled = false; btn.textContent = '⬇ Export CSV';
+          showAdminToast('Tidak ada data untuk diexport.', 'error'); return;
+        }
+        allLogs = data;
+      }
+
+      const ids = [...new Set(allLogs.map(l => l.video_id).filter(Boolean))];
+      let videoMap = {};
+      if (ids.length) {
+        const { data: videos } = await sbKolAdmin.from('kol_videos').select('id, judul, produk').in('id', ids);
+        (videos || []).forEach(v => { videoMap[v.id] = v; });
+      }
+
+      let rows = allLogs.map(l => ({ ...l, _video: videoMap[l.video_id] || null }));
+      if (roleFilter) rows = rows.filter(r => r.role === roleFilter);
+      if (downloaderFilter) rows = rows.filter(r => r.user_name === downloaderFilter);
+      if (produkFilter) rows = rows.filter(r => r._video?.produk === produkFilter);
+
+      btn.disabled = false; btn.textContent = '⬇ Export CSV';
+      if (!rows.length) { showAdminToast('Tidak ada data untuk diexport.', 'error'); return; }
+
+      const fmtDt = (s) => {
+        if (!s) return '';
+        const d = new Date(s);
+        return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+          + ' ' + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      };
+      const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+
+      const header = ['No', 'Konten KOL', 'Produk', 'Downloader', 'Role', 'Waktu'];
+      const csvRows = rows.map((r, i) => [
+        i + 1, esc(r._video?.judul || ''), esc(r._video?.produk || ''),
+        esc(r.user_name || ''), esc(r.role || ''), esc(fmtDt(r.created_at))
+      ].join(','));
+
+      const csv = [header.join(','), ...csvRows].join('\n');
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const now = new Date();
+      const ds = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
+      a.href = url; a.download = `log-download-kol-${ds}.csv`; a.click();
+      URL.revokeObjectURL(url);
+      showAdminToast(`${rows.length} baris berhasil diexport.`, 'success');
+    };
+    // ── END KONTEN KOL ────────────────────────────────────────
 
     init();
   </script>

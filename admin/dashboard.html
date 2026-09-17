@@ -1901,17 +1901,27 @@
       const from = (ftLibPage - 1) * FT_PER_PAGE;
       const to = from + FT_PER_PAGE - 1;
 
+      const grid = document.getElementById('ftLibGrid');
+      const countEl = document.getElementById('ftLibCount');
+
+      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:50px;color:var(--text2);font-size:13px;">Memuat...</div>`;
+      countEl.textContent = '';
+
       let q = supabase.from('video_templates').select('*', { count: 'exact' })
         .order('created_at', { ascending: false }).range(from, to);
       if (produk) q = q.eq('produk', produk);
       if (search) q = q.ilike('judul', `%${search}%`);
 
-      const { data, count } = await q;
-      const grid = document.getElementById('ftLibGrid');
-      const countEl = document.getElementById('ftLibCount');
+      const { data, count, error } = await q;
+
+      if (error) {
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:50px;color:#ef4444;font-size:13px;">Gagal memuat: ${error.message}</div>`;
+        document.getElementById('ftLibPagination').innerHTML = '';
+        return;
+      }
 
       if (!data || !data.length) {
-        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:50px;color:var(--text3);">Belum ada footage.</div>`;
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:50px;color:var(--text3);font-size:13px;">Belum ada footage.</div>`;
         countEl.textContent = '';
         document.getElementById('ftLibPagination').innerHTML = '';
         return;
@@ -2033,36 +2043,54 @@
     // ── LOG DOWNLOAD ──────────────────────────────────────────
     window.loadDownloadLog = async function(page) {
       if (page !== undefined) ftLogPage = page;
-      const produk = document.getElementById('ftLogProduk').value;
+      const produkFilter = document.getElementById('ftLogProduk').value;
       const role = document.getElementById('ftLogRole').value;
       const search = document.getElementById('ftLogSearch').value.trim();
-      const from = (ftLogPage - 1) * LOG_PER_PAGE;
-      const to = from + LOG_PER_PAGE - 1;
-
-      // Fetch logs + join video_templates untuk dapat judul & produk
-      let q = supabase.from('template_downloads')
-        .select('*, video_templates(judul, produk)', { count: 'exact' })
-        .order('created_at', { ascending: false })
-        .range(from, to);
-      if (role) q = q.eq('role', role);
-      if (search) q = q.ilike('user_name', `%${search}%`);
-      if (produk) q = q.eq('video_templates.produk', produk);
-
-      const { data, count, error } = await q;
       const tbody = document.getElementById('ftLogBody');
 
-      if (error || !data) {
-        tbody.innerHTML = `<tr class="empty-row"><td colspan="6">Gagal memuat log.</td></tr>`;
+      tbody.innerHTML = `<tr class="loading-row"><td colspan="6">Memuat...</td></tr>`;
+      document.getElementById('ftLogPagination').innerHTML = '';
+
+      // Query 1: fetch template_downloads (dengan filter role + nama)
+      let q = supabase.from('template_downloads')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false });
+      if (role) q = q.eq('role', role);
+      if (search) q = q.ilike('user_name', `%${search}%`);
+
+      const { data: allLogs, count: totalCount, error } = await q;
+
+      if (error || !allLogs) {
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="6">Gagal memuat log: ${error?.message || 'Unknown error'}</td></tr>`;
         return;
       }
 
-      // Filter client-side untuk produk (karena Supabase foreign filter butuh .filter)
-      let rows = data;
-      if (produk) rows = rows.filter(r => r.video_templates?.produk === produk);
-
-      if (!rows.length) {
+      if (!allLogs.length) {
         tbody.innerHTML = `<tr class="empty-row"><td colspan="6">Belum ada riwayat download.</td></tr>`;
-        document.getElementById('ftLogPagination').innerHTML = '';
+        return;
+      }
+
+      // Query 2: fetch judul + produk untuk template_id yang unik di halaman ini
+      const allIds = [...new Set(allLogs.map(l => l.template_id).filter(Boolean))];
+      let tmplMap = {};
+      if (allIds.length) {
+        const { data: tmpls } = await supabase.from('video_templates')
+          .select('id, judul, produk')
+          .in('id', allIds);
+        (tmpls || []).forEach(t => { tmplMap[t.id] = t; });
+      }
+
+      // Merge + filter produk client-side
+      let rows = allLogs.map(l => ({ ...l, _tmpl: tmplMap[l.template_id] || null }));
+      if (produkFilter) rows = rows.filter(r => r._tmpl?.produk === produkFilter);
+
+      // Pagination manual (setelah filter)
+      const total = rows.length;
+      const from = (ftLogPage - 1) * LOG_PER_PAGE;
+      const pageRows = rows.slice(from, from + LOG_PER_PAGE);
+
+      if (!pageRows.length) {
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="6">Belum ada riwayat download.</td></tr>`;
         return;
       }
 
@@ -2071,28 +2099,28 @@
         if (r === 'creator') return `<span class="role-badge-creator">Creator</span>`;
         if (r === 'smo') return `<span class="role-badge-smo">SMO</span>`;
         if (r === 'videografer') return `<span class="role-badge-vg">Videografer</span>`;
-        return `<span style="font-size:11px;color:var(--text2)">${r||'—'}</span>`;
+        return `<span style="font-size:11px;color:var(--text2)">${r || '—'}</span>`;
       };
 
       const fmtDt = (s) => {
         if (!s) return '—';
         const d = new Date(s);
-        return d.toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' })
-          + ' ' + d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+        return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+          + ' ' + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
       };
 
-      tbody.innerHTML = rows.map((r, i) => `
+      tbody.innerHTML = pageRows.map((r, i) => `
         <tr>
           <td style="color:var(--text2);font-size:12px">${from + i + 1}</td>
-          <td style="font-weight:600;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${r.video_templates?.judul||'—'}">${r.video_templates?.judul||'—'}</td>
-          <td><span class="footage-produk" style="font-size:11px">${r.video_templates?.produk||'—'}</span></td>
-          <td style="font-weight:600">${r.user_name||'—'}</td>
+          <td style="font-weight:600;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${r._tmpl?.judul || '—'}">${r._tmpl?.judul || '—'}</td>
+          <td><span class="footage-produk" style="font-size:11px">${r._tmpl?.produk || '—'}</span></td>
+          <td style="font-weight:600">${r.user_name || '—'}</td>
           <td>${roleBadge(r.role)}</td>
           <td style="font-size:12px;color:var(--text2);white-space:nowrap">${fmtDt(r.created_at)}</td>
         </tr>
       `).join('');
 
-      renderFtPagination('ftLogPagination', ftLogPage, count || rows.length, LOG_PER_PAGE, 'loadDownloadLog');
+      renderFtPagination('ftLogPagination', ftLogPage, total, LOG_PER_PAGE, 'loadDownloadLog');
     };
 
     function showAdminToast(msg, type = 'info') {

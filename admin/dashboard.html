@@ -360,6 +360,91 @@
     body:not(.light) .akun-badge.utama { background: #451a03; color: #fbbf24; }
     body:not(.light) .akun-badge.pemasaran { background: #1e3a5f; color: #60a5fa; }
     .akun-produk-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: var(--nav-active); color: var(--accent); }
+
+    /* Footage Page */
+    .tab-pills { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+    .tab-pill {
+      padding: 8px 20px; border-radius: 99px; border: 1.5px solid var(--border);
+      background: var(--surface); color: var(--text2); font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .tab-pill:hover { border-color: var(--accent); color: var(--accent); }
+    .tab-pill.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .footage-toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+    .footage-filter {
+      padding: 9px 14px; border: 1.5px solid var(--border); border-radius: 10px;
+      font-size: 13px; color: var(--text); background: var(--input-bg); outline: none; cursor: pointer; font-family: inherit;
+    }
+    .footage-filter:focus { border-color: var(--accent); }
+    .footage-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;
+    }
+    .footage-card {
+      background: var(--surface); border-radius: 14px; overflow: hidden;
+      border: 1px solid var(--border); transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .footage-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+    .footage-thumb {
+      width: 100%; aspect-ratio: 16/9; background: var(--surface2);
+      position: relative; overflow: hidden; cursor: pointer;
+    }
+    .footage-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .footage-thumb-play {
+      position: absolute; inset: 0; background: rgba(0,0,0,0.3);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .footage-thumb:hover .footage-thumb-play { opacity: 1; }
+    .footage-thumb-play div {
+      width: 44px; height: 44px; background: rgba(255,255,255,0.9); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; font-size: 16px;
+    }
+    .footage-info { padding: 11px 13px; }
+    .footage-title { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 6px; }
+    .footage-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .footage-produk { font-size: 11px; font-weight: 600; color: var(--accent); background: var(--nav-active); padding: 2px 8px; border-radius: 99px; }
+    .footage-dl { font-size: 11px; color: var(--text2); }
+    .footage-actions { display: flex; gap: 5px; }
+    .footage-btn-edit {
+      flex: 1; padding: 6px; background: var(--surface2); color: var(--accent);
+      border: 1px solid var(--border); border-radius: 7px; font-size: 11px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s; text-align: center;
+    }
+    .footage-btn-edit:hover { background: var(--nav-active); }
+    .footage-btn-del {
+      padding: 6px 9px; background: transparent; color: #ef4444;
+      border: 1px solid #ef4444; border-radius: 7px; font-size: 11px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .footage-btn-del:hover { background: #ef4444; color: #fff; }
+    .footage-pagination { display: flex; justify-content: center; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .fpg-btn {
+      padding: 6px 12px; border-radius: 8px; border: 1.5px solid var(--border);
+      background: var(--surface); color: var(--text2); font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .fpg-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); cursor: default; }
+    .fpg-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Log Download */
+    .log-toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+    .role-badge-adv { background: #dbeafe; color: #1d4ed8; padding: 2px 9px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+    .role-badge-creator { background: #ede9fe; color: #6d28d9; padding: 2px 9px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+    .role-badge-smo { background: #d1fae5; color: #065f46; padding: 2px 9px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+    .role-badge-vg { background: #fef3c7; color: #92400e; padding: 2px 9px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+    body:not(.light) .role-badge-adv { background: #1e3a5f; color: #60a5fa; }
+    body:not(.light) .role-badge-creator { background: #2e1065; color: #a78bfa; }
+    body:not(.light) .role-badge-smo { background: #064e3b; color: #34d399; }
+    body:not(.light) .role-badge-vg { background: #451a03; color: #fbbf24; }
+
+    /* Footage Edit Modal */
+    .footage-modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .footage-modal-overlay.open { display: flex; }
   </style>
 </head>
 <body>
@@ -393,6 +478,9 @@
     </button>
     <button class="nav-item" onclick="showPage('tiktok', this)">
       <span class="icon">📱</span> Akun TikTok
+    </button>
+    <button class="nav-item" onclick="showPage('footage', this)">
+      <span class="icon">🎬</span> Footage Video
     </button>
 
     <div class="sidebar-bottom">
@@ -537,6 +625,82 @@
       <div id="tiktokAccountsList"></div>
     </div>
 
+    <!-- FOOTAGE PAGE -->
+    <div class="page-section" id="page-footage">
+      <div class="page-header">
+        <div class="page-title">Footage Video</div>
+        <div class="page-subtitle">Kelola library footage & lihat riwayat download.</div>
+      </div>
+
+      <!-- Tab Pills -->
+      <div class="tab-pills">
+        <button class="tab-pill active" onclick="switchFootageTab('library', this)">🎬 Library Footage</button>
+        <button class="tab-pill" onclick="switchFootageTab('log', this)">📥 Log Download</button>
+      </div>
+
+      <!-- TAB: Library -->
+      <div class="tab-content active" id="ftab-library">
+        <div class="footage-toolbar">
+          <select class="footage-filter" id="ftLibProduk" onchange="ftLibPage=1;loadAdminFootage()">
+            <option value="">Semua Produk</option>
+            <option>Primagold</option><option>Numata</option><option>Herbapil</option>
+            <option>Youzhi Cream</option><option>Youzhi Tube</option><option>Onaire</option>
+            <option>Jawara</option><option>Koikohi</option><option>Mr Prima</option>
+            <option>Vasco</option><option>Notelli</option><option>Maksir</option>
+            <option>Oiri</option><option>Noradix</option><option>Bajakah</option>
+            <option>Provitasi</option><option>Channabumax</option>
+          </select>
+          <input class="search-input" type="text" id="ftLibSearch" placeholder="🔍 Cari judul..." oninput="ftLibPage=1;loadAdminFootage()" />
+          <span id="ftLibCount" style="font-size:12px;color:var(--text2);margin-left:4px;"></span>
+        </div>
+        <div class="footage-grid" id="ftLibGrid">
+          <div class="empty-row" style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text3);">Memuat...</div>
+        </div>
+        <div class="footage-pagination" id="ftLibPagination"></div>
+      </div>
+
+      <!-- TAB: Log Download -->
+      <div class="tab-content" id="ftab-log">
+        <div class="log-toolbar">
+          <select class="footage-filter" id="ftLogProduk" onchange="ftLogPage=1;loadDownloadLog()">
+            <option value="">Semua Produk</option>
+            <option>Primagold</option><option>Numata</option><option>Herbapil</option>
+            <option>Youzhi Cream</option><option>Youzhi Tube</option><option>Onaire</option>
+            <option>Jawara</option><option>Koikohi</option><option>Mr Prima</option>
+            <option>Vasco</option><option>Notelli</option><option>Maksir</option>
+            <option>Oiri</option><option>Noradix</option><option>Bajakah</option>
+            <option>Provitasi</option><option>Channabumax</option>
+          </select>
+          <select class="footage-filter" id="ftLogRole" onchange="ftLogPage=1;loadDownloadLog()">
+            <option value="">Semua Role</option>
+            <option value="advertiser">Advertiser</option>
+            <option value="creator">Creator</option>
+            <option value="smo">SMO</option>
+            <option value="videografer">Videografer</option>
+          </select>
+          <input class="search-input" type="text" id="ftLogSearch" placeholder="🔍 Cari nama..." oninput="ftLogPage=1;loadDownloadLog()" />
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Footage</th>
+                <th>Produk</th>
+                <th>Downloader</th>
+                <th>Role</th>
+                <th>Waktu</th>
+              </tr>
+            </thead>
+            <tbody id="ftLogBody">
+              <tr class="loading-row"><td colspan="6">Memuat...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="footage-pagination" id="ftLogPagination" style="margin-top:16px;"></div>
+      </div>
+    </div>
+
     <!-- LAPORAN PAGE -->
     <div class="page-section" id="page-laporan">
       <div class="page-header">
@@ -559,6 +723,67 @@
       <div id="laporanBody"></div>
     </div>
 
+  </div>
+
+  <!-- Footage Edit Modal -->
+  <div class="footage-modal-overlay" id="footageEditModal" onclick="closeFootageEditModal(event)">
+    <div class="modal-box" style="max-width:480px">
+      <div class="modal-head">
+        <div class="modal-head-title">Edit Footage</div>
+        <button class="modal-close" onclick="document.getElementById('footageEditModal').classList.remove('open')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="feId" />
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Judul Template</div>
+          <input type="text" id="feJudul" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;color:var(--text);background:var(--input-bg);outline:none;font-family:inherit;transition:border 0.2s;" onfocus="this.style.borderColor='#4f46e5'" onblur="this.style.borderColor=''">
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Produk</div>
+          <select id="feProduk" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;color:var(--text);background:var(--input-bg);outline:none;font-family:inherit;cursor:pointer;">
+            <option>Primagold</option><option>Numata</option><option>Herbapil</option>
+            <option>Youzhi Cream</option><option>Youzhi Tube</option><option>Onaire</option>
+            <option>Jawara</option><option>Koikohi</option><option>Mr Prima</option>
+            <option>Vasco</option><option>Notelli</option><option>Maksir</option>
+            <option>Oiri</option><option>Noradix</option><option>Bajakah</option>
+            <option>Provitasi</option><option>Channabumax</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Link Google Drive</div>
+          <input type="url" id="feLink" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;color:var(--text);background:var(--input-bg);outline:none;font-family:inherit;transition:border 0.2s;" onfocus="this.style.borderColor='#4f46e5'" onblur="this.style.borderColor=''">
+        </div>
+        <div style="font-size:12px;color:var(--text2);background:var(--surface2);padding:10px 14px;border-radius:8px;" id="feUploader"></div>
+        <div style="color:#ef4444;font-size:13px;min-height:18px" id="feMsg"></div>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button onclick="document.getElementById('footageEditModal').classList.remove('open')" style="flex:1;padding:11px;background:var(--surface2);color:var(--text2);border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">Batal</button>
+          <button id="feSaveBtn" onclick="saveFootageEdit()" style="flex:1;padding:11px;background:#4f46e5;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">Simpan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footage Preview Modal (admin) -->
+  <div class="footage-modal-overlay" id="footagePreviewModal" onclick="closeFootagePreviewModal(event)">
+    <div class="modal-box" style="max-width:640px">
+      <div class="modal-head">
+        <div>
+          <div class="modal-head-title" id="fpTitle">—</div>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:6px">
+            <span style="font-size:11px;font-weight:600;color:var(--accent);background:var(--nav-active);padding:2px 8px;border-radius:99px" id="fpProduk">—</span>
+            <span style="font-size:12px;color:var(--text2)" id="fpDl">—</span>
+            <span style="font-size:12px;color:var(--text2)" id="fpUploader">—</span>
+          </div>
+        </div>
+        <button class="modal-close" onclick="document.getElementById('footagePreviewModal').classList.remove('open');document.getElementById('fpIframe').src=''">✕</button>
+      </div>
+      <div class="modal-body" style="gap:12px">
+        <div style="width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000">
+          <iframe id="fpIframe" src="" allowfullscreen style="width:100%;height:100%;border:none;"></iframe>
+        </div>
+        <a id="fpDriveLink" href="#" target="_blank" style="display:inline-flex;align-items:center;gap:6px;color:#60a5fa;font-size:13px;font-weight:600;text-decoration:none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">🔗 Buka di Drive</a>
+      </div>
+    </div>
   </div>
 
   <!-- Detail Order Modal -->
@@ -1434,6 +1659,7 @@
       if (page === 'laporan') loadLaporan();
       if (page === 'perform') loadPerform();
       if (page === 'tiktok') loadTiktokAccounts();
+      if (page === 'footage') loadAdminFootage();
     };
 
     window.doLogout = async function () {
@@ -1646,7 +1872,255 @@
     };
     // ── END TIKTOK ACCOUNTS ───────────────────────────────────
 
+    // ── FOOTAGE VIDEO ─────────────────────────────────────────
+    const FT_PER_PAGE = 12;
+    const LOG_PER_PAGE = 20;
+    let ftLibPage = 1;
+    let ftLogPage = 1;
+    let ftCurrentPreviewFileId = null;
+
+    function extractFileId(url) {
+      if (!url) return null;
+      const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      return m ? m[1] : null;
+    }
+
+    window.switchFootageTab = function(tab, btn) {
+      document.querySelectorAll('.tab-pill').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('ftab-' + tab).classList.add('active');
+      if (tab === 'library') loadAdminFootage();
+      if (tab === 'log') loadDownloadLog();
+    };
+
+    window.loadAdminFootage = async function(page) {
+      if (page !== undefined) ftLibPage = page;
+      const produk = document.getElementById('ftLibProduk').value;
+      const search = document.getElementById('ftLibSearch').value.trim();
+      const from = (ftLibPage - 1) * FT_PER_PAGE;
+      const to = from + FT_PER_PAGE - 1;
+
+      let q = supabase.from('video_templates').select('*', { count: 'exact' })
+        .order('created_at', { ascending: false }).range(from, to);
+      if (produk) q = q.eq('produk', produk);
+      if (search) q = q.ilike('judul', `%${search}%`);
+
+      const { data, count } = await q;
+      const grid = document.getElementById('ftLibGrid');
+      const countEl = document.getElementById('ftLibCount');
+
+      if (!data || !data.length) {
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:50px;color:var(--text3);">Belum ada footage.</div>`;
+        countEl.textContent = '';
+        document.getElementById('ftLibPagination').innerHTML = '';
+        return;
+      }
+
+      countEl.textContent = `${count} footage`;
+      const isNew = (d) => (Date.now() - new Date(d).getTime()) < 2 * 24 * 60 * 60 * 1000;
+
+      grid.innerHTML = data.map(t => {
+        const fid = t.file_id || extractFileId(t.link_drive);
+        const thumb = t.thumbnail_url || (fid ? `https://drive.google.com/thumbnail?id=${fid}&sz=w800` : '');
+        return `
+          <div class="footage-card">
+            <div class="footage-thumb" onclick="openFootagePreview('${t.id}','${(t.judul||'').replace(/'/g,"\\'")}','${t.produk}','${fid||''}',${t.download_count||0},'${(t.uploader_name||'').replace(/'/g,"\\'")}')">
+              ${thumb ? `<img src="${thumb}" alt="${t.judul}" loading="lazy" onerror="this.style.display='none'">` : ''}
+              <div class="footage-thumb-play"><div style="margin-left:3px">▶</div></div>
+              ${isNew(t.created_at) ? `<div style="position:absolute;top:12px;left:-16px;width:68px;text-align:center;background:#ef4444;color:#fff;font-size:9px;font-weight:800;padding:3px 0;transform:rotate(-45deg);letter-spacing:0.07em;">NEW</div>` : ''}
+            </div>
+            <div class="footage-info">
+              <div class="footage-title" title="${t.judul}">${t.judul}</div>
+              <div class="footage-meta">
+                <span class="footage-produk">${t.produk}</span>
+                <span class="footage-dl">⬇ ${t.download_count||0}x</span>
+              </div>
+              <div style="font-size:11px;color:var(--text2);margin-bottom:7px">oleh ${t.uploader_name||'—'}</div>
+              <div class="footage-actions">
+                <button class="footage-btn-edit" onclick="openFootageEdit('${t.id}','${(t.judul||'').replace(/'/g,"\\'")}','${t.produk}','${(t.link_drive||'').replace(/'/g,"\\'")}','${(t.uploader_name||'').replace(/'/g,"\\'")}')">Edit</button>
+                <button class="footage-btn-del" onclick="deleteFootage('${t.id}','${(t.judul||'').replace(/'/g,"\\'")}')">🗑</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      renderFtPagination('ftLibPagination', ftLibPage, count, FT_PER_PAGE, 'loadAdminFootage');
+    };
+
+    function renderFtPagination(containerId, current, total, perPage, fn) {
+      const container = document.getElementById(containerId);
+      const pages = Math.ceil(total / perPage);
+      if (pages <= 1) { container.innerHTML = ''; return; }
+      let html = `<button class="fpg-btn" ${current===1?'disabled':''} onclick="${fn}(${current-1})">← Prev</button>`;
+      for (let i = 1; i <= pages; i++) {
+        if (pages > 7 && i > 2 && i < pages - 1 && Math.abs(i - current) > 1) {
+          if (i === 3 || i === pages - 2) html += `<span style="color:var(--text3);padding:0 2px">…</span>`;
+          continue;
+        }
+        html += `<button class="fpg-btn${i===current?' active':''}" ${i===current?'disabled':''} onclick="${fn}(${i})">${i}</button>`;
+      }
+      html += `<button class="fpg-btn" ${current===pages?'disabled':''} onclick="${fn}(${current+1})">Next →</button>`;
+      html += `<span style="font-size:12px;color:var(--text2);margin-left:6px">${total} item</span>`;
+      container.innerHTML = html;
+    }
+
+    window.openFootagePreview = function(id, judul, produk, fid, dlCount, uploader) {
+      ftCurrentPreviewFileId = fid;
+      document.getElementById('fpTitle').textContent = judul;
+      document.getElementById('fpProduk').textContent = produk;
+      document.getElementById('fpDl').textContent = `⬇ ${dlCount}x download`;
+      document.getElementById('fpUploader').textContent = `oleh ${uploader || '—'}`;
+      document.getElementById('fpIframe').src = fid ? `https://drive.google.com/file/d/${fid}/preview` : '';
+      document.getElementById('fpDriveLink').href = fid ? `https://drive.google.com/file/d/${fid}/view` : '#';
+      document.getElementById('footagePreviewModal').classList.add('open');
+    };
+
+    window.closeFootagePreviewModal = function(e) {
+      if (e.target === document.getElementById('footagePreviewModal')) {
+        document.getElementById('footagePreviewModal').classList.remove('open');
+        document.getElementById('fpIframe').src = '';
+      }
+    };
+
+    window.openFootageEdit = function(id, judul, produk, link, uploader) {
+      document.getElementById('feId').value = id;
+      document.getElementById('feJudul').value = judul;
+      document.getElementById('feProduk').value = produk;
+      document.getElementById('feLink').value = link;
+      document.getElementById('feUploader').textContent = `Diupload oleh: ${uploader || '—'}`;
+      document.getElementById('feMsg').textContent = '';
+      document.getElementById('footageEditModal').classList.add('open');
+    };
+
+    window.closeFootageEditModal = function(e) {
+      if (e.target === document.getElementById('footageEditModal')) {
+        document.getElementById('footageEditModal').classList.remove('open');
+      }
+    };
+
+    window.saveFootageEdit = async function() {
+      const id = document.getElementById('feId').value;
+      const judul = document.getElementById('feJudul').value.trim();
+      const produk = document.getElementById('feProduk').value;
+      const link = document.getElementById('feLink').value.trim();
+      const msg = document.getElementById('feMsg');
+      const btn = document.getElementById('feSaveBtn');
+
+      if (!judul || !produk || !link) { msg.textContent = 'Semua field wajib diisi.'; return; }
+      const fileId = extractFileId(link);
+      if (!fileId) { msg.textContent = 'Link Google Drive tidak valid.'; return; }
+
+      btn.disabled = true; btn.textContent = 'Menyimpan...';
+      const { error } = await supabase.from('video_templates').update({ judul, produk, link_drive: link, file_id: fileId }).eq('id', id);
+      btn.disabled = false; btn.textContent = 'Simpan';
+
+      if (error) { msg.textContent = 'Gagal: ' + error.message; return; }
+      document.getElementById('footageEditModal').classList.remove('open');
+      showAdminToast('Footage berhasil diupdate.', 'success');
+      loadAdminFootage();
+    };
+
+    window.deleteFootage = async function(id, judul) {
+      if (!confirm(`Hapus footage "${judul}"? Aksi ini tidak bisa dibatalkan.`)) return;
+      const { error } = await supabase.from('video_templates').delete().eq('id', id);
+      if (error) { showAdminToast('Gagal hapus: ' + error.message, 'error'); return; }
+      showAdminToast('Footage berhasil dihapus.', 'success');
+      loadAdminFootage();
+    };
+
+    // ── LOG DOWNLOAD ──────────────────────────────────────────
+    window.loadDownloadLog = async function(page) {
+      if (page !== undefined) ftLogPage = page;
+      const produk = document.getElementById('ftLogProduk').value;
+      const role = document.getElementById('ftLogRole').value;
+      const search = document.getElementById('ftLogSearch').value.trim();
+      const from = (ftLogPage - 1) * LOG_PER_PAGE;
+      const to = from + LOG_PER_PAGE - 1;
+
+      // Fetch logs + join video_templates untuk dapat judul & produk
+      let q = supabase.from('template_downloads')
+        .select('*, video_templates(judul, produk)', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
+      if (role) q = q.eq('role', role);
+      if (search) q = q.ilike('user_name', `%${search}%`);
+      if (produk) q = q.eq('video_templates.produk', produk);
+
+      const { data, count, error } = await q;
+      const tbody = document.getElementById('ftLogBody');
+
+      if (error || !data) {
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="6">Gagal memuat log.</td></tr>`;
+        return;
+      }
+
+      // Filter client-side untuk produk (karena Supabase foreign filter butuh .filter)
+      let rows = data;
+      if (produk) rows = rows.filter(r => r.video_templates?.produk === produk);
+
+      if (!rows.length) {
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="6">Belum ada riwayat download.</td></tr>`;
+        document.getElementById('ftLogPagination').innerHTML = '';
+        return;
+      }
+
+      const roleBadge = (r) => {
+        if (r === 'advertiser') return `<span class="role-badge-adv">Advertiser</span>`;
+        if (r === 'creator') return `<span class="role-badge-creator">Creator</span>`;
+        if (r === 'smo') return `<span class="role-badge-smo">SMO</span>`;
+        if (r === 'videografer') return `<span class="role-badge-vg">Videografer</span>`;
+        return `<span style="font-size:11px;color:var(--text2)">${r||'—'}</span>`;
+      };
+
+      const fmtDt = (s) => {
+        if (!s) return '—';
+        const d = new Date(s);
+        return d.toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' })
+          + ' ' + d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+      };
+
+      tbody.innerHTML = rows.map((r, i) => `
+        <tr>
+          <td style="color:var(--text2);font-size:12px">${from + i + 1}</td>
+          <td style="font-weight:600;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${r.video_templates?.judul||'—'}">${r.video_templates?.judul||'—'}</td>
+          <td><span class="footage-produk" style="font-size:11px">${r.video_templates?.produk||'—'}</span></td>
+          <td style="font-weight:600">${r.user_name||'—'}</td>
+          <td>${roleBadge(r.role)}</td>
+          <td style="font-size:12px;color:var(--text2);white-space:nowrap">${fmtDt(r.created_at)}</td>
+        </tr>
+      `).join('');
+
+      renderFtPagination('ftLogPagination', ftLogPage, count || rows.length, LOG_PER_PAGE, 'loadDownloadLog');
+    };
+
+    function showAdminToast(msg, type = 'info') {
+      const wrap = document.getElementById('toastWrap');
+      if (!wrap) return;
+      const icons = { error: '⚠️', success: '✅', info: 'ℹ️' };
+      const id = 'toast-' + Date.now();
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.id = id;
+      el.innerHTML = `<span>${icons[type]||'ℹ️'}</span><span style="flex:1">${msg}</span><button class="toast-close" onclick="document.getElementById('${id}').remove()">✕</button>`;
+      wrap.appendChild(el);
+      setTimeout(() => el?.remove(), 4000);
+    }
+    // ── END FOOTAGE VIDEO ─────────────────────────────────────
+
     init();
   </script>
+
+  <!-- Toast Container -->
+  <div id="toastWrap" style="position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px;"></div>
+  <style>
+    .toast { display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;min-width:260px;background:var(--surface);border:1px solid var(--border);box-shadow:0 4px 20px rgba(0,0,0,0.25);font-size:13px;font-weight:500;color:var(--text);animation:slideIn 0.3s ease; }
+    .toast.success { border-left:4px solid #10b981; }
+    .toast.error { border-left:4px solid #ef4444; }
+    .toast.info { border-left:4px solid #4f46e5; }
+    .toast-close { margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text2);font-size:16px;line-height:1; }
+    @keyframes slideIn { from { transform:translateX(100%);opacity:0; } to { transform:translateX(0);opacity:1; } }
+  </style>
 </body>
 </html>
